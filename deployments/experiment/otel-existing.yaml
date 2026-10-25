@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: frontend
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkoutservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: checkoutservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: productcatalogservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currencyservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: currencyservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymentservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: paymentservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendationservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: recommendationservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emailservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_TRACING
+              value: "1"
+            - name: COLLECTOR_SERVICE_ADDR
+              value: otel-collector.observability-otel.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: emailservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
