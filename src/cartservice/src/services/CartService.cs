@@ -25,25 +25,30 @@ namespace cartservice.services
     {
         private readonly static Empty Empty = new Empty();
         private readonly ICartStore _cartStore;
+        private readonly ILogger<CartService> _logger;
 
-        public CartService(ICartStore cartStore)
+        public CartService(ICartStore cartStore, ILogger<CartService> logger)
         {
             _cartStore = cartStore;
+            _logger = logger;
         }
 
         public async override Task<Empty> AddItem(AddItemRequest request, ServerCallContext context)
         {
+            _logger.LogInformation("Adding product {ProductId} to cart for user {UserId}", request.Item.ProductId, request.UserId);
             await _cartStore.AddItemAsync(request.UserId, request.Item.ProductId, request.Item.Quantity);
             return Empty;
         }
 
         public override Task<Cart> GetCart(GetCartRequest request, ServerCallContext context)
         {
+            _logger.LogInformation("Reading cart for user {UserId}", request.UserId);
             return _cartStore.GetCartAsync(request.UserId);
         }
 
         public async override Task<Empty> EmptyCart(EmptyCartRequest request, ServerCallContext context)
         {
+            _logger.LogInformation("Emptying cart for user {UserId}", request.UserId);
             await _cartStore.EmptyCartAsync(request.UserId);
             return Empty;
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +11,11 @@ using Microsoft.Extensions.Hosting;
 using cartservice.cartstore;
 using cartservice.services;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace cartservice
 {
@@ -57,6 +63,47 @@ namespace cartservice
 
 
             services.AddGrpc();
+
+            if (Configuration["ENABLE_TRACING"] == "1")
+            {
+                string collectorAddress = Configuration["COLLECTOR_SERVICE_ADDR"];
+                if (string.IsNullOrEmpty(collectorAddress))
+                {
+                    throw new InvalidOperationException("COLLECTOR_SERVICE_ADDR is required when telemetry is enabled");
+                }
+
+                string serviceName = Configuration["OTEL_SERVICE_NAME"] ?? "cartservice";
+                var collectorEndpoint = new Uri($"http://{collectorAddress}");
+                services.AddOpenTelemetry()
+                    .ConfigureResource(builder => builder.AddService(serviceName, serviceVersion: "0.10.7")
+                        .AddAttributes(new[]
+                        {
+                            new KeyValuePair<string, object>("deployment.environment.name", "tcc-local")
+                        }))
+                    .WithTracing(builder => builder
+                        .SetSampler(new AlwaysOnSampler())
+                        .AddAspNetCoreInstrumentation()
+                        .AddSource(CartTelemetry.ActivitySourceName)
+                        .AddOtlpExporter(options =>
+                        {
+                            options.Endpoint = collectorEndpoint;
+                            options.Protocol = OtlpExportProtocol.Grpc;
+                        }))
+                    .WithMetrics(builder => builder
+                        .AddAspNetCoreInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddMeter(CartTelemetry.MeterName)
+                        .AddOtlpExporter(options =>
+                        {
+                            options.Endpoint = collectorEndpoint;
+                            options.Protocol = OtlpExportProtocol.Grpc;
+                        }))
+                    .WithLogging(builder => builder.AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = collectorEndpoint;
+                        options.Protocol = OtlpExportProtocol.Grpc;
+                    }));
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

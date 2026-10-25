@@ -6,6 +6,9 @@ resources:
 patches:
   - path: otel-existing.yaml
 images:
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
+    newName: cartservice
+    newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
     newName: shippingservice
     newTag: tcc-phase2
