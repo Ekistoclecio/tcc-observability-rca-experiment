@@ -5,3 +5,7 @@ resources:
   - ../observability
 patches:
   - path: otel-existing.yaml
+images:
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
+    newName: shippingservice
+    newTag: tcc-phase2

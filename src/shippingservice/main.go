@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -22,7 +23,13 @@ import (
 
 	"cloud.google.com/go/profiler"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
@@ -54,10 +61,14 @@ func init() {
 }
 
 func main() {
-	if os.Getenv("DISABLE_TRACING") == "" {
-		log.Info("Tracing enabled, but temporarily unavailable")
-		log.Info("See https://github.com/GoogleCloudPlatform/microservices-demo/issues/422 for more info.")
-		go initTracing()
+	ctx := context.Background()
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		shutdown, err := initTracing(ctx)
+		if err != nil {
+			log.Fatalf("failed to initialize tracing: %v", err)
+		}
+		defer shutdown(ctx)
+		log.Info("Tracing enabled.")
 	} else {
 		log.Info("Tracing disabled.")
 	}
@@ -80,14 +91,11 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	var srv *grpc.Server
-	if os.Getenv("DISABLE_STATS") == "" {
-		log.Info("Stats enabled, but temporarily unavailable")
-		srv = grpc.NewServer()
-	} else {
-		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
-	}
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+	srv := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
 	healthcheck := health.NewServer()
@@ -156,8 +164,40 @@ func initStats() {
 	//TODO(arbrown) Implement OpenTelemetry stats
 }
 
-func initTracing() {
-	// TODO(arbrown) Implement OpenTelemetry tracing
+func initTracing(ctx context.Context) (func(context.Context) error, error) {
+	collectorAddr := os.Getenv("COLLECTOR_SERVICE_ADDR")
+	if collectorAddr == "" {
+		return nil, fmt.Errorf("COLLECTOR_SERVICE_ADDR is required when tracing is enabled")
+	}
+
+	exporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithEndpoint(collectorAddr),
+		otlptracegrpc.WithInsecure(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create OTLP trace exporter: %w", err)
+	}
+
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "shippingservice"
+	}
+	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(
+		attribute.String("service.name", serviceName),
+		attribute.String("service.version", "0.10.7"),
+		attribute.String("deployment.environment.name", "tcc-local"),
+	))
+	if err != nil {
+		return nil, fmt.Errorf("create OpenTelemetry resource: %w", err)
+	}
+
+	provider := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
+		sdktrace.WithResource(res),
+	)
+	otel.SetTracerProvider(provider)
+	return provider.Shutdown, nil
 }
 
 func initProfiling(service, version string) {
