@@ -186,3 +186,37 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          startupProbe:
+            grpc:
+              port: 9555
+            periodSeconds: 5
+            failureThreshold: 36
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: adservice
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=0.10.7,deployment.environment.name=tcc-local
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability-otel.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: otlp
+            - name: OTEL_LOGS_EXPORTER
+              value: otlp
+            - name: OTEL_TRACES_SAMPLER
+              value: always_on
+            - name: OTEL_JAVAAGENT_LOGGING
+              value: simple
