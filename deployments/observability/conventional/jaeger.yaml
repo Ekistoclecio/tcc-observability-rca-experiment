@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-conventional
+  labels:
+    app: jaeger-conventional
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger-conventional
+  template:
+    metadata:
+      labels:
+        app: jaeger-conventional
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.76.0
+          env:
+            - name: COLLECTOR_ZIPKIN_HOST_PORT
+              value: :9411
+          ports:
+            - name: query
+              containerPort: 16686
+            - name: zipkin
+              containerPort: 9411
+          readinessProbe:
+            httpGet:
+              path: /
+              port: query
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-conventional
+spec:
+  selector:
+    app: jaeger-conventional
+  ports:
+    - name: query
+      port: 16686
+      targetPort: query
+    - name: zipkin
+      port: 9411
+      targetPort: zipkin

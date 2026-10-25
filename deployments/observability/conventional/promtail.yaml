@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail-conventional
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tcc-promtail-conventional
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tcc-promtail-conventional
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tcc-promtail-conventional
+subjects:
+  - kind: ServiceAccount
+    name: promtail-conventional
+    namespace: observability-conventional
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-conventional-config
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+    positions:
+      filename: /run/promtail/positions.yaml
+    clients:
+      - url: http://loki-conventional:3100/loki/api/v1/push
+        external_labels:
+          telemetry_scenario: conventional
+    scrape_configs:
+      - job_name: online-boutique-conventional
+        pipeline_stages:
+          - cri: {}
+        static_configs:
+          - targets: [localhost]
+            labels: {namespace: default, service_name: frontend, __path__: "/var/log/pods/default_frontend-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: checkoutservice, __path__: "/var/log/pods/default_checkoutservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: cartservice, __path__: "/var/log/pods/default_cartservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: productcatalogservice, __path__: "/var/log/pods/default_productcatalogservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: currencyservice, __path__: "/var/log/pods/default_currencyservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: paymentservice, __path__: "/var/log/pods/default_paymentservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: shippingservice, __path__: "/var/log/pods/default_shippingservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: emailservice, __path__: "/var/log/pods/default_emailservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: recommendationservice, __path__: "/var/log/pods/default_recommendationservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: adservice, __path__: "/var/log/pods/default_adservice-*_*/*/*.log"}
+          - targets: [localhost]
+            labels: {namespace: default, service_name: redis-cart, __path__: "/var/log/pods/default_redis-cart-*_*/*/*.log"}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail-conventional
+  labels:
+    app: promtail-conventional
+spec:
+  selector:
+    matchLabels:
+      app: promtail-conventional
+  template:
+    metadata:
+      labels:
+        app: promtail-conventional
+    spec:
+      serviceAccountName: promtail-conventional
+      containers:
+        - name: promtail
+          image: grafana/promtail:3.5.5
+          args:
+            - -config.file=/etc/promtail/promtail.yaml
+          ports:
+            - name: http
+              containerPort: 9080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          resources:
+            requests:
+              cpu: 30m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 192Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+              readOnly: true
+            - name: positions
+              mountPath: /run/promtail
+            - name: pods
+              mountPath: /var/log/pods
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-conventional-config
+        - name: positions
+          emptyDir: {}
+        - name: pods
+          hostPath:
+            path: /var/log/pods
