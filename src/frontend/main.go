@@ -46,6 +46,8 @@ const (
 )
 
 var (
+	conventional *conventionalTelemetry
+
 	whitelistedCurrencies = map[string]bool{
 		"USD": true,
 		"EUR": true,
@@ -103,6 +105,7 @@ func main() {
 	log.Out = os.Stdout
 
 	svc := new(frontendServer)
+	conventional = newConventionalTelemetry("frontend")
 
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
@@ -166,6 +169,7 @@ func main() {
 	handler = &logHandler{log: log, next: handler}     // add logging
 	handler = ensureSessionID(handler)                 // add session ID
 	handler = otelhttp.NewHandler(handler, "frontend") // add OTel tracing
+	handler = conventional.HTTPMiddleware(handler)     // add independent conventional telemetry
 
 	log.Infof("starting server on %s:%s", addr, srvPort)
 	log.Fatal(http.ListenAndServe(addr+":"+srvPort, handler))
@@ -228,6 +232,7 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	defer cancel()
 	*conn, err = grpc.NewClient(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))

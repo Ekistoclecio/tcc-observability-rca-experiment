@@ -47,7 +47,10 @@ const (
 	usdCurrency = "USD"
 )
 
-var log *logrus.Logger
+var (
+	log          *logrus.Logger
+	conventional *conventionalTelemetry
+)
 
 func init() {
 	log = logrus.New()
@@ -87,6 +90,7 @@ type checkoutService struct {
 
 func main() {
 	ctx := context.Background()
+	conventional = newConventionalTelemetry("checkoutservice")
 	if os.Getenv("ENABLE_TRACING") == "1" {
 		log.Info("Tracing enabled.")
 		initTracing()
@@ -136,6 +140,7 @@ func main() {
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{}))
 	srv = grpc.NewServer(
+		grpc.UnaryInterceptor(conventional.UnaryServerInterceptor()),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
 
@@ -213,6 +218,7 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	defer cancel()
 	*conn, err = grpc.NewClient(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))

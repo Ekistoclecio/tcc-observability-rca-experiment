@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          ports:
+            - name: metrics-a
+              containerPort: 9464
+          env:
+            - name: ENABLE_CONVENTIONAL_TELEMETRY
+              value: "1"
+            - name: CONVENTIONAL_METRICS_ADDR
+              value: ":9464"
+            - name: CONVENTIONAL_ZIPKIN_ENDPOINT
+              value: http://jaeger-conventional.observability-conventional.svc.cluster.local:9411/api/v2/spans
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  ports:
+    - name: metrics-a
+      port: 9464
+      targetPort: metrics-a
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkoutservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          ports:
+            - name: metrics-a
+              containerPort: 9464
+          env:
+            - name: ENABLE_CONVENTIONAL_TELEMETRY
+              value: "1"
+            - name: CONVENTIONAL_METRICS_ADDR
+              value: ":9464"
+            - name: CONVENTIONAL_ZIPKIN_ENDPOINT
+              value: http://jaeger-conventional.observability-conventional.svc.cluster.local:9411/api/v2/spans
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkoutservice
+spec:
+  ports:
+    - name: metrics-a
+      port: 9464
+      targetPort: metrics-a

@@ -5,12 +5,19 @@ resources:
   - ../observability
 patches:
   - path: otel-existing.yaml
+  - path: conventional-go.yaml
 images:
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
     newName: adservice
     newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
     newName: cartservice
+    newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
+    newName: checkoutservice
+    newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
+    newName: frontend
     newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
     newName: shippingservice
