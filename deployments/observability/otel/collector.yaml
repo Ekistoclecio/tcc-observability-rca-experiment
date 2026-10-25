@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+data:
+  collector.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 192
+        spike_limit_mib: 48
+      resource/environment:
+        attributes:
+          - key: deployment.environment.name
+            value: tcc-local
+            action: upsert
+          - key: telemetry.scenario
+            value: otel
+            action: upsert
+      batch:
+        timeout: 1s
+        send_batch_size: 512
+    exporters:
+      prometheus:
+        endpoint: 0.0.0.0:9464
+        namespace: online_boutique_otel
+        resource_constant_labels:
+          included:
+            - service.name
+            - service.version
+            - deployment.environment.name
+            - telemetry.scenario
+      otlp_grpc/jaeger:
+        endpoint: jaeger-otel:4317
+        tls:
+          insecure: true
+      otlp_http/loki:
+        endpoint: http://loki-otel:3100/otlp
+      debug:
+        verbosity: basic
+    service:
+      extensions: [health_check]
+      telemetry:
+        logs:
+          level: info
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp_grpc/jaeger]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource/environment, batch]
+          exporters: [otlp_http/loki]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: collector
+          image: otel/opentelemetry-collector-contrib:0.160.0
+          args:
+            - --config=/etc/otelcol-contrib/collector.yaml
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+            - name: prometheus
+              containerPort: 9464
+            - name: health
+              containerPort: 13133
+          readinessProbe:
+            httpGet:
+              path: /
+              port: health
+          livenessProbe:
+            httpGet:
+              path: /
+              port: health
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol-contrib
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: prometheus
+      port: 9464
+      targetPort: prometheus
+    - name: health
+      port: 13133
+      targetPort: health
