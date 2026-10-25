@@ -45,6 +45,7 @@ var (
 	catalogMutex *sync.Mutex
 	log          *logrus.Logger
 	extraLatency time.Duration
+	conventional *conventionalServerTelemetry
 
 	port = "3550"
 
@@ -66,6 +67,7 @@ func init() {
 }
 
 func main() {
+	conventional = newConventionalServerTelemetry("productcatalogservice")
 	if os.Getenv("ENABLE_TRACING") == "1" {
 		err := initTracing()
 		if err != nil {
@@ -132,6 +134,7 @@ func run(port string) string {
 			propagation.TraceContext{}, propagation.Baggage{}))
 	var srv *grpc.Server
 	srv = grpc.NewServer(
+		grpc.UnaryInterceptor(conventional.UnaryServerInterceptor()),
 		grpc.StatsHandler(otelgrpc.NewServerHandler()))
 
 	svc := &productCatalog{}

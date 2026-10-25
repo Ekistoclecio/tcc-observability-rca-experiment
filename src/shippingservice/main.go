@@ -44,7 +44,10 @@ const (
 	defaultPort = "50051"
 )
 
-var log *logrus.Logger
+var (
+	log          *logrus.Logger
+	conventional *conventionalServerTelemetry
+)
 
 func init() {
 	log = logrus.New()
@@ -62,6 +65,7 @@ func init() {
 
 func main() {
 	ctx := context.Background()
+	conventional = newConventionalServerTelemetry("shippingservice")
 	if os.Getenv("ENABLE_TRACING") == "1" {
 		shutdown, err := initTracing(ctx)
 		if err != nil {
@@ -95,7 +99,10 @@ func main() {
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
-	srv := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(conventional.UnaryServerInterceptor()),
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	)
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
 	healthcheck := health.NewServer()

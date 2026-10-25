@@ -19,6 +19,9 @@ images:
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
     newName: frontend
     newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
+    newName: productcatalogservice
+    newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
     newName: shippingservice
     newTag: tcc-phase2
