@@ -99,12 +99,21 @@ async function prometheusValue(baseUrl, query) {
 
 async function lokiMatches(baseUrl, traceId) {
   const url = new URL('/loki/api/v1/query_range', baseUrl);
-  url.searchParams.set('query', `{service_name=~".+"} |= "${traceId}"`);
+  url.searchParams.set('query', `{service_name=~".+"} | trace_id = "${traceId}"`);
   url.searchParams.set('start', String((config.startMicros - 5_000_000) * 1000));
   url.searchParams.set('end', String((config.endMicros + 10_000_000) * 1000));
   url.searchParams.set('limit', '100');
   const response = await json(url);
   return (response.data?.result || []).reduce((total, stream) => total + stream.values.length, 0);
+}
+
+async function waitForLokiMatches(baseUrl, traceId) {
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    const matches = await lokiMatches(baseUrl, traceId);
+    if (matches > 0) return matches;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return 0;
 }
 
 const [traceA, traceB] = await Promise.all([
@@ -123,7 +132,7 @@ const startB = Math.min(...traceB.spans.map(span => span.startTime));
 
 await new Promise(resolve => setTimeout(resolve, 2500));
 
-const [aInB, bInA, conventionalA, conventionalB, otelA, otelB, bIdInLogsA, aIdInLogsB,
+const [aInB, bInA, conventionalA, conventionalB, otelA, otelB,
   frontendExporterSpans, checkoutExporterSpans, catalogExporterSpans] =
   await Promise.all([
     traceCount(config.jaegerB, traceA.traceID),
@@ -132,12 +141,16 @@ const [aInB, bInA, conventionalA, conventionalB, otelA, otelB, bIdInLogsA, aIdIn
     prometheusValue(config.prometheusB, 'count(tcc_conventional_requests_total)'),
     prometheusValue(config.prometheusA, 'count({__name__=~"online_boutique_otel_.*"})'),
     prometheusValue(config.prometheusB, 'count({__name__=~"online_boutique_otel_.*"})'),
-    lokiMatches(config.lokiA, traceB.traceID),
-    lokiMatches(config.lokiB, traceA.traceID),
     operationSpanCount(config.jaegerB, 'frontend', 'opentelemetry.proto.collector.trace.v1.TraceService/Export'),
     operationSpanCount(config.jaegerB, 'checkoutservice', 'opentelemetry.proto.collector.trace.v1.TraceService/Export'),
     operationSpanCount(config.jaegerB, 'productcatalogservice', 'opentelemetry.proto.collector.trace.v1.TraceService/Export')
   ]);
+
+const bIdInLogsB = await waitForLokiMatches(config.lokiB, traceB.traceID);
+const [bIdInLogsA, aIdInLogsB] = await Promise.all([
+  lokiMatches(config.lokiA, traceB.traceID),
+  lokiMatches(config.lokiB, traceA.traceID)
+]);
 
 assert(traceA.traceID !== traceB.traceID, 'A and B produced the same trace ID');
 assert(Math.abs(startA - startB) < 100_000, 'A and B traces are not from the same request window');
@@ -153,6 +166,7 @@ assert(otelA === 0, 'OTel metrics found in Prometheus A');
 assert(otelB > 0, 'OTel metrics missing from Prometheus B');
 assert(bIdInLogsA === 0, 'trace ID B found in Loki A');
 assert(aIdInLogsB === 0, 'trace ID A found in Loki B');
+assert(bIdInLogsB > 0, 'trace-correlated OTel logs missing from Loki B');
 assert(frontendExporterSpans === 0, 'frontend traced its own OTLP exporter');
 assert(checkoutExporterSpans === 0, 'checkoutservice traced its own OTLP exporter');
 assert(catalogExporterSpans === 0, 'productcatalogservice traced its own OTLP exporter');
@@ -167,6 +181,7 @@ console.log(JSON.stringify({
     traceBInJaegerA: bInA,
     traceBInLokiA: bIdInLogsA,
     traceAInLokiB: aIdInLogsB,
+    traceBInLokiB: bIdInLogsB,
     conventionalSeriesInPrometheusA: conventionalA,
     conventionalSeriesInPrometheusB: conventionalB,
     otelSeriesInPrometheusA: otelA,
