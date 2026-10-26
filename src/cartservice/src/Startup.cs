@@ -62,7 +62,9 @@ namespace cartservice
             }
 
 
-            services.AddGrpc();
+            services.AddSingleton<ConventionalTelemetry>();
+            services.AddTransient<ConventionalTelemetryInterceptor>();
+            services.AddGrpc(options => options.Interceptors.Add<ConventionalTelemetryInterceptor>());
 
             if (Configuration["ENABLE_TRACING"] == "1")
             {
