@@ -180,7 +180,13 @@ func initStats(log logrus.FieldLogger) {
 
 func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServer) (*sdktrace.TracerProvider, error) {
 	mustMapEnv(&svc.collectorAddr, "COLLECTOR_SERVICE_ADDR")
-	mustConnGRPC(ctx, &svc.collectorConn, svc.collectorAddr)
+	collectorConn, err := grpc.NewClient(
+		svc.collectorAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, errors.Wrapf(err, "grpc: failed to connect to collector %s", svc.collectorAddr)
+	}
+	svc.collectorConn = collectorConn
 	exporter, err := otlptracegrpc.New(
 		ctx,
 		otlptracegrpc.WithGRPCConn(svc.collectorConn))
