@@ -6,6 +6,9 @@ resources:
 patches:
   - path: otel-existing.yaml
   - path: conventional-go.yaml
+  - path: conventional-node.yaml
+  - path: conventional-python.yaml
+  - path: conventional-java.yaml
 images:
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
     newName: adservice
@@ -16,11 +19,23 @@ images:
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
     newName: checkoutservice
     newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice
+    newName: currencyservice
+    newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice
+    newName: emailservice
+    newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
     newName: frontend
     newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
+    newName: paymentservice
+    newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
     newName: productcatalogservice
+    newTag: tcc-phase2
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice
+    newName: recommendationservice
     newTag: tcc-phase2
   - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
     newName: shippingservice

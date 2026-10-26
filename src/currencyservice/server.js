@@ -76,11 +76,13 @@ else {
 const path = require('path');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
+const { createConventionalTelemetry } = require('./conventional-telemetry');
 
 const MAIN_PROTO_PATH = path.join(__dirname, './proto/demo.proto');
 const HEALTH_PROTO_PATH = path.join(__dirname, './proto/grpc/health/v1/health.proto');
 
 const PORT = process.env.PORT;
+const conventionalTelemetry = createConventionalTelemetry('currencyservice');
 
 const shopProto = _loadProto(MAIN_PROTO_PATH).hipstershop;
 const healthProto = _loadProto(HEALTH_PROTO_PATH).grpc.health.v1;
@@ -182,7 +184,10 @@ function check (call, callback) {
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   const server = new grpc.Server();
-  server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
+  server.addService(shopProto.CurrencyService.service, {
+    getSupportedCurrencies: conventionalTelemetry.wrapUnary('/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies),
+    convert: conventionalTelemetry.wrapUnary('/hipstershop.CurrencyService/Convert', convert)
+  });
   server.addService(healthProto.Health.service, {check});
 
   server.bindAsync(

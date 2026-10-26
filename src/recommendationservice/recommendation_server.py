@@ -38,7 +38,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from logger import getJSONLogger
+from conventional_telemetry import ConventionalTelemetry
 logger = getJSONLogger('recommendationservice-server')
+conventional_telemetry = ConventionalTelemetry('recommendationservice')
 
 def initStackdriverProfiling():
   project_id = None
@@ -132,11 +134,15 @@ if __name__ == "__main__":
     if catalog_addr == "":
         raise Exception('PRODUCT_CATALOG_SERVICE_ADDR environment variable not set')
     logger.info("product catalog address: " + catalog_addr)
-    channel = grpc.insecure_channel(catalog_addr)
+    channel = grpc.intercept_channel(
+        grpc.insecure_channel(catalog_addr),
+        conventional_telemetry.client_interceptor())
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=(conventional_telemetry.server_interceptor(),))
 
     # add class to gRPC server
     service = RecommendationService()
