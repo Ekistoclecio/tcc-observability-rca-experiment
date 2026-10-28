@@ -29,6 +29,8 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.services.*;
 import io.grpc.stub.StreamObserver;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.instrumentation.log4j.appender.v2_17.OpenTelemetryAppender;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -223,6 +225,7 @@ public final class AdService {
 
   /** Main launches the server from the command line. */
   public static void main(String[] args) throws IOException, InterruptedException {
+    OpenTelemetryAppender.install(GlobalOpenTelemetry.get());
 
     new Thread(
             () -> {
