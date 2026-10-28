@@ -22,6 +22,23 @@ class IntegrationValidationUnitTests(unittest.TestCase):
         self.assertEqual(iv.run_id_for("integration-smoke-001", "F1"), "iv-integration-smoke-001-f1")
         self.assertNotEqual(iv.run_id_for("integration-smoke-001", "F1"), iv.run_id_for("integration-smoke-001", "F2"))
 
+    def test_dataset_blindness_allows_operational_run_id_but_not_control_values(self):
+        obj = iv.IntegrationValidation.__new__(iv.IntegrationValidation)
+        obj.validation_id = "integration-smoke-001"
+        datasets = {scenario: {"run_id": "iv-integration-smoke-001-f1", "scenario": scenario,
+                               "metrics": [], "logs": [], "traces": []}
+                    for scenario in ("A", "B")}
+        result = obj.audit_dataset_blindness(datasets, "iv-integration-smoke-001-f1", Path("."))
+        self.assertTrue(result["passed"])
+        datasets["A"]["fault_type"] = "cpu_saturation"
+        self.assertFalse(obj.audit_dataset_blindness(datasets, "iv-integration-smoke-001-f1", Path("."))["passed"])
+
+    def test_zero_sanitization_counts_are_equivalent_when_omitted(self):
+        self.assertTrue(iv.marker_counts_match({"telemetry_scenario": 0}, {}))
+        self.assertTrue(iv.marker_counts_match({"telemetry_scenario": 2}, {"telemetry_scenario": 2,
+                                                                           "telemetry.scenario": 0}))
+        self.assertFalse(iv.marker_counts_match({"telemetry_scenario": 2}, {"telemetry_scenario": 1}))
+
     def test_dataset_window_chain_uses_only_confirmed_times(self):
         gt = {"timing": {"confirmed_start": "2026-10-28T12:00:00Z", "confirmed_end": "2026-10-28T12:00:10Z"},
               "fault": {"class": "F4", "location": {"component": "paymentservice"}}}

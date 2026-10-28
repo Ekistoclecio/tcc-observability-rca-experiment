@@ -58,6 +58,11 @@ def canonical_hash(value: Any) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def marker_counts_match(source: dict[str, int], recorded: dict[str, int]) -> bool:
+    keys = set(source) | set(recorded)
+    return all(int(source.get(key, 0)) == int(recorded.get(key, 0)) for key in keys)
+
+
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, sort_keys=True, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -1064,13 +1069,15 @@ class IntegrationValidation:
         scans = {}
         for scenario, dataset in datasets.items():
             paths = recursive_key_paths(dataset, terms)
-            encoded = json.dumps(dataset, sort_keys=True)
             # Phase 5 datasets intentionally retain their operational run_id at the
             # root; Phase 6 is responsible for excluding it from model-visible input.
+            without_operational_run_id = {key: value for key, value in dataset.items() if key != "run_id"}
+            encoded = json.dumps(without_operational_run_id, sort_keys=True)
             literal_matches = {term: encoded.count(term) for term in (f"fault-{run_id}", self.validation_id)}
             scans[scenario] = {"keys": paths, "literal_control_values": literal_matches,
                                "operational_run_id": dataset.get("run_id"),
-                               "dataset_root_has_only_operational_run_and_scenario": "run_id" in dataset and "scenario" in dataset}
+                               "dataset_root_has_only_operational_run_and_scenario": dataset.get("run_id") == run_id and
+                                                                                   dataset.get("scenario") in ("A", "B")}
         forbidden = any(any(paths for paths in scan["keys"].values()) or any(scan["literal_control_values"].values()) for scan in scans.values())
         result = {"searched_terms": sorted(terms), "files_searched": ["scenario-a/dataset.json", "scenario-b/dataset.json"],
                   "scenarios": scans, "matches": sum(len(paths) for scan in scans.values() for paths in scan["keys"].values()),
@@ -1110,11 +1117,12 @@ class IntegrationValidation:
                                    "passed": not explicit and "model_visible_sanitization" in manifests[scenario]}
             expected_telemetry, expected_removed = expected_model_telemetry(datasets[scenario])
             manifest_removed = manifests[scenario].get("model_visible_sanitization", {}).get("removed_fields", {})
+            marker_counts_equal = marker_counts_match(expected_removed, manifest_removed)
             telemetry_integrity[scenario] = {
                 "matches_dataset_after_explicit_marker_removal": request.get("telemetry") == expected_telemetry,
                 "source_marker_counts": expected_removed,
                 "manifest_marker_counts": manifest_removed,
-                "marker_counts_match": expected_removed == manifest_removed,
+                "marker_counts_match": marker_counts_equal,
             }
         dataset_hashes = {s: sha256_file(dataset_dir / f"scenario-{s.lower()}/dataset.json") for s in ("A", "B")}
         request_hashes = {s: sha256_file(request_root / f"scenario-{s.lower()}/request.json") for s in ("A", "B")}
