@@ -1,12 +1,16 @@
 import unittest
 import time
+import json
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import gevent
 
 from .config import WorkloadConfig
 from .control import WorkloadControl
-from .runner import RequestMetrics, run_open_loop_phase
+from .runner import RequestMetrics, emit_control_event, run_open_loop_phase
 from .locustfile import execute_checkout_flow, new_flow_session
 
 
@@ -162,6 +166,17 @@ class OpenLoopSchedulerTests(unittest.TestCase):
         self.assertGreater(counts["control_plane_dropped"], 0)
         self.assertEqual(counts["started"] + counts["control_plane_dropped"], counts["scheduled"])
         self.assertEqual(control.dropped_by_reason["steady"]["max_in_flight"], counts["control_plane_dropped"])
+
+    def test_control_event_is_written_out_of_band(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "events.jsonl"
+            with patch.dict(os.environ, {"TCC_EVENT_FILE": str(path)}):
+                emit_control_event("steady_started", "unit-test")
+            event = json.loads(path.read_text().strip())
+            self.assertEqual(event["source"], "workload")
+            self.assertEqual(event["event"], "steady_started")
+            self.assertEqual(event["run_id"], "unit-test")
+            self.assertNotIn("headers", event)
 
 
 if __name__ == "__main__":

@@ -29,6 +29,25 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
+def emit_control_event(event: str, run_id: str, **details) -> None:
+    """Append a host-only event for an external experiment orchestrator."""
+    destination = os.getenv("TCC_EVENT_FILE")
+    if not destination:
+        return
+    path = Path(destination)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        "source": "workload",
+        "event": event,
+        "run_id": run_id,
+        "timestamp": utc_now(),
+        "monotonic_seconds": time.monotonic(),
+        **details,
+    }
+    with path.open("a", encoding="utf-8") as output:
+        output.write(json.dumps(record, separators=(",", ":")) + "\n")
+
+
 def git_commit() -> str | None:
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
@@ -143,6 +162,7 @@ def run_open_loop_phase(
     def execute(flow: dict) -> None:
         failure = None
         try:
+            emit_control_event("flow_started", config.run_id, flow_id=flow["flow_id"], phase=flow["phase"])
             execute_checkout_flow(config, record_request=metrics.record)
         except FlowFailure as exc:
             failure = {"stage": exc.stage, "http_status": exc.http_status, "error": str(exc)}
@@ -150,6 +170,13 @@ def run_open_loop_phase(
             failure = {"stage": "unknown", "error": f"{type(exc).__name__}: {exc}"}
         finally:
             control.end_flow(flow, completed=failure is None, failure=failure)
+            emit_control_event(
+                "flow_completed" if failure is None else "flow_failed",
+                config.run_id,
+                flow_id=flow["flow_id"],
+                phase=flow["phase"],
+                failure=failure,
+            )
 
     while True:
         scheduled_at = start + slot * interval
@@ -159,11 +186,16 @@ def run_open_loop_phase(
         if delay > 0:
             gevent.sleep(delay)
         actual_at = time.monotonic()
-        flow, _reason = control.schedule(phase, scheduled_at, actual_at)
+        flow, reason = control.schedule(phase, scheduled_at, actual_at)
         if flow is not None:
             greenlet = gevent.spawn(execute, flow)
             greenlets.add(greenlet)
             greenlet.link(lambda done, active=greenlets: active.discard(done))
+        else:
+            emit_control_event(
+                "flow_dropped", config.run_id, phase=phase, reason=reason,
+                scheduled_monotonic=scheduled_at, actual_monotonic=actual_at,
+            )
         slot += 1
 
     # Keep the admission window open through its configured end even when the
@@ -187,6 +219,7 @@ def main() -> int:
         raise FileExistsError(f"refusing to overwrite run metadata: {output_path}")
 
     random.seed(config.seed)
+    emit_control_event("setup_started", config.run_id)
     control = WorkloadControl(config.run_id, config.max_in_flight_flows, config.target_flow_rate)
     greenlets: set = set()
     metadata = {
@@ -248,6 +281,7 @@ def main() -> int:
     try:
         preflight_frontend(config)
         metadata["warmup_started_at"] = utc_now()
+        emit_control_event("warmup_started", config.run_id)
         warmup_started = time.monotonic()
         warmup_metrics = RequestMetrics()
         run_open_loop_phase(
@@ -256,6 +290,7 @@ def main() -> int:
         )
         drain_flows(control, greenlets, config.drain_timeout_seconds)
         metadata["warmup_ended_at"] = utc_now()
+        emit_control_event("warmup_ended", config.run_id)
         metadata["warmup_duration_seconds_actual"] = round(time.monotonic() - warmup_started, 3)
         metadata["warmup_flows"] = control.snapshot("warmup")
         metadata["warmup_peak_in_flight_flows"] = control.peak_in_flight_by_phase["warmup"]
@@ -264,18 +299,22 @@ def main() -> int:
         # Warm-up data is deliberately excluded from steady workload request/latency stats.
         metrics = RequestMetrics()
         metadata["workload_started_at"] = utc_now()
+        emit_control_event("steady_started", config.run_id)
         steady = run_open_loop_phase(
             config=config, control=control, phase="steady", duration_seconds=config.duration_seconds,
             metrics=metrics, greenlets=greenlets,
         )
         metadata["admission_stopped_at"] = utc_now()
+        emit_control_event("admission_stopped", config.run_id)
         admission_seconds = max(0.0, steady["admission_ended_monotonic"] - steady["started_monotonic"])
         metadata["steady_admission_seconds_actual"] = round(admission_seconds, 3)
         drain_flows(control, greenlets, config.drain_timeout_seconds)
         metadata["workload_ended_at"] = utc_now()
+        emit_control_event("workload_ended", config.run_id)
         workload_seconds = max(0.001, time.monotonic() - steady["started_monotonic"])
         metadata["workload_duration_seconds_actual"] = round(workload_seconds, 3)
         metadata["cooldown_started_at"] = metadata["workload_ended_at"]
+        emit_control_event("cooldown_started", config.run_id)
 
         counts = control.snapshot("steady")
         metadata["flows"] = counts
@@ -316,6 +355,7 @@ def main() -> int:
         metadata["result"] = "failed"
         metadata["fatal_error"] = f"{type(exc).__name__}: {exc}"
     finally:
+        emit_control_event("workload_finished", config.run_id, result=metadata["result"])
         metadata["pod_state_after"] = parse_snapshot("TCC_PODS_AFTER_JSON")
         temp_path = output_path.with_suffix(".json.tmp")
         temp_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
