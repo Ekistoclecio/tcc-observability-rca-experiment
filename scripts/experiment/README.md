@@ -4,20 +4,49 @@ The orchestrator is part of the experimental control plane and runs on the host/
 
 ## Setup
 
-1. Confirm the Online Boutique and both observability stacks are Ready; leave the original Kubernetes `loadgenerator` scaled to zero.
-2. Apply the experiment overlay and build the guarded Charge hook when needed:
+### Recreate the local Kind cluster
+
+The experiment cluster is pinned in `deployments/experiment/kind/cluster.yaml` to
+`kindest/node:v1.35.8@sha256:07b2536e30b803ed61d1677a79df6115f798ce64c80f9e22f6ed45afd09323c0`.
+Use Kind v0.33.0 and kubectl v1.35.x. The installer downloads/checksums kubectl to a
+temporary tools directory; add it to `PATH` for setup and validation commands. The Kind
+script refuses to overwrite an existing cluster; delete it explicitly before recreation.
+It loads the ten local `tcc-phase2` application images.
+
+```bash
+export PATH="$(scripts/experiment/install-kubectl.sh):$PATH"
+KIND_BIN="$(scripts/experiment/install-kind.sh)" scripts/experiment/create-kind-cluster.sh
+scripts/experiment/setup-observability.sh
+scripts/experiment/setup-chaos-mesh.sh
+```
+
+On a host without the local application images, build them sequentially first with
+`TCC_LOAD_IMAGES=0 scripts/experiment/build-application-images.sh`; the cluster creation
+script then loads those images after creating Kind. The experiment overlay installs the
+Online Boutique, A/B backends, F4 hook configuration and keeps the original Kubernetes
+`loadgenerator` at zero replicas.
+
+### Install the experiment hook
+
+The overlay has the F4 hook enabled but inert until its per-pod control file is created.
+The setup helper can rebuild and verify the paymentservice image when required:
 
    ```bash
    scripts/experiment/setup-fault-injection.sh
    ```
 
-3. For F1/F2, install the pinned Chaos Mesh release:
+For F1/F2, install the pinned Chaos Mesh release:
 
    ```bash
    scripts/experiment/setup-chaos-mesh.sh
    ```
 
-   Chaos Mesh 2.8.6 documents Kubernetes 1.30–1.35 as its tested range. On another Kubernetes minor, setup stops unless `TCC_ALLOW_UNSUPPORTED_CHAOS_MESH=1` is set. An override is for a compatibility smoke and must be recorded in the resulting Ground Truth.
+   Chaos Mesh 2.8.6 documents Kubernetes 1.30–1.35 as its tested range. The pinned
+   Kubernetes v1.35.8 combination is supported and needs no override. On another
+   Kubernetes minor, setup stops unless `TCC_ALLOW_UNSUPPORTED_CHAOS_MESH=1` is set;
+   that override is only for a documented compatibility smoke and is recorded in Ground
+   Truth. The orchestrator preflight checks both the Kubernetes minor and installed Chaos
+   Mesh controller/daemon version.
 
 ## Run one fault
 
