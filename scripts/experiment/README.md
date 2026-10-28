@@ -149,3 +149,27 @@ The report is engineering evidence only. It is not an official campaign and its
 numbers must not be used to infer that telemetry scenario A or B is superior. Human
 review remains explicit and is never marked complete by automation. This workflow ends
 at the canonical A/B requests and performs no model calls or RCA scoring.
+
+## Experiment data package validation
+
+To run a fresh non-scientific F1–F5 battery and package the three core data sets in a
+separate, self-contained root:
+
+```bash
+scripts/experiment/run-experiment-data-validation.sh \
+  --validation-id experiment-data-smoke-003 --all
+```
+
+The command reuses the integration validator one fault at a time. Immediately after
+each run it captures full-run RAW telemetry for A and B, using actual `warmup_started`
+and `workload_finished` events and expanding the window if needed to contain the RCA
+window. It then packages the original Ground Truth, the existing Phase 5 RCA-window
+datasets, and the Phase 6 Canonical RCA requests under
+`artifacts/experiment-validation/<validation-id>/<F1..F5>/`. Operational evidence stays
+separate under `audit/`. It refuses to overwrite a package root or any artifacts for
+the derived run IDs. `--dry-run` prints the plan; `--fault f4` runs one fault.
+
+The package README distinguishes `01-telemetry` (what was observed), `02-ground-truth`
+(what happened), `03-rca-input` (what the model adapter would receive), and `audit`
+(engineering evidence). This workflow executes no AI and is not part of the official
+scientific campaign.
