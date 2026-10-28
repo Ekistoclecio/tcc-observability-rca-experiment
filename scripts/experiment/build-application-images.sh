@@ -7,6 +7,7 @@ cluster_name="${KIND_CLUSTER_NAME:-tcc-baseline}"
 minimum_available_kib="${TCC_MIN_AVAILABLE_MEMORY_KIB:-2097152}"
 build_memory="${TCC_BUILD_MEMORY:-1024m}"
 build_cpu_quota="${TCC_BUILD_CPU_QUOTA:-50000}"
+load_images="${TCC_LOAD_IMAGES:-1}"
 
 all_services=(
   frontend
@@ -47,8 +48,9 @@ for service in "${services[@]}"; do
   fi
 done
 
-if ! previous_load_replicas="$(kubectl get deployment loadgenerator -o jsonpath='{.spec.replicas}' 2>/dev/null)"; then
-  echo "Cannot reach the cluster; refusing to build without pausing the loadgenerator." >&2
+previous_load_replicas="$(kubectl get deployment loadgenerator -o jsonpath='{.spec.replicas}' 2>/dev/null || true)"
+if [[ "${load_images}" == "1" && -z "${previous_load_replicas}" ]]; then
+  echo "Cannot reach the cluster for image loading. Use TCC_LOAD_IMAGES=0 for an offline build." >&2
   exit 4
 fi
 restore_load() {
@@ -80,6 +82,11 @@ for service in "${services[@]}"; do
     "${repo_root}/${contexts[$service]}"
   tagged_images+=("${image}")
 done
+
+if [[ "${load_images}" != "1" ]]; then
+  echo "Built ${#tagged_images[@]} image(s); image loading was skipped."
+  exit 0
+fi
 
 if command -v kind >/dev/null 2>&1; then
   kind load docker-image --name "${cluster_name}" "${tagged_images[@]}"
