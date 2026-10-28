@@ -133,6 +133,7 @@ class RCAInputTests(unittest.TestCase):
                 self.assertTrue(manifest["content_policy_checks"]["run_id_absent_from_request"])
                 self.assertTrue(manifest["content_policy_checks"]["ground_truth_and_control_plane_not_loaded"])
                 self.assertIn("run_id", manifest)
+                self.assertNotEqual(manifest["builder_commit"], "unknown")
             with self.assertRaisesRegex(RCAInputError, "already exists"):
                 generate_run(root, RUN_ID)
 

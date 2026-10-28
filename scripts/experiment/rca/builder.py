@@ -140,7 +140,7 @@ def render_preview(request: dict[str, Any]) -> bytes:
 
 def _builder_commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=HERE.parents[3], check=True,
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=HERE.parents[2], check=True,
                               capture_output=True, text=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
@@ -195,7 +195,7 @@ def generate_one(dataset_path: Path, output_path: Path, run_id: str, scenario: s
     (output_path / "request.json").write_bytes(request_bytes)
     (output_path / "request-preview.md").write_bytes(preview_bytes)
     try:
-        repo_root = HERE.parents[3]
+        repo_root = HERE.parents[2]
         source_label = dataset_path.resolve().relative_to(repo_root).as_posix()
     except ValueError:
         source_label = dataset_path.name
