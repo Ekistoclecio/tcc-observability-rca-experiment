@@ -1,79 +1,77 @@
-"""Out-of-band workload accounting; values are never sent to the SUT."""
+"""Out-of-band open-loop workload accounting; values never reach the SUT."""
 
-from collections import Counter
 from gevent.lock import Semaphore
 
 
 class WorkloadControl:
-    def __init__(self, run_id: str):
+    def __init__(self, run_id: str, max_in_flight: int, target_rate: float):
         self.run_id = run_id
+        self.max_in_flight = max_in_flight
+        self._target_rate = target_rate
         self._lock = Semaphore()
-        self.accepting_flows = False
-        self.measurement_enabled = False
-        self._next_user = 0
         self._next_flow = 0
         self.active_flows = 0
-        self.peak_active_users = 0
-        self.flows_started = 0
-        self.flows_completed = 0
-        self.flows_failed = 0
-        self.warmup_flows_started = 0
-        self.warmup_flows_completed = 0
-        self.warmup_flows_failed = 0
-        self.failures_by_stage: Counter[str] = Counter()
+        self.peak_in_flight = 0
+        self.peak_in_flight_by_phase = {"warmup": 0, "steady": 0}
+        self.phases = {name: self._empty_phase() for name in ("warmup", "steady")}
+        self.failures_by_stage: dict[str, int] = {}
+        self.dropped_by_reason = {name: {} for name in ("warmup", "steady")}
         self.failed_flow_samples: list[dict] = []
+        self.start_lags_by_phase: dict[str, list[float]] = {"warmup": [], "steady": []}
 
-    def allocate_user_id(self) -> str:
-        with self._lock:
-            self._next_user += 1
-            return f"user-{self._next_user:04d}"
+    @staticmethod
+    def _empty_phase() -> dict[str, int]:
+        return {"scheduled": 0, "started": 0, "completed": 0, "failed": 0, "control_plane_dropped": 0}
 
-    def observe_users(self, count: int) -> None:
+    def schedule(self, phase: str, scheduled_at: float, actual_at: float) -> tuple[dict | None, str | None]:
+        """Account for one arrival slot; never queue when capacity is exhausted."""
         with self._lock:
-            self.peak_active_users = max(self.peak_active_users, count)
-
-    def begin_flow(self, user_id: str) -> dict | None:
-        with self._lock:
-            if not self.accepting_flows:
-                return None
+            counts = self.phases[phase]
+            counts["scheduled"] += 1
+            if actual_at - scheduled_at >= 1 / self._target_rate:
+                counts["control_plane_dropped"] += 1
+                reasons = self.dropped_by_reason[phase]
+                reasons["scheduler_late"] = reasons.get("scheduler_late", 0) + 1
+                return None, "scheduler_late"
+            if self.active_flows >= self.max_in_flight:
+                counts["control_plane_dropped"] += 1
+                reasons = self.dropped_by_reason[phase]
+                reasons["max_in_flight"] = reasons.get("max_in_flight", 0) + 1
+                return None, "max_in_flight"
             self._next_flow += 1
-            phase = "workload" if self.measurement_enabled else "warmup"
-            flow = {
-                "flow_id": f"{self.run_id}-flow-{self._next_flow:06d}",
-                "user_id": user_id,
-                "phase": phase,
-            }
             self.active_flows += 1
-            if phase == "workload":
-                self.flows_started += 1
-            else:
-                self.warmup_flows_started += 1
-            return flow
+            self.peak_in_flight = max(self.peak_in_flight, self.active_flows)
+            self.peak_in_flight_by_phase[phase] = max(
+                self.peak_in_flight_by_phase[phase], self.active_flows
+            )
+            counts["started"] += 1
+            self.start_lags_by_phase[phase].append(max(0.0, (actual_at - scheduled_at) * 1000))
+            return {
+                "flow_id": f"{self.run_id}-flow-{self._next_flow:06d}",
+                "phase": phase,
+                "scheduled_at_monotonic": scheduled_at,
+                "actual_started_monotonic": actual_at,
+            }, None
 
     def end_flow(self, flow: dict, *, completed: bool, failure: dict | None = None) -> None:
         with self._lock:
             self.active_flows -= 1
-            phase = flow["phase"]
+            counts = self.phases[flow["phase"]]
+            counts["completed" if completed else "failed"] += 1
             if completed:
-                if phase == "workload":
-                    self.flows_completed += 1
-                else:
-                    self.warmup_flows_completed += 1
                 return
-
-            if phase == "workload":
-                self.flows_failed += 1
-            else:
-                self.warmup_flows_failed += 1
             failure = failure or {}
             stage = failure.get("stage", "unknown")
-            self.failures_by_stage[stage] += 1
+            self.failures_by_stage[stage] = self.failures_by_stage.get(stage, 0) + 1
             if len(self.failed_flow_samples) < 100:
                 self.failed_flow_samples.append({
                     "flow_id": flow["flow_id"],
-                    "user_id": flow["user_id"],
-                    "phase": phase,
+                    "phase": flow["phase"],
                     "stage": stage,
                     "http_status": failure.get("http_status"),
                     "error": failure.get("error", "request failed"),
                 })
+
+    def snapshot(self, phase: str) -> dict[str, int]:
+        with self._lock:
+            return dict(self.phases[phase])

@@ -1,75 +1,66 @@
-"""Locust user executing one fixed Online Boutique checkout flow at a time."""
+"""Deterministic five-request business flow used by the host runner."""
 
-from locust import FastHttpUser, task
+from __future__ import annotations
+
+from time import perf_counter
+
+import requests
 
 
-class CheckoutFlowUser(FastHttpUser):
-    abstract = False
-
-    def wait_time(self):
-        return self.environment.tcc_control.config.wait_seconds
-
-    def on_start(self):
-        self.tcc_control = self.environment.tcc_control
-        self.tcc_config = self.tcc_control.config
-        self.tcc_user_id = self.tcc_control.allocate_user_id()
-
-    def _request(self, stage, method, path, expected_status, **kwargs):
-        kwargs["name"] = stage
-        kwargs["catch_response"] = True
-        kwargs["allow_redirects"] = False
-        with getattr(self.client, method)(path, **kwargs) as response:
-            if response.status_code != expected_status:
-                response.failure(f"expected HTTP {expected_status}, got {response.status_code}")
-                raise FlowFailure(stage, response.status_code, f"unexpected HTTP {response.status_code}")
-            response.success()
-            return response
-
-    @task
-    def checkout_flow(self):
-        flow = self.tcc_control.begin_flow(self.tcc_user_id)
-        if flow is None:
-            return
-
-        stage = "cart_reset"
-        try:
-            # Each Locust user owns a separate cookie jar/session. Reset before
-            # every iteration so a failed prior flow cannot leave cart state.
-            self._request(stage, "post", "/cart/empty", 302)
-
-            stage = "home"
-            self._request(stage, "get", "/", 200)
-
-            stage = "product"
-            self._request(stage, "get", f"/product/{self.tcc_config.product_id}", 200)
-
-            stage = "add_cart"
-            self._request(stage, "post", "/cart", 302, data={
-                "product_id": self.tcc_config.product_id,
-                "quantity": "1",
-            })
-
-            stage = "cart"
-            self._request(stage, "get", "/cart", 200)
-
-            stage = "checkout"
-            self._request(stage, "post", "/cart/checkout", 200, data=self.tcc_config.checkout)
-            self.tcc_control.end_flow(flow, completed=True)
-        except FlowFailure as exc:
-            self.tcc_control.end_flow(flow, completed=False, failure={
-                "stage": exc.stage,
-                "http_status": exc.http_status,
-                "error": str(exc),
-            })
-        except Exception as exc:  # network errors are classified at the active stage
-            self.tcc_control.end_flow(flow, completed=False, failure={
-                "stage": stage,
-                "error": f"{type(exc).__name__}: {exc}",
-            })
+FLOW_STAGES = ("home", "product", "add_cart", "cart", "checkout")
+EXPECTED_STATUS = {"home": 200, "product": 200, "add_cart": 302, "cart": 200, "checkout": 200}
 
 
 class FlowFailure(Exception):
-    def __init__(self, stage, http_status, message):
+    def __init__(self, stage: str, http_status: int | None, message: str):
         super().__init__(message)
         self.stage = stage
         self.http_status = http_status
+
+
+def new_flow_session():
+    """Each invocation creates an independent cookie jar and connection pool."""
+    return requests.Session()
+
+
+def execute_checkout_flow(config, session_factory=new_flow_session, record_request=None) -> None:
+    """Run one flow using its own normal HTTP session, without control headers."""
+    session = session_factory()
+    steps = (
+        ("home", "GET", "/", None),
+        ("product", "GET", f"/product/{config.product_id}", None),
+        ("add_cart", "POST", "/cart", {
+            "product_id": config.product_id,
+            "quantity": "1",
+        }),
+        ("cart", "GET", "/cart", None),
+        ("checkout", "POST", "/cart/checkout", config.checkout),
+    )
+    try:
+        for stage, method, path, data in steps:
+            started = perf_counter()
+            try:
+                response = session.request(
+                    method,
+                    f"{config.frontend_url}{path}",
+                    data=data,
+                    timeout=config.request_timeout_seconds,
+                    allow_redirects=False,
+                )
+            except Exception as exc:
+                if record_request:
+                    record_request(stage, (perf_counter() - started) * 1000, False, None)
+                raise FlowFailure(stage, None, f"{type(exc).__name__}: {exc}") from exc
+            elapsed_ms = (perf_counter() - started) * 1000
+            valid = response.status_code == EXPECTED_STATUS[stage]
+            if record_request:
+                record_request(stage, elapsed_ms, valid, response.status_code)
+            response.close()
+            if not valid:
+                raise FlowFailure(
+                    stage,
+                    response.status_code,
+                    f"expected HTTP {EXPECTED_STATUS[stage]}, got {response.status_code}",
+                )
+    finally:
+        session.close()

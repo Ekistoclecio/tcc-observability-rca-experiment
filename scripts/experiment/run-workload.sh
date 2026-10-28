@@ -5,6 +5,13 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${repo_root}"
 venv_python="${repo_root}/.venv-tcc-workload/bin/python"
 
+declare -A tcc_env_overrides=()
+while IFS='=' read -r variable value; do
+  if [[ "${variable}" == TCC_* ]]; then
+    tcc_env_overrides["${variable}"]="${value}"
+  fi
+done < <(env)
+
 if [[ -n "${TCC_ENV_FILE:-}" ]]; then
   if [[ ! -f "${TCC_ENV_FILE}" ]]; then
     echo "TCC_ENV_FILE does not exist: ${TCC_ENV_FILE}" >&2
@@ -15,6 +22,9 @@ if [[ -n "${TCC_ENV_FILE:-}" ]]; then
   source "${TCC_ENV_FILE}"
   set +a
 fi
+for variable in "${!tcc_env_overrides[@]}"; do
+  export "${variable}=${tcc_env_overrides[${variable}]}"
+done
 
 if [[ -z "${TCC_RUN_ID:-}" ]]; then
   TCC_RUN_ID="workload-$(date -u '+%Y%m%dT%H%M%SZ')"

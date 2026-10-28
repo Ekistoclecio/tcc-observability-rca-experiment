@@ -1,142 +1,164 @@
 import unittest
-from types import SimpleNamespace
+import time
+from unittest.mock import patch
+
+import gevent
 
 from .config import WorkloadConfig
 from .control import WorkloadControl
-from .locustfile import CheckoutFlowUser
+from .runner import RequestMetrics, run_open_loop_phase
+from .locustfile import execute_checkout_flow, new_flow_session
+
+
+def test_config(**overrides):
+    env = {
+        "TCC_RUN_ID": "unit-test",
+        "TCC_TARGET_FLOW_RATE": "2",
+        "TCC_MAX_IN_FLIGHT_FLOWS": "8",
+        "TCC_ARTIFACT_DIR": "/tmp",
+    }
+    env.update(overrides)
+    return WorkloadConfig.from_env(env)
 
 
 class FakeResponse:
     def __init__(self, status_code):
         self.status_code = status_code
-        self.failure_reason = None
-        self.was_successful = False
+        self.closed = False
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_args):
-        return False
-
-    def failure(self, reason):
-        self.failure_reason = reason
-
-    def success(self):
-        self.was_successful = True
+    def close(self):
+        self.closed = True
 
 
-class FakeClient:
+class FakeSession:
     def __init__(self, statuses):
         self.statuses = iter(statuses)
         self.calls = []
+        self.closed = False
+        self.cookie_jar = object()
 
-    def _request(self, method, path, **kwargs):
-        self.calls.append((method.upper(), path, kwargs))
+    def request(self, method, url, **kwargs):
+        self.calls.append((method, url, kwargs))
         return FakeResponse(next(self.statuses))
 
-    def get(self, path, **kwargs):
-        return self._request("get", path, **kwargs)
-
-    def post(self, path, **kwargs):
-        return self._request("post", path, **kwargs)
-
-
-def make_user(statuses):
-    config = WorkloadConfig.from_env({
-        "TCC_RUN_ID": "unit-test",
-        "TCC_ARTIFACT_DIR": "/tmp",
-    })
-    control = WorkloadControl(config.run_id)
-    control.config = config
-    control.accepting_flows = True
-    control.measurement_enabled = True
-    user = object.__new__(CheckoutFlowUser)
-    user.environment = SimpleNamespace(tcc_control=control)
-    user.tcc_control = control
-    user.tcc_config = config
-    user.tcc_user_id = "user-0001"
-    user.client = FakeClient(statuses)
-    user.cart_needs_reset = False
-    return user, control
+    def close(self):
+        self.closed = True
 
 
 class WorkloadConfigTests(unittest.TestCase):
-    def test_parses_seed_and_validation_parameters(self):
-        config = WorkloadConfig.from_env({
-            "TCC_RUN_ID": "validation-001",
-            "TCC_WORKLOAD_SEED": "173",
-            "TCC_USERS": "3",
-            "TCC_SPAWN_RATE": "0.5",
-            "TCC_DURATION": "30",
-            "TCC_WARMUP_DURATION": "5",
-            "TCC_COOLDOWN_DURATION": "4",
-            "TCC_PRODUCT_ID": "OLJCESPC7Z",
-        })
+    def test_parses_open_loop_parameters_and_seed(self):
+        config = test_config(
+            TCC_WORKLOAD_SEED="173", TCC_TARGET_FLOW_RATE="0.75",
+            TCC_MAX_IN_FLIGHT_FLOWS="3", TCC_DURATION="30",
+        )
         self.assertEqual(config.seed, 173)
-        self.assertEqual(config.users, 3)
-        self.assertEqual(config.spawn_rate, 0.5)
-        self.assertEqual(config.product_id, "OLJCESPC7Z")
+        self.assertEqual(config.target_flow_rate, 0.75)
+        self.assertEqual(config.max_in_flight_flows, 3)
 
-    def test_rejects_unknown_product_and_nonpositive_rate(self):
+    def test_rejects_invalid_product_rate_and_capacity(self):
         with self.assertRaisesRegex(ValueError, "catalog"):
-            WorkloadConfig.from_env({"TCC_PRODUCT_ID": "missing"})
-        with self.assertRaisesRegex(ValueError, "users per second"):
-            WorkloadConfig.from_env({"TCC_SPAWN_RATE": "0"})
-
-
-class WorkloadControlTests(unittest.TestCase):
-    def test_ids_and_flow_accounting_are_deterministic(self):
-        control = WorkloadControl("validation-001")
-        self.assertEqual(control.allocate_user_id(), "user-0001")
-        self.assertEqual(control.allocate_user_id(), "user-0002")
-        control.accepting_flows = True
-        control.measurement_enabled = True
-        flow = control.begin_flow("user-0001")
-        self.assertEqual(flow["flow_id"], "validation-001-flow-000001")
-        control.end_flow(flow, completed=True)
-        self.assertEqual((control.flows_started, control.flows_completed), (1, 1))
-
-    def test_failed_flow_is_counted_at_its_stage(self):
-        control = WorkloadControl("validation-001")
-        control.accepting_flows = True
-        control.measurement_enabled = True
-        flow = control.begin_flow("user-0001")
-        control.end_flow(flow, completed=False, failure={
-            "stage": "checkout", "http_status": 500, "error": "HTTP 500"
-        })
-        self.assertEqual(control.flows_failed, 1)
-        self.assertEqual(control.failures_by_stage["checkout"], 1)
-        self.assertEqual(control.failed_flow_samples[0]["http_status"], 500)
+            test_config(TCC_PRODUCT_ID="missing")
+        with self.assertRaisesRegex(ValueError, "flows per second"):
+            test_config(TCC_TARGET_FLOW_RATE="0")
+        with self.assertRaisesRegex(ValueError, "at least 1"):
+            test_config(TCC_MAX_IN_FLIGHT_FLOWS="0")
+        with self.assertRaisesRegex(ValueError, "not used by the open-loop"):
+            test_config(TCC_USERS="2")
 
 
 class CheckoutFlowTests(unittest.TestCase):
-    def test_executes_fixed_sequence_with_controlled_test_data(self):
-        user, control = make_user([302, 200, 200, 302, 200, 200])
-        user.checkout_flow()
-        self.assertEqual(
-            [(method, path) for method, path, _ in user.client.calls],
-            [
-                ("POST", "/cart/empty"),
-                ("GET", "/"),
-                ("GET", "/product/OLJCESPC7Z"),
-                ("POST", "/cart"),
-                ("GET", "/cart"),
-                ("POST", "/cart/checkout"),
-            ],
-        )
-        self.assertEqual(user.client.calls[3][2]["data"], {
-            "product_id": "OLJCESPC7Z", "quantity": "1"
-        })
-        self.assertEqual(user.client.calls[5][2]["data"], user.tcc_config.checkout)
-        self.assertEqual(control.flows_completed, 1)
-        self.assertEqual(control.flows_failed, 0)
+    def test_executes_exact_five_requests_and_closes_its_session(self):
+        config = test_config()
+        session = FakeSession([200, 200, 302, 200, 200])
+        recorded = []
+        execute_checkout_flow(config, session_factory=lambda: session,
+                              record_request=lambda *args: recorded.append(args))
+        self.assertEqual([(method, url.removeprefix(config.frontend_url), kwargs["allow_redirects"])
+                          for method, url, kwargs in session.calls], [
+            ("GET", "/", False),
+            ("GET", "/product/OLJCESPC7Z", False),
+            ("POST", "/cart", False),
+            ("GET", "/cart", False),
+            ("POST", "/cart/checkout", False),
+        ])
+        self.assertEqual(session.calls[2][2]["data"], {"product_id": "OLJCESPC7Z", "quantity": "1"})
+        self.assertEqual(session.calls[4][2]["data"], config.checkout)
+        self.assertEqual([r[0] for r in recorded], ["home", "product", "add_cart", "cart", "checkout"])
+        self.assertTrue(session.closed)
+        self.assertNotIn("/cart/empty", [call[1] for call in session.calls])
 
-    def test_records_unexpected_status_by_flow_stage(self):
-        user, control = make_user([302, 200, 200, 302, 200, 500])
-        user.checkout_flow()
-        self.assertEqual(control.flows_failed, 1)
-        self.assertEqual(control.failed_flow_samples[0]["stage"], "checkout")
-        self.assertEqual(control.failed_flow_samples[0]["http_status"], 500)
+    def test_each_flow_requests_a_distinct_session(self):
+        config = test_config()
+        sessions = []
+
+        def factory():
+            session = FakeSession([200, 200, 302, 200, 200])
+            sessions.append(session)
+            return session
+
+        execute_checkout_flow(config, session_factory=factory)
+        execute_checkout_flow(config, session_factory=factory)
+        self.assertEqual(len(sessions), 2)
+        self.assertIsNot(sessions[0], sessions[1])
+        self.assertIsNot(sessions[0].cookie_jar, sessions[1].cookie_jar)
+
+    def test_real_requests_sessions_have_independent_cookie_jars(self):
+        first = new_flow_session()
+        second = new_flow_session()
+        try:
+            self.assertIsNot(first, second)
+            self.assertIsNot(first.cookies, second.cookies)
+        finally:
+            first.close()
+            second.close()
+
+    def test_unexpected_status_fails_at_current_stage(self):
+        session = FakeSession([200, 404])
+        with self.assertRaisesRegex(Exception, "expected HTTP 200, got 404"):
+            execute_checkout_flow(test_config(), session_factory=lambda: session)
+        self.assertEqual(len(session.calls), 2)
+        self.assertTrue(session.closed)
+
+
+class OpenLoopSchedulerTests(unittest.TestCase):
+    def setUp(self):
+        self.config = test_config(TCC_TARGET_FLOW_RATE="4", TCC_MAX_IN_FLIGHT_FLOWS="8")
+
+    def test_slow_flow_does_not_block_scheduled_arrivals(self):
+        control = WorkloadControl("unit-test", self.config.max_in_flight_flows, self.config.target_flow_rate)
+        start_times = []
+
+        def slow_flow(_config, record_request=None):
+            start_times.append(time.monotonic())
+            gevent.sleep(0.7)
+
+        greenlets = set()
+        with patch("src.loadgenerator.experiment.runner.execute_checkout_flow", slow_flow):
+            run_open_loop_phase(config=self.config, control=control, phase="steady",
+                                 duration_seconds=1.0, metrics=RequestMetrics(), greenlets=greenlets)
+            gevent.joinall(list(greenlets), timeout=2)
+        self.assertEqual(len(start_times), 4)
+        self.assertGreater(control.peak_in_flight, 1)
+        self.assertLess(start_times[1] - start_times[0], 0.5)
+        self.assertEqual(control.snapshot("steady")["completed"], 4)
+
+    def test_capacity_drops_arrivals_without_queueing(self):
+        config = test_config(TCC_TARGET_FLOW_RATE="5", TCC_MAX_IN_FLIGHT_FLOWS="1")
+        control = WorkloadControl("unit-test", config.max_in_flight_flows, config.target_flow_rate)
+        greenlets = set()
+
+        def slow_flow(_config, record_request=None):
+            gevent.sleep(0.55)
+
+        with patch("src.loadgenerator.experiment.runner.execute_checkout_flow", slow_flow):
+            run_open_loop_phase(config=config, control=control, phase="steady",
+                                 duration_seconds=0.8, metrics=RequestMetrics(), greenlets=greenlets)
+            gevent.joinall(list(greenlets), timeout=2)
+        counts = control.snapshot("steady")
+        self.assertEqual(counts["scheduled"], 4)
+        self.assertGreater(counts["control_plane_dropped"], 0)
+        self.assertEqual(counts["started"] + counts["control_plane_dropped"], counts["scheduled"])
+        self.assertEqual(control.dropped_by_reason["steady"]["max_in_flight"], counts["control_plane_dropped"])
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Configuration and validation for one controlled workload run."""
+"""Configuration and validation for one open-loop workload run."""
 
 from __future__ import annotations
 
@@ -34,14 +34,13 @@ def _float(env: dict[str, str], key: str, default: float) -> float:
 class WorkloadConfig:
     run_id: str
     frontend_url: str
-    users: int
-    spawn_rate: float
+    target_flow_rate: float
+    max_in_flight_flows: int
     duration_seconds: float
     warmup_seconds: float
     cooldown_seconds: float
     seed: int
     product_id: str
-    wait_seconds: float
     request_timeout_seconds: float
     drain_timeout_seconds: float
     artifact_dir: Path
@@ -50,6 +49,9 @@ class WorkloadConfig:
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "WorkloadConfig":
         env = os.environ if env is None else env
+        for legacy in ("TCC_USERS", "TCC_SPAWN_RATE", "TCC_WAIT_SECONDS"):
+            if env.get(legacy):
+                raise ValueError(f"{legacy} is not used by the open-loop runner; remove it from the environment")
         now = datetime.now(timezone.utc)
         run_id = env.get("TCC_RUN_ID", f"workload-{now:%Y%m%dT%H%M%SZ}")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,99}", run_id):
@@ -62,14 +64,13 @@ class WorkloadConfig:
         config = cls(
             run_id=run_id,
             frontend_url=env.get("TCC_FRONTEND_URL", "http://127.0.0.1:28080").rstrip("/"),
-            users=_int(env, "TCC_USERS", 1),
-            spawn_rate=_float(env, "TCC_SPAWN_RATE", 1.0),
+            target_flow_rate=_float(env, "TCC_TARGET_FLOW_RATE", 0.5),
+            max_in_flight_flows=_int(env, "TCC_MAX_IN_FLIGHT_FLOWS", 4),
             duration_seconds=_float(env, "TCC_DURATION", 10.0),
             warmup_seconds=_float(env, "TCC_WARMUP_DURATION", 2.0),
             cooldown_seconds=_float(env, "TCC_COOLDOWN_DURATION", 2.0),
             seed=_int(env, "TCC_WORKLOAD_SEED", 42),
             product_id=product_id,
-            wait_seconds=_float(env, "TCC_WAIT_SECONDS", 1.0),
             request_timeout_seconds=_float(env, "TCC_REQUEST_TIMEOUT_SECONDS", 10.0),
             drain_timeout_seconds=_float(env, "TCC_DRAIN_TIMEOUT_SECONDS", 60.0),
             artifact_dir=Path(env.get("TCC_ARTIFACT_DIR", "artifacts/workload/runs")),
@@ -90,16 +91,15 @@ class WorkloadConfig:
         return config
 
     def validate(self) -> None:
-        if self.users < 1:
-            raise ValueError("TCC_USERS must be at least 1")
-        if self.spawn_rate <= 0:
-            raise ValueError("TCC_SPAWN_RATE must be greater than 0 (users per second)")
+        if self.target_flow_rate <= 0:
+            raise ValueError("TCC_TARGET_FLOW_RATE must be greater than 0 flows per second")
+        if self.max_in_flight_flows < 1:
+            raise ValueError("TCC_MAX_IN_FLIGHT_FLOWS must be at least 1")
         if self.duration_seconds <= 0:
             raise ValueError("TCC_DURATION must be greater than 0")
         for key, value in (
             ("TCC_WARMUP_DURATION", self.warmup_seconds),
             ("TCC_COOLDOWN_DURATION", self.cooldown_seconds),
-            ("TCC_WAIT_SECONDS", self.wait_seconds),
         ):
             if value < 0:
                 raise ValueError(f"{key} cannot be negative")

@@ -1,6 +1,9 @@
-"""Run a bounded, controlled Locust workload and write out-of-band metadata."""
+"""Open-loop host runner; control-plane IDs and statistics stay out of the SUT."""
 
 from __future__ import annotations
+
+from gevent import monkey
+monkey.patch_all()
 
 from datetime import datetime, timezone
 import hashlib
@@ -8,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import random
+import statistics
 import subprocess
 import sys
 import time
@@ -15,11 +19,10 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 import gevent
-from locust.env import Environment
 
 from .config import WorkloadConfig
 from .control import WorkloadControl
-from .locustfile import CheckoutFlowUser
+from .locustfile import FlowFailure, execute_checkout_flow
 
 
 def utc_now() -> str:
@@ -28,17 +31,14 @@ def utc_now() -> str:
 
 def git_commit() -> str | None:
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True
-        ).strip()
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
     except (OSError, subprocess.CalledProcessError):
         return os.getenv("TCC_BENCHMARK_COMMIT")
 
 
 def parse_snapshot(variable: str) -> list[dict]:
-    raw = os.getenv(variable, "[]")
     try:
-        value = json.loads(raw)
+        value = json.loads(os.getenv(variable, "[]"))
         return value if isinstance(value, list) else []
     except json.JSONDecodeError:
         return []
@@ -53,34 +53,129 @@ def preflight_frontend(config: WorkloadConfig) -> None:
         raise RuntimeError(f"frontend health check failed at {config.frontend_url}: {exc}") from exc
 
 
-def wait_phase(seconds: float, control: WorkloadControl, runner) -> None:
-    deadline = time.monotonic() + seconds
-    while True:
-        control.observe_users(runner.user_count)
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            return
-        gevent.sleep(min(0.25, remaining))
-
-
-def drain_flows(control: WorkloadControl, runner, timeout_seconds: float) -> None:
-    deadline = time.monotonic() + timeout_seconds
-    while control.active_flows and time.monotonic() < deadline:
-        control.observe_users(runner.user_count)
-        gevent.sleep(0.05)
-    if control.active_flows:
-        raise TimeoutError(f"{control.active_flows} flows did not drain in {timeout_seconds}s")
-
-
-def percentile(stats, fraction: float) -> float | None:
-    if not stats.num_requests:
-        return None
-    return round(float(stats.get_response_time_percentile(fraction)), 3)
-
-
 def checkout_profile_fingerprint(checkout: dict[str, str]) -> str:
     encoded = json.dumps(checkout, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest()
+
+
+def quantile(values: list[float], q: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * q
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return round(ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower), 3)
+
+
+class RequestMetrics:
+    def __init__(self):
+        self.total = 0
+        self.failed = 0
+        self.latencies: list[float] = []
+        self.by_stage: dict[str, dict] = {}
+
+    def record(self, stage: str, elapsed_ms: float, success: bool, status: int | None) -> None:
+        self.total += 1
+        self.failed += int(not success)
+        self.latencies.append(elapsed_ms)
+        item = self.by_stage.setdefault(stage, {"total": 0, "successful": 0, "failed": 0, "latency_ms": []})
+        item["total"] += 1
+        item["successful" if success else "failed"] += 1
+        item["latency_ms"].append(elapsed_ms)
+        if status is not None:
+            statuses = item.setdefault("http_status", {})
+            statuses[str(status)] = statuses.get(str(status), 0) + 1
+
+    @staticmethod
+    def _summary(values: list[float]) -> dict:
+        return {
+            "count": len(values),
+            "average": round(statistics.fmean(values), 3) if values else None,
+            "p50": quantile(values, 0.50),
+            "p90": quantile(values, 0.90),
+            "p95": quantile(values, 0.95),
+            "p99": quantile(values, 0.99),
+            "max": round(max(values), 3) if values else None,
+        }
+
+    def as_dict(self) -> dict:
+        return {
+            "total": self.total,
+            "successful": self.total - self.failed,
+            "failed": self.failed,
+            "latency_ms": self._summary(self.latencies),
+            "by_stage": {
+                stage: {
+                    **{key: value for key, value in item.items() if key != "latency_ms"},
+                    "latency_ms": self._summary(item["latency_ms"]),
+                }
+                for stage, item in self.by_stage.items()
+            },
+        }
+
+
+def lag_summary(values: list[float]) -> dict:
+    return {"count": len(values), **RequestMetrics._summary(values)}
+
+
+def drain_flows(control: WorkloadControl, greenlets: set, timeout_seconds: float) -> None:
+    deadline = time.monotonic() + timeout_seconds
+    while control.active_flows and time.monotonic() < deadline:
+        gevent.sleep(0.02)
+    if control.active_flows:
+        for greenlet in tuple(greenlets):
+            if not greenlet.ready():
+                greenlet.kill(block=False)
+        raise TimeoutError(f"{control.active_flows} flows did not drain in {timeout_seconds}s")
+
+
+def run_open_loop_phase(
+    *, config: WorkloadConfig, control: WorkloadControl, phase: str,
+    duration_seconds: float, metrics: RequestMetrics, greenlets: set,
+) -> dict:
+    """Schedule each arrival at an absolute deadline, without waiting for flows."""
+    start = time.monotonic()
+    end = start + duration_seconds
+    interval = 1.0 / config.target_flow_rate
+    slot = 0
+
+    def execute(flow: dict) -> None:
+        failure = None
+        try:
+            execute_checkout_flow(config, record_request=metrics.record)
+        except FlowFailure as exc:
+            failure = {"stage": exc.stage, "http_status": exc.http_status, "error": str(exc)}
+        except Exception as exc:  # defensive classification for unexpected client errors
+            failure = {"stage": "unknown", "error": f"{type(exc).__name__}: {exc}"}
+        finally:
+            control.end_flow(flow, completed=failure is None, failure=failure)
+
+    while True:
+        scheduled_at = start + slot * interval
+        if scheduled_at >= end:
+            break
+        delay = scheduled_at - time.monotonic()
+        if delay > 0:
+            gevent.sleep(delay)
+        actual_at = time.monotonic()
+        flow, _reason = control.schedule(phase, scheduled_at, actual_at)
+        if flow is not None:
+            greenlet = gevent.spawn(execute, flow)
+            greenlets.add(greenlet)
+            greenlet.link(lambda done, active=greenlets: active.discard(done))
+        slot += 1
+
+    # Keep the admission window open through its configured end even when the
+    # final nominal arrival occurred earlier than that boundary.
+    remaining = end - time.monotonic()
+    if remaining > 0:
+        gevent.sleep(remaining)
+    return {
+        "started_monotonic": start,
+        "admission_ended_monotonic": time.monotonic(),
+        "scheduled_slots": slot,
+    }
 
 
 def main() -> int:
@@ -91,49 +186,29 @@ def main() -> int:
     if output_path.exists():
         raise FileExistsError(f"refusing to overwrite run metadata: {output_path}")
 
-    # The deterministic flow currently has no random choices. Seeding Python's
-    # PRNG keeps any future residual Python randomness reproducible.
     random.seed(config.seed)
-    preflight_frontend(config)
-
-    control = WorkloadControl(config.run_id)
-    control.config = config
-    CheckoutFlowUser.network_timeout = config.request_timeout_seconds
-    CheckoutFlowUser.connection_timeout = config.request_timeout_seconds
-    environment = Environment(user_classes=[CheckoutFlowUser], host=config.frontend_url)
-    environment.tcc_control = control
-    user_errors: list[dict[str, str]] = []
-
-    def record_user_error(user_instance, exception, tb):
-        user_errors.append({
-            "user_id": getattr(user_instance, "tcc_user_id", "unassigned"),
-            "error": f"{type(exception).__name__}: {exception}",
-        })
-
-    environment.events.user_error.add_listener(record_user_error)
-    runner = environment.create_local_runner()
-
+    control = WorkloadControl(config.run_id, config.max_in_flight_flows, config.target_flow_rate)
+    greenlets: set = set()
     metadata = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "run_id": config.run_id,
         "benchmark": "Google Online Boutique",
         "benchmark_version": "v0.10.7",
         "benchmark_commit": git_commit(),
-        "workload_model": "closed-loop",
+        "executor": "host-wsl",
+        "workload_model": "open-loop",
         "seed": config.seed,
         "product_id": config.product_id,
         "checkout_profile": "tcc-test-profile-v1",
         "checkout_profile_sha256": checkout_profile_fingerprint(config.checkout),
-        "configured_users": config.users,
-        "configured_user_ids": [f"user-{index:04d}" for index in range(1, config.users + 1)],
-        "user_identity_scheme": "deterministic control-plane label plus isolated Locust cookie jar",
-        "user_labels_propagated_to_sut": False,
-        "observed_peak_active_users": 0,
-        "spawn_rate_users_per_second": config.spawn_rate,
-        "target_flow_rate_per_second": None,
-        "think_time_seconds": config.wait_seconds,
-        "warmup_seconds_configured": config.warmup_seconds,
+        "flow_identity_scheme": "sequential control-plane ID; not propagated to the SUT",
+        "control_plane_ids_propagated_to_sut": False,
+        "target_flow_rate_per_second": config.target_flow_rate,
+        "max_in_flight_flows": config.max_in_flight_flows,
+        "observed_peak_in_flight_flows": 0,
+        "warmup_peak_in_flight_flows": 0,
         "duration_seconds_configured": config.duration_seconds,
+        "warmup_seconds_configured": config.warmup_seconds,
         "cooldown_seconds_configured": config.cooldown_seconds,
         "request_timeout_seconds": config.request_timeout_seconds,
         "setup_started_at": setup_started,
@@ -145,104 +220,111 @@ def main() -> int:
         "cooldown_started_at": None,
         "finished_at": None,
         "warmup_duration_seconds_actual": None,
+        "steady_admission_seconds_actual": None,
         "workload_duration_seconds_actual": None,
         "cooldown_duration_seconds_actual": None,
-        "warmup_flows": {"started": 0, "completed": 0, "failed": 0},
-        "flows": {"started": 0, "completed": 0, "failed": 0},
+        "warmup_flows": {},
+        "warmup_requests": {},
+        "flows": {},
+        "scheduled_flows": 0,
+        "started_flows": 0,
+        "completed_flows": 0,
+        "failed_flows": 0,
+        "control_plane_dropped_flows": 0,
+        "control_plane_drops_by_reason": {},
+        "start_lag_ms": {"warmup": lag_summary([]), "steady": lag_summary([])},
         "requests": {},
-        "latency_ms": {},
+        "observed_flow_start_rate_per_second": None,
+        "observed_flow_completion_rate_per_second": None,
         "observed_requests_per_second": None,
         "observed_flows_per_second": None,
         "failures_by_stage": {},
         "failed_flow_samples": [],
-        "locust_user_errors": user_errors,
         "pod_state_before": parse_snapshot("TCC_PODS_BEFORE_JSON"),
         "pod_state_after": [],
         "result": "running",
     }
 
-    warmup_start_mono = time.monotonic()
     try:
-        control.accepting_flows = True
+        preflight_frontend(config)
         metadata["warmup_started_at"] = utc_now()
-        runner.start(user_count=config.users, spawn_rate=config.spawn_rate)
-        wait_phase(config.warmup_seconds, control, runner)
-
-        control.accepting_flows = False
-        drain_flows(control, runner, config.drain_timeout_seconds)
+        warmup_started = time.monotonic()
+        warmup_metrics = RequestMetrics()
+        run_open_loop_phase(
+            config=config, control=control, phase="warmup", duration_seconds=config.warmup_seconds,
+            metrics=warmup_metrics, greenlets=greenlets,
+        )
+        drain_flows(control, greenlets, config.drain_timeout_seconds)
         metadata["warmup_ended_at"] = utc_now()
-        metadata["warmup_duration_seconds_actual"] = round(time.monotonic() - warmup_start_mono, 3)
-        metadata["warmup_flows"] = {
-            "started": control.warmup_flows_started,
-            "completed": control.warmup_flows_completed,
-            "failed": control.warmup_flows_failed,
-        }
+        metadata["warmup_duration_seconds_actual"] = round(time.monotonic() - warmup_started, 3)
+        metadata["warmup_flows"] = control.snapshot("warmup")
+        metadata["warmup_peak_in_flight_flows"] = control.peak_in_flight_by_phase["warmup"]
+        metadata["warmup_requests"] = warmup_metrics.as_dict()
 
-        environment.stats.reset_all()
-        workload_start_mono = time.monotonic()
+        # Warm-up data is deliberately excluded from steady workload request/latency stats.
+        metrics = RequestMetrics()
         metadata["workload_started_at"] = utc_now()
-        control.measurement_enabled = True
-        control.accepting_flows = True
-        wait_phase(config.duration_seconds, control, runner)
-
-        control.accepting_flows = False
+        steady = run_open_loop_phase(
+            config=config, control=control, phase="steady", duration_seconds=config.duration_seconds,
+            metrics=metrics, greenlets=greenlets,
+        )
         metadata["admission_stopped_at"] = utc_now()
-        drain_flows(control, runner, config.drain_timeout_seconds)
+        admission_seconds = max(0.0, steady["admission_ended_monotonic"] - steady["started_monotonic"])
+        metadata["steady_admission_seconds_actual"] = round(admission_seconds, 3)
+        drain_flows(control, greenlets, config.drain_timeout_seconds)
         metadata["workload_ended_at"] = utc_now()
-        workload_duration = time.monotonic() - workload_start_mono
-        metadata["workload_duration_seconds_actual"] = round(workload_duration, 3)
+        workload_seconds = max(0.001, time.monotonic() - steady["started_monotonic"])
+        metadata["workload_duration_seconds_actual"] = round(workload_seconds, 3)
         metadata["cooldown_started_at"] = metadata["workload_ended_at"]
 
-        total = environment.stats.total
-        metadata["requests"] = {
-            "total": total.num_requests,
-            "failed": total.num_failures,
-            "successful": total.num_requests - total.num_failures,
+        counts = control.snapshot("steady")
+        metadata["flows"] = counts
+        metadata["scheduled_flows"] = counts["scheduled"]
+        metadata["started_flows"] = counts["started"]
+        metadata["completed_flows"] = counts["completed"]
+        metadata["failed_flows"] = counts["failed"]
+        metadata["control_plane_dropped_flows"] = counts["control_plane_dropped"]
+        metadata["control_plane_drops_by_reason"] = dict(control.dropped_by_reason["steady"])
+        metadata["warmup_control_plane_drops_by_reason"] = dict(control.dropped_by_reason["warmup"])
+        metadata["observed_peak_in_flight_flows"] = control.peak_in_flight_by_phase["steady"]
+        metadata["start_lag_ms"] = {
+            phase: lag_summary(values) for phase, values in control.start_lags_by_phase.items()
         }
-        metadata["latency_ms"] = {
-            "average": round(total.avg_response_time, 3) if total.num_requests else None,
-            "median": round(total.median_response_time, 3) if total.num_requests else None,
-            "p50": percentile(total, 0.50),
-            "p90": percentile(total, 0.90),
-            "p95": percentile(total, 0.95),
-            "p99": percentile(total, 0.99),
-        }
-        metadata["flows"] = {
-            "started": control.flows_started,
-            "completed": control.flows_completed,
-            "failed": control.flows_failed,
-        }
-        metadata["observed_peak_active_users"] = control.peak_active_users
+        metadata["requests"] = metrics.as_dict()
         metadata["failures_by_stage"] = dict(control.failures_by_stage)
         metadata["failed_flow_samples"] = control.failed_flow_samples
-        if workload_duration > 0:
-            metadata["observed_requests_per_second"] = round(total.num_requests / workload_duration, 3)
-            metadata["observed_flows_per_second"] = round(control.flows_completed / workload_duration, 3)
+        metadata["observed_flow_start_rate_per_second"] = round(counts["started"] / admission_seconds, 3) if admission_seconds else 0
+        metadata["observed_flow_completion_rate_per_second"] = round(counts["completed"] / workload_seconds, 3)
+        metadata["observed_requests_per_second"] = round(metrics.total / workload_seconds, 3)
+        metadata["observed_flows_per_second"] = metadata["observed_flow_completion_rate_per_second"]
 
-        cooldown_start_mono = time.monotonic()
-        wait_phase(config.cooldown_seconds, control, runner)
-        metadata["cooldown_duration_seconds_actual"] = round(time.monotonic() - cooldown_start_mono, 3)
+        cooldown_start = time.monotonic()
+        gevent.sleep(config.cooldown_seconds)
+        metadata["cooldown_duration_seconds_actual"] = round(time.monotonic() - cooldown_start, 3)
         metadata["finished_at"] = utc_now()
-        if user_errors or control.flows_started == 0:
-            details = "; ".join(error["error"] for error in user_errors)
+        if counts["started"] == 0:
             metadata["result"] = "failed"
-            metadata["fatal_error"] = details or "no measured flow started during the workload window"
+            metadata["fatal_error"] = "no steady flow was started"
+        elif counts["failed"]:
+            metadata["result"] = "completed_with_flow_failures"
+        elif counts["control_plane_dropped"]:
+            metadata["result"] = "completed_with_control_plane_drops"
         else:
-            metadata["result"] = "passed" if control.flows_failed == 0 else "completed_with_flow_failures"
+            metadata["result"] = "passed"
     except Exception as exc:
-        control.accepting_flows = False
         metadata["finished_at"] = utc_now()
         metadata["result"] = "failed"
         metadata["fatal_error"] = f"{type(exc).__name__}: {exc}"
     finally:
-        runner.quit()
         metadata["pod_state_after"] = parse_snapshot("TCC_PODS_AFTER_JSON")
         temp_path = output_path.with_suffix(".json.tmp")
         temp_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
         temp_path.replace(output_path)
         print(json.dumps(metadata, indent=2, sort_keys=True))
 
-    return 0 if metadata["result"] in ("passed", "completed_with_flow_failures") else 1
+    return 0 if metadata["result"] in (
+        "passed", "completed_with_flow_failures", "completed_with_control_plane_drops"
+    ) else 1
 
 
 if __name__ == "__main__":
