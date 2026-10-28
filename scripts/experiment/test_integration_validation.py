@@ -122,12 +122,25 @@ class IntegrationValidationUnitTests(unittest.TestCase):
                              Path(tmp) / "global/preflight/observability")
 
     def test_confirmed_fault_target_is_captured_before_slow_cluster_snapshot(self):
-        obj = iv.IntegrationValidation.__new__(iv.IntegrationValidation)
-        calls = []
-        obj.capture_target_state = lambda fault, run_id, directory: calls.append(("target", fault, run_id))
-        obj.capture_cluster_snapshot = lambda directory, stage: calls.append(("cluster", stage))
-        obj.capture_confirmed_state("F4", {"run_id": "run-1"}, Path("/tmp/audit"), "injection")
-        self.assertEqual(calls, [("target", "F4", "run-1"), ("cluster", "f4-injection")])
+        with tempfile.TemporaryDirectory() as tmp:
+            obj = iv.IntegrationValidation.__new__(iv.IntegrationValidation)
+            root = Path(tmp) / "audit/injection"
+            calls = []
+            obj.capture_target_state = lambda fault, run_id, directory: calls.append(("target", fault, run_id, directory))
+
+            def capture_cluster(directory, stage):
+                calls.append(("cluster", stage, directory))
+                directory.mkdir(parents=True, exist_ok=True)
+                summary = directory / "snapshot-summary.json"
+                summary.write_text("{}", encoding="utf-8")
+                return {"summary_path": str(summary)}
+
+            obj.capture_cluster_snapshot = capture_cluster
+            obj.capture_confirmed_state("F4", {"run_id": "run-1"}, root, "injection")
+            self.assertEqual(calls[0][:3], ("target", "F4", "run-1"))
+            self.assertEqual(calls[1][:2], ("cluster", "f4-injection"))
+            self.assertEqual(calls[1][2], root / "cluster-wide")
+            self.assertTrue((root / "snapshot-summary.json").is_file())
 
     def test_f3_injection_requires_zero_replicas_readiness_and_endpoints(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -697,7 +697,11 @@ class IntegrationValidation:
         # Capture the fault target immediately at the transition. Cluster-wide
         # snapshots are slower and can outlast short fault windows (notably F4).
         self.capture_target_state(fault, event.get("run_id", ""), directory)
-        self.capture_cluster_snapshot(directory, f"{fault.lower()}-{phase}")
+        cluster_directory = directory / "cluster-wide"
+        snapshot = self.capture_cluster_snapshot(cluster_directory, f"{fault.lower()}-{phase}")
+        summary_path = Path(snapshot.get("summary_path", ""))
+        if summary_path.is_file():
+            shutil.copyfile(summary_path, directory / "snapshot-summary.json")
 
     def capture_target_state(self, fault: str, run_id: str, directory: Path) -> None:
         directory.mkdir(parents=True, exist_ok=True)
