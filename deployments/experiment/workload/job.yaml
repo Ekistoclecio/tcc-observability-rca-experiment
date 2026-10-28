@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tcc-experimental-workload
+  labels:
+    app.kubernetes.io/name: tcc-experimental-workload
+    app.kubernetes.io/component: experiment-control
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 1800
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tcc-experimental-workload
+        app.kubernetes.io/component: experiment-control
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: workload
+          image: tcc-workload:phase3
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: tcc-workload-config
+          env:
+            - name: TCC_ARTIFACT_DIR
+              value: /results
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: results
+              mountPath: /results
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: results
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
