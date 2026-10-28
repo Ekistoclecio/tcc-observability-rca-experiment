@@ -1,23 +1,31 @@
 # TCC controlled workload
 
-This Locust workload is separate from the Online Boutique demonstration
-`locustfile.py`. One virtual user runs a fixed cart reset followed by the
-business flow `home -> product -> add cart -> cart -> checkout`; each user has
-an independent Locust cookie jar. The Locust user label and flow ID are kept in
-the control process and are not sent to the application.
+The official experimental executor is the runner on the host/WSL. It sends
+ordinary HTTP requests to the Online Boutique frontend; it is part of the
+experimental control plane, not the SUT. It does not add TCC headers, telemetry,
+or control IDs to requests. The original Online Boutique `locustfile.py` remains
+unchanged. The Kubernetes Job is retained as an auxiliary executor and is not
+used for official experiment runs.
 
-The model is closed-loop: each virtual user starts its next flow only after its
-previous flow and configured think time finish. `TCC_SPAWN_RATE` means users
-spawned per second. It is not a request rate or flow arrival rate. No open-loop
-target flow rate is implemented.
+The runner schedules flow arrivals open-loop at `TCC_TARGET_FLOW_RATE` flows
+per second. It does not wait for earlier flows to finish. Each arrival gets a
+new `requests.Session` and cookie jar, then executes exactly five requests:
+`GET /`, `GET /product/{id}`, `POST /cart`, `GET /cart`, and
+`POST /cart/checkout`. No `/cart/empty` reset is sent. Each flow's ID remains in
+host-side metadata only.
 
-Values in `workload.env` are low-load validation defaults only. They are not
-official experiment parameters. See `docs/experiment/phase-03-controlled-workload.md`
-for the phases, metadata fields and validation results.
+`TCC_MAX_IN_FLIGHT_FLOWS` caps active flows. An arrival scheduled while the cap
+is reached is recorded as a control-plane drop and is not queued or counted as
+a SUT failure. Scheduler-late slots are also dropped rather than accumulated
+into a catch-up burst. Configured arrival rate, observed start rate, and flow
+completion throughput are reported separately.
 
-## Local controlled run
+Values in the validation environment file are low-load development defaults,
+not official experiment settings. See
+`docs/experiment/phase-03-controlled-workload.md` for the method and actual
+validation results.
 
-Create the isolated Python environment and run against the local Kind cluster:
+## Host/WSL run
 
 ```bash
 scripts/experiment/setup-workload-venv.sh
@@ -27,26 +35,16 @@ TCC_RUN_ID=validation-001 \
 scripts/experiment/run-workload.sh
 ```
 
-The runner checks application and observability readiness, verifies the original
-loadgenerator has zero replicas, opens a temporary frontend port-forward, and
-writes JSON control metadata under `artifacts/workload/runs/`. Do not run the
-original loadgenerator and this runner concurrently.
+The wrapper checks SUT/backend readiness, verifies the original loadgenerator
+has zero replicas, creates a temporary frontend port-forward to localhost, and
+writes JSON control metadata under `artifacts/workload/runs/`. The port-forward
+is used because the current Kind cluster does not map a frontend NodePort to
+the host. Do not run the original loadgenerator concurrently.
 
-## Optional in-cluster Job
+## Auxiliary in-cluster Job
 
-The Job is isolated from the original loadgenerator manifest. From the repository
-root, build/load the image and apply the experiment overlay:
-
-```bash
-docker build -f deployments/experiment/workload/Dockerfile -t tcc-workload:phase3 .
-docker image save tcc-workload:phase3 | docker exec -i tcc-baseline-control-plane ctr -n k8s.io images import -
-kubectl apply -k deployments/experiment/workload
-kubectl logs -f job/tcc-experimental-workload
-```
-
-The generated JSON is in `/results` inside the completed Job pod; copy it before
-deleting the Job. Edit `deployments/experiment/workload/workload.env` to change
-the validation parameters, then delete and reapply the Job because Jobs are
-immutable. The in-cluster Job is optional; the local script is the runner used
-for the recorded Phase 3 validations because it also captures before/after pod
-state on the host.
+`deployments/experiment/workload/` retains an optional Kubernetes Job for
+diagnostic/manual use. Its results are not official workload runs and should
+not be mixed with host-runner results. The Job shares the same workload code
+and safe validation defaults. Apply it only when explicitly testing the
+auxiliary execution path.
