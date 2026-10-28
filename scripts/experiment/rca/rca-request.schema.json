@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcc.example/schemas/rca-request-1.0.schema.json",
+  "title": "Canonical Full RCA Request",
+  "type": "object",
+  "required": ["schema_version", "task", "instructions", "system_context", "controlled_vocabulary", "output_contract", "observation_window", "telemetry"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "task": {"const": "root_cause_analysis"},
+    "instructions": {"type": "string", "minLength": 1},
+    "system_context": {
+      "type": "object", "required": ["architecture", "components"],
+      "properties": {"architecture": {"const": "microservices"}, "components": {"type": "array", "items": {"$ref": "#/$defs/component"}, "uniqueItems": true}},
+      "additionalProperties": false
+    },
+    "controlled_vocabulary": {
+      "type": "object", "required": ["fault_types", "location_kinds"],
+      "properties": {
+        "fault_types": {"type": "array", "items": {"enum": ["cpu_saturation", "network_latency", "service_unavailable", "application_exception", "datastore_unavailable"]}, "minItems": 5, "maxItems": 5, "uniqueItems": true},
+        "location_kinds": {"type": "array", "items": {"enum": ["service", "service_edge", "operation", "datastore"]}, "minItems": 4, "maxItems": 4, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "output_contract": {"type": "object"},
+    "observation_window": {
+      "type": "object", "required": ["start", "end"],
+      "properties": {"start": {"type": "string", "format": "date-time"}, "end": {"type": "string", "format": "date-time"}},
+      "additionalProperties": false
+    },
+    "telemetry": {
+      "type": "object", "required": ["metrics", "logs", "traces"],
+      "properties": {"metrics": {"type": "array", "items": {"type": "object"}}, "logs": {"type": "array", "items": {"type": "object"}}, "traces": {"type": "array", "items": {"type": "object"}}},
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {"component": {"enum": ["frontend", "checkoutservice", "cartservice", "productcatalogservice", "currencyservice", "paymentservice", "shippingservice", "emailservice", "recommendationservice", "adservice", "redis-cart"]}}
+}

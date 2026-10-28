@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcc.example/schemas/rca-output-1.0.schema.json",
+  "title": "Canonical RCA hypothesis response",
+  "type": "object",
+  "required": ["hypotheses"],
+  "properties": {
+    "hypotheses": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/hypothesis"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "component": {
+      "enum": ["frontend", "checkoutservice", "cartservice", "productcatalogservice", "currencyservice", "paymentservice", "shippingservice", "emailservice", "recommendationservice", "adservice", "redis-cart"]
+    },
+    "location": {
+      "oneOf": [
+        {
+          "type": "object", "required": ["kind", "component", "source", "target", "operation"],
+          "properties": {"kind": {"const": "service"}, "component": {"$ref": "#/$defs/component"}, "source": {"type": "null"}, "target": {"type": "null"}, "operation": {"type": "null"}},
+          "additionalProperties": false
+        },
+        {
+          "type": "object", "required": ["kind", "component", "source", "target", "operation"],
+          "properties": {"kind": {"const": "service_edge"}, "component": {"type": "null"}, "source": {"$ref": "#/$defs/component"}, "target": {"$ref": "#/$defs/component"}, "operation": {"type": "null"}},
+          "additionalProperties": false
+        },
+        {
+          "type": "object", "required": ["kind", "component", "source", "target", "operation"],
+          "properties": {"kind": {"const": "operation"}, "component": {"$ref": "#/$defs/component"}, "source": {"type": "null"}, "target": {"type": "null"}, "operation": {"type": "string", "minLength": 1}},
+          "additionalProperties": false
+        },
+        {
+          "type": "object", "required": ["kind", "component", "source", "target", "operation"],
+          "properties": {"kind": {"const": "datastore"}, "component": {"$ref": "#/$defs/component"}, "source": {"type": "null"}, "target": {"type": "null"}, "operation": {"type": "null"}},
+          "additionalProperties": false
+        }
+      ]
+    },
+    "hypothesis": {
+      "type": "object",
+      "required": ["rank", "fault_type", "location", "confidence", "evidence", "explanation"],
+      "properties": {
+        "rank": {"type": "integer", "enum": [1, 2, 3]},
+        "fault_type": {"enum": ["cpu_saturation", "network_latency", "service_unavailable", "application_exception", "datastore_unavailable"]},
+        "location": {"$ref": "#/$defs/location"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "array", "items": {"type": "string", "pattern": "^(metric|log|trace|span)-[0-9]{6}$"}, "uniqueItems": true},
+        "explanation": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
+}

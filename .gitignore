@@ -31,4 +31,5 @@ docs/experiment/*
 artifacts/workload/runs/
 artifacts/experiments/
 artifacts/datasets/
+artifacts/rca-inputs/
 .venv-tcc-workload/
