@@ -28,3 +28,5 @@ release/wi-kubernetes-manifests.yaml
 vendor/
 gha-creds-*.json
 docs/experiment/*
+artifacts/workload/runs/
+.venv-tcc-workload/

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcc:workload-run-metadata:1.0",
+  "title": "TCC workload run metadata",
+  "type": "object",
+  "required": [
+    "schema_version", "run_id", "benchmark", "benchmark_version", "workload_model",
+    "seed", "product_id", "configured_users", "spawn_rate_users_per_second",
+    "target_flow_rate_per_second", "warmup_started_at", "warmup_ended_at",
+    "workload_started_at", "admission_stopped_at", "workload_ended_at",
+    "cooldown_started_at", "finished_at", "warmup_flows", "flows", "requests",
+    "latency_ms", "observed_requests_per_second", "observed_flows_per_second",
+    "failures_by_stage", "pod_state_before", "pod_state_after", "result"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "benchmark": {"const": "Google Online Boutique"},
+    "benchmark_version": {"const": "v0.10.7"},
+    "benchmark_commit": {"type": ["string", "null"]},
+    "workload_model": {"const": "closed-loop"},
+    "seed": {"type": "integer"},
+    "product_id": {"type": "string"},
+    "checkout_profile": {"type": "string"},
+    "checkout_profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "configured_users": {"type": "integer", "minimum": 1},
+    "configured_user_ids": {"type": "array", "items": {"type": "string"}},
+    "user_identity_scheme": {"type": "string"},
+    "user_labels_propagated_to_sut": {"const": false},
+    "observed_peak_active_users": {"type": "integer", "minimum": 0},
+    "spawn_rate_users_per_second": {"type": "number", "exclusiveMinimum": 0},
+    "target_flow_rate_per_second": {"type": "null"},
+    "think_time_seconds": {"type": "number", "minimum": 0},
+    "warmup_seconds_configured": {"type": "number", "minimum": 0},
+    "duration_seconds_configured": {"type": "number", "exclusiveMinimum": 0},
+    "cooldown_seconds_configured": {"type": "number", "minimum": 0},
+    "request_timeout_seconds": {"type": "number", "exclusiveMinimum": 0},
+    "setup_started_at": {"type": "string", "format": "date-time"},
+    "warmup_started_at": {"type": ["string", "null"], "format": "date-time"},
+    "warmup_ended_at": {"type": ["string", "null"], "format": "date-time"},
+    "workload_started_at": {"type": ["string", "null"], "format": "date-time"},
+    "admission_stopped_at": {"type": ["string", "null"], "format": "date-time"},
+    "workload_ended_at": {"type": ["string", "null"], "format": "date-time"},
+    "cooldown_started_at": {"type": ["string", "null"], "format": "date-time"},
+    "finished_at": {"type": ["string", "null"], "format": "date-time"},
+    "warmup_duration_seconds_actual": {"type": ["number", "null"]},
+    "workload_duration_seconds_actual": {"type": ["number", "null"]},
+    "cooldown_duration_seconds_actual": {"type": ["number", "null"]},
+    "warmup_flows": {"$ref": "#/$defs/flowCounts"},
+    "flows": {"$ref": "#/$defs/flowCounts"},
+    "requests": {
+      "type": "object",
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "successful": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0}
+      },
+      "required": ["total", "successful", "failed"]
+    },
+    "latency_ms": {"type": "object"},
+    "observed_requests_per_second": {"type": ["number", "null"]},
+    "observed_flows_per_second": {"type": ["number", "null"]},
+    "failures_by_stage": {"type": "object", "additionalProperties": {"type": "integer"}},
+    "failed_flow_samples": {"type": "array", "items": {"type": "object"}},
+    "locust_user_errors": {"type": "array", "items": {"type": "object"}},
+    "pod_state_before": {"type": "array", "items": {"$ref": "#/$defs/pod"}},
+    "pod_state_after": {"type": "array", "items": {"$ref": "#/$defs/pod"}},
+    "result": {"enum": ["running", "passed", "completed_with_flow_failures", "failed"]},
+    "fatal_error": {"type": "string"}
+  },
+  "$defs": {
+    "flowCounts": {
+      "type": "object",
+      "required": ["started", "completed", "failed"],
+      "properties": {
+        "started": {"type": "integer", "minimum": 0},
+        "completed": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0}
+      }
+    },
+    "pod": {
+      "type": "object",
+      "required": ["namespace", "name", "phase", "ready", "restarts"],
+      "properties": {
+        "namespace": {"type": "string"},
+        "name": {"type": "string"},
+        "phase": {"type": ["string", "null"]},
+        "ready": {"type": "boolean"},
+        "restarts": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}
