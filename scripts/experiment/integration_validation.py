@@ -259,6 +259,7 @@ class EvidenceRecorder:
         stderr_relative = stderr_relative or f"audit/commands/{self.counter:04d}-{slug}.stderr"
         stdout_path, stderr_path = self.root / stdout_relative, self.root / stderr_relative
         stdout_path.parent.mkdir(parents=True, exist_ok=True)
+        stderr_path.parent.mkdir(parents=True, exist_ok=True)
         started_at = utc_now()
         started = time.monotonic()
         result = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=timeout, check=False)
