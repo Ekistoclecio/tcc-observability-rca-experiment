@@ -5,6 +5,9 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 kubectl apply -k "${repo_root}/deployments/experiment"
+# ConfigMaps use stable names in this overlay, so applying a Collector change
+# does not itself recreate the pod.
+kubectl rollout restart deployment/otel-collector -n observability-otel
 kubectl rollout status deployment/frontend --timeout=240s
 kubectl rollout status deployment/checkoutservice --timeout=240s
 kubectl rollout status deployment/cartservice --timeout=240s
