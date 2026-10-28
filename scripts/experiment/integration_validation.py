@@ -257,7 +257,7 @@ class EvidenceRecorder:
         slug = re.sub(r"[^a-z0-9-]+", "-", stage.lower()).strip("-")
         stdout_relative = stdout_relative or f"audit/commands/{self.counter:04d}-{slug}.stdout"
         stderr_relative = stderr_relative or f"audit/commands/{self.counter:04d}-{slug}.stderr"
-        stdout_path, stderr_path = self.root / stdout_relative, self.root / stderr_relative
+        stdout_path, stderr_path = self.destination(stdout_relative), self.destination(stderr_relative)
         stdout_path.parent.mkdir(parents=True, exist_ok=True)
         stderr_path.parent.mkdir(parents=True, exist_ok=True)
         started_at = utc_now()
@@ -282,6 +282,14 @@ class EvidenceRecorder:
             return path.resolve().relative_to(REPO).as_posix()
         except ValueError:
             return path.as_posix()
+
+    def destination(self, value: str) -> Path:
+        path = Path(value)
+        if path.is_absolute():
+            return path
+        if len(path.parts) >= 3 and path.parts[:2] == ("artifacts", "integration-validation"):
+            return REPO / path
+        return self.root / path
 
 
 class IntegrationValidation:

@@ -79,6 +79,22 @@ class IntegrationValidationUnitTests(unittest.TestCase):
                 with self.assertRaises(iv.ValidationError):
                     iv.IntegrationValidation("validation-1", ("F1",), 10, 10)
 
+    def test_command_recorder_resolves_repo_relative_artifacts_without_nesting_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            validation_root = repo / "artifacts/integration-validation/v1"
+            validation_root.mkdir(parents=True)
+            with patch.object(iv, "REPO", repo):
+                recorder = iv.EvidenceRecorder(validation_root)
+                stdout = "artifacts/integration-validation/v1/f1/audit/check.stdout"
+                stderr = "artifacts/integration-validation/v1/f1/audit/check.stderr"
+                result = recorder.command(["python3", "-c", "print('evidence')"], stage="test-paths",
+                                          stdout_relative=stdout, stderr_relative=stderr)
+                self.assertEqual(result.returncode, 0)
+                self.assertEqual((repo / stdout).read_text().strip(), "evidence")
+                self.assertTrue((repo / stderr).is_file())
+                self.assertFalse((validation_root / stdout).exists())
+
     def test_f3_injection_requires_zero_replicas_readiness_and_endpoints(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
