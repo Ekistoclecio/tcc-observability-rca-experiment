@@ -31,14 +31,11 @@ import demo_pb2_grpc
 from grpc_health.v1 import health_pb2
 from grpc_health.v1 import health_pb2_grpc
 
-from opentelemetry import trace
 from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient, GrpcInstrumentorServer
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from logger import getJSONLogger
 from conventional_telemetry import ConventionalTelemetry
+from otel_telemetry import configure_otel, otel_rpc
 logger = getJSONLogger('recommendationservice-server')
 conventional_telemetry = ConventionalTelemetry('recommendationservice')
 
@@ -69,6 +66,7 @@ def initStackdriverProfiling():
   return
 
 class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
+    @otel_rpc("/hipstershop.RecommendationService/ListRecommendations")
     def ListRecommendations(self, request, context):
         max_responses = 5
         # fetch list of products from product catalog stub
@@ -109,25 +107,16 @@ if __name__ == "__main__":
         logger.info("Profiler disabled.")
 
     try:
+      if os.getenv("ENABLE_TRACING") == "1":
+        configure_otel("recommendationservice", logger)
       grpc_client_instrumentor = GrpcInstrumentorClient()
       grpc_client_instrumentor.instrument()
       grpc_server_instrumentor = GrpcInstrumentorServer()
       grpc_server_instrumentor.instrument()
-      if os.environ["ENABLE_TRACING"] == "1":
-        trace.set_tracer_provider(TracerProvider())
-        otel_endpoint = os.getenv("COLLECTOR_SERVICE_ADDR", "localhost:4317")
-        trace.get_tracer_provider().add_span_processor(
-          BatchSpanProcessor(
-              OTLPSpanExporter(
-              endpoint = otel_endpoint,
-              insecure = True
-            )
-          )
-        )
     except (KeyError, DefaultCredentialsError):
         logger.info("Tracing disabled.")
     except Exception as e:
-        logger.warn(f"Exception on Cloud Trace setup: {traceback.format_exc()}, tracing disabled.") 
+        logger.warning(f"Exception on OpenTelemetry setup: {traceback.format_exc()}, telemetry disabled.")
 
     port = os.environ.get('PORT', "8080")
     catalog_addr = os.environ.get('PRODUCT_CATALOG_SERVICE_ADDR', '')

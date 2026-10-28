@@ -38,13 +38,15 @@ func (p *productCatalog) Watch(req *healthpb.HealthCheckRequest, ws healthpb.Hea
 	return status.Errorf(codes.Unimplemented, "health check via Watch not implemented")
 }
 
-func (p *productCatalog) ListProducts(context.Context, *pb.Empty) (*pb.ListProductsResponse, error) {
+func (p *productCatalog) ListProducts(ctx context.Context, _ *pb.Empty) (*pb.ListProductsResponse, error) {
+	log.WithContext(ctx).Info("listing products")
 	time.Sleep(extraLatency)
 
 	return &pb.ListProductsResponse{Products: p.parseCatalog()}, nil
 }
 
 func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductRequest) (*pb.Product, error) {
+	log.WithContext(ctx).Info("getting product")
 	time.Sleep(extraLatency)
 
 	catalog := p.parseCatalog()
@@ -58,6 +60,7 @@ func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductReque
 }
 
 func (p *productCatalog) SearchProducts(ctx context.Context, req *pb.SearchProductsRequest) (*pb.SearchProductsResponse, error) {
+	log.WithContext(ctx).Info("searching products")
 	time.Sleep(extraLatency)
 
 	var ps []*pb.Product

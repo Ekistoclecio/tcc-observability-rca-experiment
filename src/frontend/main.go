@@ -28,7 +28,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
@@ -178,7 +177,7 @@ func initStats(log logrus.FieldLogger) {
 	// TODO(arbrown) Implement OpenTelemtry stats
 }
 
-func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServer) (*sdktrace.TracerProvider, error) {
+func initTracing(log *logrus.Logger, ctx context.Context, svc *frontendServer) (*sdktrace.TracerProvider, error) {
 	mustMapEnv(&svc.collectorAddr, "COLLECTOR_SERVICE_ADDR")
 	collectorConn, err := grpc.NewClient(
 		svc.collectorAddr,
@@ -187,18 +186,7 @@ func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServe
 		return nil, errors.Wrapf(err, "grpc: failed to connect to collector %s", svc.collectorAddr)
 	}
 	svc.collectorConn = collectorConn
-	exporter, err := otlptracegrpc.New(
-		ctx,
-		otlptracegrpc.WithGRPCConn(svc.collectorConn))
-	if err != nil {
-		log.Warnf("warn: Failed to create trace exporter: %v", err)
-	}
-	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
-		sdktrace.WithSampler(sdktrace.AlwaysSample()))
-	otel.SetTracerProvider(tp)
-
-	return tp, err
+	return configureOTelProviders(ctx, "frontend", svc.collectorConn, log)
 }
 
 func initProfiling(log logrus.FieldLogger, service, version string) {

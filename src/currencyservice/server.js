@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+const { createOTelTelemetry } = require('./otel-telemetry');
+const otelTelemetry = createOTelTelemetry('currencyservice');
 const pino = require('pino');
 const logger = pino({
   name: 'currencyservice-server',
@@ -38,36 +40,8 @@ else {
   });
 }
 
-// Register GRPC OTel Instrumentation for trace propagation
-// regardless of whether tracing is emitted.
-const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-
-registerInstrumentations({
-  instrumentations: [new GrpcInstrumentation()]
-});
-
 if(process.env.ENABLE_TRACING == "1") {
   logger.info("Tracing enabled.")
-
-  const { resourceFromAttributes } = require('@opentelemetry/resources');
-
-  const { ATTR_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
-
-  const opentelemetry = require('@opentelemetry/sdk-node');
-
-  const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
-
-  const collectorUrl = process.env.COLLECTOR_SERVICE_ADDR;
-  const traceExporter = new OTLPTraceExporter({url: collectorUrl});
-  const sdk = new opentelemetry.NodeSDK({
-    resource: resourceFromAttributes({
-      [ ATTR_SERVICE_NAME ]: process.env.OTEL_SERVICE_NAME || 'currencyservice',
-    }),
-    traceExporter: traceExporter,
-  });
-
-  sdk.start()
 }
 else {
   logger.info("Tracing disabled.")
@@ -185,8 +159,12 @@ function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   const server = new grpc.Server();
   server.addService(shopProto.CurrencyService.service, {
-    getSupportedCurrencies: conventionalTelemetry.wrapUnary('/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies),
-    convert: conventionalTelemetry.wrapUnary('/hipstershop.CurrencyService/Convert', convert)
+    getSupportedCurrencies: conventionalTelemetry.wrapUnary(
+      '/hipstershop.CurrencyService/GetSupportedCurrencies',
+      otelTelemetry.wrapUnary('/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies)),
+    convert: conventionalTelemetry.wrapUnary(
+      '/hipstershop.CurrencyService/Convert',
+      otelTelemetry.wrapUnary('/hipstershop.CurrencyService/Convert', convert))
   });
   server.addService(healthProto.Health.service, {check});
 

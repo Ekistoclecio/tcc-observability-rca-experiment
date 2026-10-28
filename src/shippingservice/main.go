@@ -25,13 +25,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -132,8 +129,8 @@ func (s *server) Watch(req *healthpb.HealthCheckRequest, ws healthpb.Health_Watc
 
 // GetQuote produces a shipping quote (cost) in USD.
 func (s *server) GetQuote(ctx context.Context, in *pb.GetQuoteRequest) (*pb.GetQuoteResponse, error) {
-	log.Info("[GetQuote] received request")
-	defer log.Info("[GetQuote] completed request")
+	log.WithContext(ctx).Info("[GetQuote] received request")
+	defer log.WithContext(ctx).Info("[GetQuote] completed request")
 
 	// 1. Generate a quote based on the total number of items to be shipped.
 	count := 0
@@ -155,8 +152,8 @@ func (s *server) GetQuote(ctx context.Context, in *pb.GetQuoteRequest) (*pb.GetQ
 // ShipOrder mocks that the requested items will be shipped.
 // It supplies a tracking ID for notional lookup of shipment delivery status.
 func (s *server) ShipOrder(ctx context.Context, in *pb.ShipOrderRequest) (*pb.ShipOrderResponse, error) {
-	log.Info("[ShipOrder] received request")
-	defer log.Info("[ShipOrder] completed request")
+	log.WithContext(ctx).Info("[ShipOrder] received request")
+	defer log.WithContext(ctx).Info("[ShipOrder] completed request")
 	// 1. Create a Tracking ID
 	baseAddress := fmt.Sprintf("%s, %s, %s", in.Address.StreetAddress, in.Address.City, in.Address.State)
 	id := CreateTrackingId(baseAddress)
@@ -177,33 +174,19 @@ func initTracing(ctx context.Context) (func(context.Context) error, error) {
 		return nil, fmt.Errorf("COLLECTOR_SERVICE_ADDR is required when tracing is enabled")
 	}
 
-	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint(collectorAddr),
-		otlptracegrpc.WithInsecure(),
-	)
+	conn, err := grpc.NewClient(collectorAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("create OTLP trace exporter: %w", err)
+		return nil, fmt.Errorf("connect to OpenTelemetry Collector: %w", err)
 	}
 
 	serviceName := os.Getenv("OTEL_SERVICE_NAME")
 	if serviceName == "" {
 		serviceName = "shippingservice"
 	}
-	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(
-		attribute.String("service.name", serviceName),
-		attribute.String("service.version", "0.10.7"),
-		attribute.String("deployment.environment.name", "tcc-local"),
-	))
+	provider, err := configureOTelProviders(ctx, serviceName, conn, log)
 	if err != nil {
-		return nil, fmt.Errorf("create OpenTelemetry resource: %w", err)
+		return nil, fmt.Errorf("configure OpenTelemetry providers: %w", err)
 	}
-
-	provider := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithResource(res),
-	)
-	otel.SetTracerProvider(provider)
 	return provider.Shutdown, nil
 }
 

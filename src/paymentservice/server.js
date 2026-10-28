@@ -20,8 +20,10 @@ const charge = require('./charge');
 
 const logger = require('./logger')
 const { createConventionalTelemetry } = require('./conventional-telemetry');
+const { createOTelTelemetry } = require('./otel-telemetry');
 
 const conventionalTelemetry = createConventionalTelemetry('paymentservice');
+const otelTelemetry = createOTelTelemetry('paymentservice');
 
 class HipsterShopServer {
   constructor(protoRoot, port = HipsterShopServer.PORT) {
@@ -93,7 +95,9 @@ class HipsterShopServer {
       {
         charge: conventionalTelemetry.wrapUnary(
           '/hipstershop.PaymentService/Charge',
-          HipsterShopServer.ChargeServiceHandler.bind(this)
+          otelTelemetry.wrapUnary(
+            '/hipstershop.PaymentService/Charge',
+            HipsterShopServer.ChargeServiceHandler.bind(this))
         )
       }
     );

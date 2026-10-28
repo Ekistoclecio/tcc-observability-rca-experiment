@@ -18,6 +18,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -39,6 +41,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,6 +64,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -81,6 +87,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -102,6 +110,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -123,6 +133,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -144,6 +156,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -165,6 +179,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -186,6 +202,8 @@ spec:
               value: service.version=0.10.7,deployment.environment.name=tcc-local
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -218,5 +236,7 @@ spec:
               value: otlp
             - name: OTEL_TRACES_SAMPLER
               value: always_on
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
             - name: OTEL_JAVAAGENT_LOGGING
               value: simple
