@@ -45,7 +45,9 @@ class HipsterShopServer {
    */
   static ChargeServiceHandler(call, callback) {
     try {
-      logger.info(`PaymentService#Charge invoked with request ${JSON.stringify(call.request)}`);
+      const message = `PaymentService#Charge invoked with request ${JSON.stringify(call.request)}`;
+      logger.info(message);
+      otelTelemetry.emitLog(message);
       const response = charge(call.request);
       callback(null, response);
     } catch (err) {

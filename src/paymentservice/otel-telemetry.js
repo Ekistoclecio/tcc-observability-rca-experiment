@@ -11,6 +11,7 @@
 'use strict';
 
 const { metrics } = require('@opentelemetry/api');
+const { logs, SeverityNumber } = require('@opentelemetry/api-logs');
 const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-grpc');
 const { OTLPMetricExporter } = require('@opentelemetry/exporter-metrics-otlp-grpc');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
@@ -32,7 +33,10 @@ function createOTelTelemetry(defaultServiceName) {
   if (instance) return instance;
   const enabled = process.env.ENABLE_TRACING === '1';
   if (!enabled) {
-    instance = { wrapUnary: (_operation, handler) => handler };
+    instance = {
+      wrapUnary: (_operation, handler) => handler,
+      emitLog: () => {}
+    };
     return instance;
   }
   const serviceName = process.env.OTEL_SERVICE_NAME || defaultServiceName;
@@ -55,7 +59,13 @@ function createOTelTelemetry(defaultServiceName) {
     })],
     instrumentations: [
       new GrpcInstrumentation(),
-      new PinoInstrumentation({ disableLogCorrelation: true, disableLogSending: false })
+      // The payment service's Pino records were not exported consistently by
+      // instrumentation-pino in the async gRPC handler. Keep stdout isolated
+      // and mirror the charge operation through the Logs API explicitly.
+      new PinoInstrumentation({
+        disableLogCorrelation: true,
+        disableLogSending: defaultServiceName === 'paymentservice'
+      })
     ]
   });
   sdk.start();
@@ -64,6 +74,12 @@ function createOTelTelemetry(defaultServiceName) {
   const requests = meter.createCounter('tcc.otel.rpc.server.requests', { unit: '{request}' });
   const errors = meter.createCounter('tcc.otel.rpc.server.errors', { unit: '{error}' });
   const duration = meter.createHistogram('tcc.otel.rpc.server.duration', { unit: 's' });
+  const otelLogger = logs.getLogger(`online-boutique/${serviceName}`, '0.10.7');
+
+  function emitLog(message, severityText = 'INFO') {
+    const severityNumber = severityText === 'ERROR' ? SeverityNumber.ERROR : SeverityNumber.INFO;
+    otelLogger.emit({ body: message, severityText, severityNumber });
+  }
 
   function wrapUnary(operation, handler) {
     return function otelMetricHandler(call, callback) {
@@ -90,7 +106,7 @@ function createOTelTelemetry(defaultServiceName) {
       }
     };
   }
-  instance = { wrapUnary };
+  instance = { wrapUnary, emitLog };
   return instance;
 }
 
