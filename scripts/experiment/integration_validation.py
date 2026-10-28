@@ -682,18 +682,22 @@ class IntegrationValidation:
                             self.recorder.command(["kubectl", "get", kind, resource_name, "-n", "default", "-o", "json"],
                                                   stage=f"{fault.lower()}-confirmed-chaos-resource", fault=fault, check=False,
                                                   stdout_relative=self.recorder.relative(fault_root / "audit/injection/confirmed-chaos-resource.json"))
-                    self.capture_cluster_snapshot(fault_root / "audit/injection", f"{fault.lower()}-injection")
-                    self.capture_target_state(fault, event.get("run_id", ""), fault_root / "audit/injection")
+                    self.capture_confirmed_state(fault, event, fault_root / "audit/injection", "injection")
                 elif event_name == "recovery_requested":
                     self.capture_target_state(fault, event.get("run_id", ""), fault_root / "audit/recovery-requested")
                 elif event_name == "recovery_confirmed":
                     write_json(fault_root / "audit/recovery/recovery-confirmation-event.json", event)
-                    self.capture_cluster_snapshot(fault_root / "audit/recovery", f"{fault.lower()}-recovery")
-                    self.capture_target_state(fault, event.get("run_id", ""), fault_root / "audit/recovery")
+                    self.capture_confirmed_state(fault, event, fault_root / "audit/recovery", "recovery")
                 seen += 1
             time.sleep(0.1)
         for event in read_jsonl(events_path)[seen:]:
             self.log(f"{fault} event: {event.get('event')} at {event.get('timestamp')}")
+
+    def capture_confirmed_state(self, fault: str, event: dict[str, Any], directory: Path, phase: str) -> None:
+        # Capture the fault target immediately at the transition. Cluster-wide
+        # snapshots are slower and can outlast short fault windows (notably F4).
+        self.capture_target_state(fault, event.get("run_id", ""), directory)
+        self.capture_cluster_snapshot(directory, f"{fault.lower()}-{phase}")
 
     def capture_target_state(self, fault: str, run_id: str, directory: Path) -> None:
         directory.mkdir(parents=True, exist_ok=True)

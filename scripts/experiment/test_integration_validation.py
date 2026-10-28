@@ -121,6 +121,14 @@ class IntegrationValidationUnitTests(unittest.TestCase):
             self.assertEqual(obj.observability_path("global/preflight/observability", None),
                              Path(tmp) / "global/preflight/observability")
 
+    def test_confirmed_fault_target_is_captured_before_slow_cluster_snapshot(self):
+        obj = iv.IntegrationValidation.__new__(iv.IntegrationValidation)
+        calls = []
+        obj.capture_target_state = lambda fault, run_id, directory: calls.append(("target", fault, run_id))
+        obj.capture_cluster_snapshot = lambda directory, stage: calls.append(("cluster", stage))
+        obj.capture_confirmed_state("F4", {"run_id": "run-1"}, Path("/tmp/audit"), "injection")
+        self.assertEqual(calls, [("target", "F4", "run-1"), ("cluster", "f4-injection")])
+
     def test_f3_injection_requires_zero_replicas_readiness_and_endpoints(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
