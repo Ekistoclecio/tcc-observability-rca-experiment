@@ -1,5 +1,36 @@
 # Host experiment orchestrator
 
+## Build canonical RCA inputs (Phase 6)
+
+The model-agnostic Canonical Full RCA Request is built offline from the Phase 5
+normalized datasets only. It does not read Ground Truth, run metadata, orchestrator
+events, workload logs, or observability backends. It makes no model/API calls and does
+not truncate or select evidence.
+
+Install the small JSON Schema validation dependency and build both scenario requests:
+
+```bash
+python3 -m pip install -r scripts/experiment/rca/requirements.txt
+scripts/experiment/build-rca-input.sh --run-id <run_id>
+```
+
+Outputs are written to `artifacts/rca-inputs/<run_id>/scenario-{a,b}/` as
+`request.json`, `request-preview.md`, and a control-plane-only `manifest.json`.
+The run ID and dataset's root `scenario` field are not copied to the request or
+preview. Source telemetry is preserved verbatim, including any native provenance
+attributes that may let a reader infer the treatment; the manifest audits those
+markers. Existing output snapshots are not overwritten; `--replace` is an explicit
+development-only replacement option. A single scenario may be built for development
+with `--scenario a` or `--scenario b`.
+For all run directories containing both datasets, use `--all-datasets`; this also
+refuses to replace existing output unless `--replace` is explicitly supplied.
+
+The versioned prompt and JSON Schemas live under `scripts/experiment/rca/`. The output
+contract requires exactly three ordered, distinct hypotheses; helper validation checks
+evidence references against the complete request. The preview is deterministically
+rendered from the request itself. This is not a provider-specific API payload and has
+not been tested against any model context window.
+
 The orchestrator is part of the experimental control plane and runs on the host/WSL. It starts the existing Phase 3 open-loop runner, applies one explicitly selected fault, confirms the mechanism state, recovers it, and writes artifacts under `artifacts/experiments/<run_id>/`. It does not add experiment IDs to SUT requests and does not send its events to Loki A/B.
 
 ## Setup
