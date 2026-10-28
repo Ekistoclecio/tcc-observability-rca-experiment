@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymentservice
+spec:
+  template:
+    spec:
+      volumes:
+        - name: tcc-faults
+          emptyDir: {}
+      containers:
+        - name: server
+          env:
+            - name: TCC_FAULT_INJECTION_ENABLED
+              value: "true"
+            - name: TCC_FAULT_FLAG_PATH
+              value: /tmp/tcc-faults/payment-charge-exception
+          volumeMounts:
+            - name: tcc-faults
+              mountPath: /tmp/tcc-faults

@@ -29,4 +29,5 @@ vendor/
 gha-creds-*.json
 docs/experiment/*
 artifacts/workload/runs/
+artifacts/experiments/
 .venv-tcc-workload/
