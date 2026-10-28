@@ -529,7 +529,7 @@ class IntegrationValidation:
                 "evidence": [snapshot.get("summary_path"), "global/initial-state/snapshot-summary.json"]}
 
     def run_observability(self, directory: str, fault: str | None) -> dict[str, Any]:
-        out = self.root / directory
+        out = self.observability_path(directory, fault)
         out.mkdir(parents=True, exist_ok=True)
         start = utc_now()
         stage = "phase2-validator" if fault is None else f"{fault.lower()}-phase2-validator"
@@ -545,6 +545,10 @@ class IntegrationValidation:
                   "parsed_results": validation_json, "evidence": [self.recorder.relative(out / "stdout.txt"), self.recorder.relative(out / "stderr.txt")]}
         write_json(out / "result.json", record)
         return record
+
+    def observability_path(self, directory: str, fault: str | None) -> Path:
+        base = self.root if fault is None else self.root / fault.lower()
+        return base / directory
 
     def run_fault(self, fault: str) -> bool:
         run_id = run_id_for(self.validation_id, fault)

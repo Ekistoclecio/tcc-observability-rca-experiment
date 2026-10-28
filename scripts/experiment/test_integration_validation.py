@@ -95,6 +95,15 @@ class IntegrationValidationUnitTests(unittest.TestCase):
                 self.assertTrue((repo / stderr).is_file())
                 self.assertFalse((validation_root / stdout).exists())
 
+    def test_fault_observability_evidence_is_scoped_to_fault_bundle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            obj = iv.IntegrationValidation.__new__(iv.IntegrationValidation)
+            obj.root = Path(tmp)
+            self.assertEqual(obj.observability_path("audit/observability", "F1"),
+                             Path(tmp) / "f1/audit/observability")
+            self.assertEqual(obj.observability_path("global/preflight/observability", None),
+                             Path(tmp) / "global/preflight/observability")
+
     def test_f3_injection_requires_zero_replicas_readiness_and_endpoints(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
