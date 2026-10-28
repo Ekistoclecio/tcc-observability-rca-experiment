@@ -152,7 +152,9 @@ def run_one(config, args) -> int:
     operation = "preflight"
     events.emit("preflight_started", fault_class=config.fault_class)
     try:
-        compatibility = preflight(config.fault_class, args.allow_unsupported_chaos_mesh)
+        compatibility = preflight(
+            config.fault_class, args.allow_unsupported_chaos_mesh, config.chaos_mesh_version,
+        )
         ground_truth["validation"]["compatibility"] = compatibility
         events.emit("preflight_passed", evidence=compatibility)
         ground_truth["validation"]["preflight"] = {"passed": True}

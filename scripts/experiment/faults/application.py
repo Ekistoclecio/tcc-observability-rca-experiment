@@ -64,8 +64,12 @@ class ApplicationFaultInjector(FaultInjector):
     def _flag_state(self, *, expected: bool) -> tuple[bool, dict]:
         checks = {}
         for pod in self.pods:
-            result = run_kubectl("exec", "-n", "default", pod["name"], "-c", "server", "--", "test", "-e", self.flag_path, check=False)
-            if result.returncode and result.stderr.strip():
+            command = f"if test -e {shlex.quote(self.flag_path)}; then printf present; else printf absent; fi"
+            result = run_kubectl("exec", "-n", "default", pod["name"], "-c", "server", "--", "sh", "-c", command, check=False)
+            if result.returncode:
                 raise RuntimeError(f"could not inspect F4 control flag in {pod['name']}: {result.stderr.strip()}")
-            checks[pod["name"]] = result.returncode == 0
+            state = result.stdout.strip()
+            if state not in ("present", "absent"):
+                raise RuntimeError(f"unexpected F4 flag inspection result in {pod['name']}: {state!r}")
+            checks[pod["name"]] = state == "present"
         return all(value is expected for value in checks.values()) and bool(checks), {"flags_present_by_pod": checks}

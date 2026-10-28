@@ -128,7 +128,10 @@ class InjectorTests(unittest.TestCase):
         def fake_exec(*args, check=True, **kwargs):
             if args[0] == "exec":
                 command = args[7:]
-                if any("printf" in part for part in command):
+                if command[:2] == ("sh", "-c") and "printf present" in command[2]:
+                    state = "present" if flag["exists"] else "absent"
+                    return type("Result", (), {"returncode": 0, "stderr": "", "stdout": state})()
+                if any("enabled >" in part for part in command):
                     flag["exists"] = True
                 elif command and command[0] == "rm":
                     flag["exists"] = False
