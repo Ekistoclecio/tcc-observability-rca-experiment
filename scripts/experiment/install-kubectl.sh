@@ -13,6 +13,6 @@ mkdir -p "${tool_dir}"
 url="https://dl.k8s.io/release/${version}/bin/linux/${arch}/kubectl"
 curl -fsSL "${url}" -o "${tool_dir}/kubectl"
 curl -fsSL "${url}.sha256" -o "${tool_dir}/kubectl.sha256"
-printf '%s  %s\n' "$(cat "${tool_dir}/kubectl.sha256")" "${tool_dir}/kubectl" | sha256sum --check
+printf '%s  %s\n' "$(cat "${tool_dir}/kubectl.sha256")" "${tool_dir}/kubectl" | sha256sum --check >&2
 chmod 0755 "${tool_dir}/kubectl"
 printf '%s\n' "${tool_dir}"

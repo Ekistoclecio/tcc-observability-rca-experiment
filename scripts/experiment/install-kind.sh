@@ -12,7 +12,7 @@ mkdir -p "${tool_dir}"
 curl -fsSL "https://kind.sigs.k8s.io/dl/${version}/kind-linux-${arch}" -o "${tool_dir}/kind"
 printf '%s  %s\n' \
   aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d \
-  "${tool_dir}/kind" | sha256sum --check
+  "${tool_dir}/kind" | sha256sum --check >&2
 chmod 0755 "${tool_dir}/kind"
 actual="$("${tool_dir}/kind" version | sed -n '1s/^kind \(v[^ ]*\).*/\1/p')"
 if [[ "${actual}" != "${version}" ]]; then
