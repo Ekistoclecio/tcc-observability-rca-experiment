@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
@@ -62,10 +63,43 @@ def _validate_dataset(dataset: Any, scenario: str, run_id: str) -> None:
 
 def build_request(dataset: dict[str, Any]) -> dict[str, Any]:
     """Build model-visible content from one normalized dataset only."""
+    return _build_request(dataset)[0]
+
+
+def _is_experimental_treatment_marker(key: Any) -> bool:
+    """Match only the explicit A/B marker key, including punctuation/case aliases."""
+    return "".join(char.lower() for char in str(key) if char.isalnum()) == "telemetryscenario"
+
+
+def _sanitize_telemetry(source: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+    """Copy telemetry and remove only explicit experimental scenario marker fields."""
+    telemetry = deepcopy({signal: source[signal] for signal in ("metrics", "logs", "traces")})
+    removed = {"telemetry_scenario": 0, "telemetry.scenario": 0}
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            for key in list(value):
+                if _is_experimental_treatment_marker(key):
+                    spelling = str(key)
+                    removed[spelling] = removed.get(spelling, 0) + 1
+                    del value[key]
+                else:
+                    visit(value[key])
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(telemetry)
+    return telemetry, dict(sorted(removed.items()))
+
+
+def _build_request(dataset: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+    """Build model-visible content plus control-plane-only sanitization counts."""
     scenario = dataset.get("scenario")
     run_id = dataset.get("run_id")
     _validate_dataset(dataset, scenario, run_id)
     prompt, _, output_schema = _load_static()
+    telemetry, removed_markers = _sanitize_telemetry(dataset)
     request = {
         "schema_version": "1.0",
         "task": "root_cause_analysis",
@@ -74,12 +108,12 @@ def build_request(dataset: dict[str, Any]) -> dict[str, Any]:
         "controlled_vocabulary": {"fault_types": list(FAULT_TYPES), "location_kinds": list(LOCATION_KINDS)},
         "output_contract": output_schema,
         "observation_window": {"start": dataset["window"]["start"], "end": dataset["window"]["end"]},
-        "telemetry": {signal: dataset[signal] for signal in ("metrics", "logs", "traces")},
+        "telemetry": telemetry,
     }
     validate_request(request)
     if run_id in _serialize_json(request).decode("utf-8"):
         raise RCAInputError("run_id value leaked into model-visible request")
-    return request
+    return request, removed_markers
 
 
 def validate_request(request: dict[str, Any]) -> None:
@@ -157,10 +191,11 @@ def _request_counts(request: dict[str, Any]) -> dict[str, int]:
 
 
 def _source_provenance_markers(request: dict[str, Any]) -> dict[str, int]:
-    """Count native treatment/provenance metadata without rewriting source telemetry."""
+    """Count native instrumentation metadata retained in model-visible telemetry."""
     counts: dict[str, int] = {}
-    watched_keys = {"telemetry_scenario", "telemetry.scenario", "telemetry_sdk_name", "otel.scope.name", "otel_scope_name"}
-    watched_values = {"conventional", "otel", "opentelemetry"}
+    watched_keys = {"telemetry_sdk_name", "telemetry.sdk.name", "telemetry_sdk_language", "telemetry.sdk.language",
+                    "telemetry_sdk_version", "telemetry.sdk.version", "otel.scope.name", "otel_scope_name",
+                    "otel.scope.version", "otel_scope_version", "otel.scope.schema_url", "otel_scope_schema_url"}
 
     def visit(value: Any) -> None:
         if isinstance(value, dict):
@@ -168,8 +203,6 @@ def _source_provenance_markers(request: dict[str, Any]) -> dict[str, int]:
                 key_text = str(key)
                 if key_text.lower() in watched_keys:
                     counts[f"key:{key_text}"] = counts.get(f"key:{key_text}", 0) + 1
-                if isinstance(child, str) and child.lower() in watched_values:
-                    counts[f"value:{child}"] = counts.get(f"value:{child}", 0) + 1
                 visit(child)
         elif isinstance(value, list):
             for child in value:
@@ -187,7 +220,7 @@ def generate_one(dataset_path: Path, output_path: Path, run_id: str, scenario: s
         shutil.rmtree(output_path)
     dataset = read_json(dataset_path)
     _validate_dataset(dataset, scenario, run_id)
-    request = build_request(dataset)
+    request, removed_treatment_markers = _build_request(dataset)
     request_bytes = _serialize_json(request)
     preview_bytes = render_preview(request)
     prompt, request_schema, output_schema = _load_static()
@@ -222,6 +255,10 @@ def generate_one(dataset_path: Path, output_path: Path, run_id: str, scenario: s
             "source_telemetry_records_preserved": True,
         },
         "native_telemetry_provenance_markers": _source_provenance_markers(request),
+        "model_visible_sanitization": {
+            "policy": "remove_explicit_experimental_treatment_markers",
+            "removed_fields": removed_treatment_markers,
+        },
         **_request_counts(request),
     }
     write_json_atomic(output_path / "manifest.json", manifest)

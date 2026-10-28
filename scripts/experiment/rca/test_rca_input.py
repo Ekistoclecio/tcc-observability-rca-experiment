@@ -8,7 +8,7 @@ import unittest
 from jsonschema import Draft202012Validator
 
 from .builder import (
-    OUTPUT_SCHEMA_PATH, RCAInputError, build_request, generate_run, _source_provenance_markers,
+    OUTPUT_SCHEMA_PATH, RCAInputError, build_request, generate_run, _build_request, _source_provenance_markers,
     render_preview, validate_pair, validate_request, validate_response,
 )
 
@@ -112,10 +112,15 @@ class RCAInputTests(unittest.TestCase):
     def test_builder_needs_only_dataset_and_static_contract(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
+            source_data_by_suffix = {}
             for scenario, suffix in (("A", "a"), ("B", "b")):
                 source = root / "artifacts" / "datasets" / RUN_ID / f"scenario-{suffix}" / "dataset.json"
                 source.parent.mkdir(parents=True)
-                source.write_text(json.dumps(dataset(scenario)), encoding="utf-8")
+                source_data = dataset(scenario)
+                source_data["logs"][0]["labels"]["telemetry_scenario"] = "conventional" if scenario == "A" else "otel"
+                source_data["logs"][0]["attributes"]["telemetry.scenario"] = "conventional" if scenario == "A" else "otel"
+                source_data_by_suffix[suffix] = source_data
+                source.write_text(json.dumps(source_data), encoding="utf-8")
             # No Ground Truth, run metadata, orchestrator events, or backend access exists here.
             manifests = generate_run(root, RUN_ID)
             self.assertEqual(set(manifests), {"A", "B"})
@@ -132,6 +137,13 @@ class RCAInputTests(unittest.TestCase):
                 self.assertNotIn("scenario", request)
                 self.assertTrue(manifest["content_policy_checks"]["run_id_absent_from_request"])
                 self.assertTrue(manifest["content_policy_checks"]["ground_truth_and_control_plane_not_loaded"])
+                self.assertEqual(manifest["model_visible_sanitization"], {
+                    "policy": "remove_explicit_experimental_treatment_markers",
+                    "removed_fields": {"telemetry.scenario": 1, "telemetry_scenario": 1},
+                })
+                self.assertEqual(json.loads((root / "artifacts" / "datasets" / RUN_ID / f"scenario-{suffix}" / "dataset.json").read_text()), source_data_by_suffix[suffix])
+                self.assertNotIn("telemetry_scenario", json.dumps(request))
+                self.assertNotIn("telemetry.scenario", json.dumps(request))
                 self.assertIn("run_id", manifest)
                 self.assertNotEqual(manifest["builder_commit"], "unknown")
             with self.assertRaisesRegex(RCAInputError, "already exists"):
@@ -154,14 +166,37 @@ class RCAInputTests(unittest.TestCase):
         self.assertNotIn(b"scenario-a", render_preview(request))
         self.assertNotIn(b"scenario-b", render_preview(request))
 
-    def test_native_treatment_provenance_is_audited_and_not_silently_rewritten(self):
+    def test_explicit_treatment_markers_are_removed_without_losing_evidence_or_native_metadata(self):
         source = dataset("B")
-        source["logs"][0]["attributes"]["telemetry_scenario"] = "otel"
-        request = build_request(source)
+        source["metrics"][0]["labels"]["telemetry_scenario"] = "otel"
+        source["logs"][0]["labels"]["telemetry_scenario"] = "otel"
+        source["logs"][0]["attributes"]["telemetry.scenario"] = "otel"
+        source["logs"][0]["attributes"]["telemetry.sdk.name"] = "opentelemetry"
+        source["logs"][0]["attributes"]["telemetry.sdk.version"] = "1.2.3"
+        source["traces"][0]["spans"][0]["attributes"]["telemetryScenario"] = "otel"
+        source["traces"][0]["spans"][0]["attributes"]["Telemetry-Scenario"] = "otel"
+        source["traces"][0]["spans"][0]["attributes"]["otel.scope.name"] = "io.opentelemetry.grpc"
+        source_before = json.loads(json.dumps(source))
+        request, removed_fields = _build_request(source)
         markers = _source_provenance_markers(request)
-        self.assertEqual(markers["key:telemetry_scenario"], 1)
-        self.assertEqual(markers["value:otel"], 1)
-        self.assertEqual(request["telemetry"]["logs"][0]["attributes"]["telemetry_scenario"], "otel")
+        encoded = json.dumps(request)
+        self.assertNotIn("telemetry_scenario", encoded)
+        self.assertNotIn("telemetry.scenario", encoded)
+        self.assertNotIn("telemetryScenario", encoded)
+        self.assertNotIn("Telemetry-Scenario", encoded)
+        self.assertEqual(source, source_before)
+        self.assertEqual(len(request["telemetry"]["metrics"]), len(source["metrics"]))
+        self.assertEqual(len(request["telemetry"]["logs"]), len(source["logs"]))
+        self.assertEqual(len(request["telemetry"]["traces"]), len(source["traces"]))
+        self.assertEqual(request["telemetry"]["metrics"][0]["evidence_id"], source["metrics"][0]["evidence_id"])
+        self.assertEqual(request["telemetry"]["logs"][0]["evidence_id"], source["logs"][0]["evidence_id"])
+        self.assertEqual(request["telemetry"]["traces"][0]["spans"][0]["evidence_id"], source["traces"][0]["spans"][0]["evidence_id"])
+        self.assertEqual(request["telemetry"]["logs"][0]["attributes"]["telemetry.sdk.name"], "opentelemetry")
+        self.assertEqual(request["telemetry"]["logs"][0]["attributes"]["telemetry.sdk.version"], "1.2.3")
+        self.assertEqual(request["telemetry"]["traces"][0]["spans"][0]["attributes"]["otel.scope.name"], "io.opentelemetry.grpc")
+        self.assertEqual(markers["key:telemetry.sdk.name"], 1)
+        self.assertEqual(markers["key:otel.scope.name"], 1)
+        self.assertEqual(removed_fields["Telemetry-Scenario"], 1)
 
 
 if __name__ == "__main__":

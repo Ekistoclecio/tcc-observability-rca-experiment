@@ -17,9 +17,12 @@ scripts/experiment/build-rca-input.sh --run-id <run_id>
 Outputs are written to `artifacts/rca-inputs/<run_id>/scenario-{a,b}/` as
 `request.json`, `request-preview.md`, and a control-plane-only `manifest.json`.
 The run ID and dataset's root `scenario` field are not copied to the request or
-preview. Source telemetry is preserved verbatim, including any native provenance
-attributes that may let a reader infer the treatment; the manifest audits those
-markers. Existing output snapshots are not overwritten; `--replace` is an explicit
+preview. The builder removes only explicit treatment marker attributes such as
+`telemetry_scenario` and `telemetry.scenario` from the model-visible copy; source
+datasets remain unchanged. Native SDK/scope/resource attributes, metric names, IDs,
+and other telemetry are retained, so the instrumentation treatment may still be
+inferred from the evidence. Removal counts and retained native provenance are recorded
+in the control-plane manifest. Existing output snapshots are not overwritten; `--replace` is an explicit
 development-only replacement option. A single scenario may be built for development
 with `--scenario a` or `--scenario b`.
 For all run directories containing both datasets, use `--all-datasets`; this also
