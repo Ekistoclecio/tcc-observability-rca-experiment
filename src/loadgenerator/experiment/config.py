@@ -33,6 +33,7 @@ def _float(env: dict[str, str], key: str, default: float) -> float:
 @dataclass(frozen=True)
 class WorkloadConfig:
     run_id: str
+    executor: str
     frontend_url: str
     target_flow_rate: float
     max_in_flight_flows: int
@@ -63,6 +64,7 @@ class WorkloadConfig:
 
         config = cls(
             run_id=run_id,
+            executor=env.get("TCC_EXECUTOR", "host-wsl"),
             frontend_url=env.get("TCC_FRONTEND_URL", "http://127.0.0.1:28080").rstrip("/"),
             target_flow_rate=_float(env, "TCC_TARGET_FLOW_RATE", 0.5),
             max_in_flight_flows=_int(env, "TCC_MAX_IN_FLIGHT_FLOWS", 4),
@@ -91,6 +93,8 @@ class WorkloadConfig:
         return config
 
     def validate(self) -> None:
+        if self.executor not in ("host-wsl", "kubernetes-job-auxiliary"):
+            raise ValueError("TCC_EXECUTOR must be host-wsl or kubernetes-job-auxiliary")
         if self.target_flow_rate <= 0:
             raise ValueError("TCC_TARGET_FLOW_RATE must be greater than 0 flows per second")
         if self.max_in_flight_flows < 1:

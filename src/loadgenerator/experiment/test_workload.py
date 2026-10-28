@@ -54,6 +54,7 @@ class WorkloadConfigTests(unittest.TestCase):
         self.assertEqual(config.seed, 173)
         self.assertEqual(config.target_flow_rate, 0.75)
         self.assertEqual(config.max_in_flight_flows, 3)
+        self.assertEqual(config.executor, "host-wsl")
 
     def test_rejects_invalid_product_rate_and_capacity(self):
         with self.assertRaisesRegex(ValueError, "catalog"):
@@ -64,6 +65,8 @@ class WorkloadConfigTests(unittest.TestCase):
             test_config(TCC_MAX_IN_FLIGHT_FLOWS="0")
         with self.assertRaisesRegex(ValueError, "not used by the open-loop"):
             test_config(TCC_USERS="2")
+        with self.assertRaisesRegex(ValueError, "TCC_EXECUTOR"):
+            test_config(TCC_EXECUTOR="unexpected")
 
 
 class CheckoutFlowTests(unittest.TestCase):

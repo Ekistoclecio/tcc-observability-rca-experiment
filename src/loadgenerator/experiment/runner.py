@@ -195,7 +195,7 @@ def main() -> int:
         "benchmark": "Google Online Boutique",
         "benchmark_version": "v0.10.7",
         "benchmark_commit": git_commit(),
-        "executor": "host-wsl",
+        "executor": config.executor,
         "workload_model": "open-loop",
         "seed": config.seed,
         "product_id": config.product_id,

@@ -25,6 +25,8 @@ fi
 for variable in "${!tcc_env_overrides[@]}"; do
   export "${variable}=${tcc_env_overrides[${variable}]}"
 done
+TCC_EXECUTOR="host-wsl"
+export TCC_EXECUTOR
 
 if [[ -z "${TCC_RUN_ID:-}" ]]; then
   TCC_RUN_ID="workload-$(date -u '+%Y%m%dT%H%M%SZ')"

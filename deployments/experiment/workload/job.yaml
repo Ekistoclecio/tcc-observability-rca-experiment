@@ -29,6 +29,8 @@ spec:
             - configMapRef:
                 name: tcc-workload-config
           env:
+            - name: TCC_EXECUTOR
+              value: kubernetes-job-auxiliary
             - name: TCC_ARTIFACT_DIR
               value: /results
           resources:
