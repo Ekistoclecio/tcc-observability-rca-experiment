@@ -259,15 +259,19 @@ const [bIdInLogsA, aIdInLogsA, aIdInLogsB, spanFieldsInLogsA, conventionalHeader
 
 const metricValidation = {};
 const durationValidation = {};
+const resourceValidation = {};
 for (const service of applicationServices) {
   const metric = directMetricPatterns[service];
   const value = await waitForPrometheusValue(
-    config.prometheusB, `${metric}{service_name="${service}"}`);
+    config.prometheusB,
+    `${metric}{service_name="${service}",service_version="0.10.7",deployment_environment_name="tcc-local"}`);
   metricValidation[service] = { metric, value };
   const durationMetric = durationMetricPatterns[service];
   const durationValue = await waitForPrometheusValue(
-    config.prometheusB, `${durationMetric}{service_name="${service}"}`);
+    config.prometheusB,
+    `${durationMetric}{service_name="${service}",service_version="0.10.7",deployment_environment_name="tcc-local"}`);
   durationValidation[service] = { metric: durationMetric, value: durationValue };
+  resourceValidation[service] = value > 0 && durationValue > 0;
 }
 
 const logValidation = {};
@@ -307,6 +311,9 @@ for (const [service, result] of Object.entries(metricValidation)) {
 }
 for (const [service, result] of Object.entries(durationValidation)) {
   assert(result.value > 0, `direct OTel SDK duration metric missing for ${service}`);
+}
+for (const [service, valid] of Object.entries(resourceValidation)) {
+  assert(valid, `OTel resource attributes are incomplete for ${service}`);
 }
 for (const [service, result] of Object.entries(logValidation)) {
   assert(result.matches > 0, `trace-correlated OTel log missing for ${service}`);
@@ -349,5 +356,6 @@ console.log(JSON.stringify({
   },
   directSdkMetrics: metricValidation,
   directSdkDurationMetrics: durationValidation,
+  resourceAttributes: resourceValidation,
   correlatedOtelLogs: logValidation
 }, null, 2));
