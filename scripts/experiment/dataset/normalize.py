@@ -4,9 +4,63 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import json
 import math
+import re
 from typing import Any
 
 from .core import DatasetError, SUT_SERVICES, Window, iso_utc, validate_dataset_shape
+
+
+_CORRELATION_FIELDS = {
+    "traceid", "spanid", "traceparent", "tracestate", "b3", "b3traceid", "b3spanid",
+    "xb3traceid", "xb3spanid", "ubertraceid", "uberspanid",
+    "xdatadogtraceid", "xdatadogspanid", "xtcctraceid", "xtccspanid",
+}
+_LOGFMT_FIELD = re.compile(r"(?<![\w.])([A-Za-z][A-Za-z0-9_.-]*)\s*[=:]\s*(?:\"[^\"]*\"|'[^']*'|[^\s,;]+)")
+
+
+def _canonical_field(key: Any) -> str:
+    return "".join(char for char in str(key).casefold() if char.isalnum())
+
+
+def _correlation_field_paths(value: Any, path: str = "$") -> list[str]:
+    """Find explicit trace/span context in structured fields or structured log text."""
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            if _canonical_field(key) in _CORRELATION_FIELDS:
+                found.append(child_path)
+            found.extend(_correlation_field_paths(child, child_path))
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            found.extend(_correlation_field_paths(child, f"{path}[{index}]"))
+    elif isinstance(value, str):
+        stripped = value.lstrip()
+        if stripped.startswith(("{", "[")):
+            try:
+                parsed = json.loads(value)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, (dict, list)):
+                found.extend(_correlation_field_paths(parsed, path))
+        for match in _LOGFMT_FIELD.finditer(value):
+            if _canonical_field(match.group(1)) in _CORRELATION_FIELDS:
+                found.append(f"{path}<{match.group(1)}>")
+    return found
+
+
+def _validate_scenario_a_logs(raw: dict[str, Any]) -> None:
+    raw_responses = [("response", raw.get("response", {}))]
+    raw_responses.extend((f"pages[{page_index}]", page) for page_index, page in enumerate(raw.get("pages", [])))
+    for response_name, response in raw_responses:
+        streams = response.get("data", {}).get("result", [])
+        for index, stream in enumerate(streams):
+            locations = _correlation_field_paths(stream, f"$.{response_name}.data.result[{index}]")
+            if locations:
+                raise DatasetError(
+                    "Scenario A RAW contains explicit trace/span correlation fields; "
+                    f"normalization rejected without modifying RAW: {', '.join(locations[:5])}"
+                )
 
 
 def _timestamp(value: Any, unit: str = "seconds") -> str:
@@ -79,10 +133,6 @@ def _loki_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
     output = []
     for index, row in enumerate(rows, 1):
         labels, structured = dict(row["labels"]), row["structured_metadata"]
-        if scenario == "A":
-            labels = {key: value for key, value in labels.items()
-                      if key not in {"trace_id", "traceID", "span_id", "spanID", "traceparent", "trace_parent",
-                                     "x-tcc-trace-id", "x-tcc-span-id", "x_tcc_trace_id", "x_tcc_span_id"}}
         merged = {**labels, **structured}
         severity = merged.get("severity", merged.get("level"))
         trace_id = merged.get("trace_id", merged.get("traceID")) if scenario == "B" else None
@@ -152,6 +202,8 @@ def _jaeger_traces(raw: dict[str, Any]) -> list[dict[str, Any]]:
 def normalize_scenario(run_id: str, scenario: str, window: Window, raw_signals: dict[str, dict[str, Any]]) -> dict[str, Any]:
     if set(raw_signals) != {"metrics", "logs", "traces"}:
         raise DatasetError("normalization requires all three raw signals")
+    if scenario == "A":
+        _validate_scenario_a_logs(raw_signals["logs"])
     metrics = _prom_metrics(raw_signals["metrics"])
     logs = _loki_logs(raw_signals["logs"], scenario)
     traces = _jaeger_traces(raw_signals["traces"])
