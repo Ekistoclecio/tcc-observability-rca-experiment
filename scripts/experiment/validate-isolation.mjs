@@ -27,6 +27,47 @@ const requiredCheckoutServices = [
   'recommendationservice'
 ];
 
+const applicationServices = [
+  'frontend',
+  'checkoutservice',
+  'cartservice',
+  'productcatalogservice',
+  'currencyservice',
+  'paymentservice',
+  'shippingservice',
+  'emailservice',
+  'recommendationservice',
+  'adservice'
+];
+
+const directMetricPatterns = {
+  frontend: 'online_boutique_otel_http_server_request_duration_seconds_count',
+  checkoutservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  cartservice: 'online_boutique_otel_tcc_otel_rpc_server_requests_total',
+  productcatalogservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  currencyservice: 'online_boutique_otel_tcc_otel_rpc_server_requests_total',
+  paymentservice: 'online_boutique_otel_tcc_otel_rpc_server_requests_total',
+  shippingservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  emailservice: 'online_boutique_otel_tcc_otel_rpc_server_requests_total',
+  recommendationservice: 'online_boutique_otel_tcc_otel_rpc_server_requests_total',
+  // The Java agent emits RPC server duration in milliseconds under its own
+  // instrumentation scope; it is still produced directly by the OTel SDK.
+  adservice: 'online_boutique_otel_rpc_server_duration_milliseconds_count'
+};
+
+const durationMetricPatterns = {
+  frontend: 'online_boutique_otel_http_server_request_duration_seconds_count',
+  checkoutservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  cartservice: 'online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count',
+  productcatalogservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  currencyservice: 'online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count',
+  paymentservice: 'online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count',
+  shippingservice: 'online_boutique_otel_rpc_server_call_duration_seconds_count',
+  emailservice: 'online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count',
+  recommendationservice: 'online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count',
+  adservice: 'online_boutique_otel_rpc_server_duration_milliseconds_count'
+};
+
 function assert(check, message) {
   if (!check) throw new Error(message);
 }
@@ -97,14 +138,75 @@ async function prometheusValue(baseUrl, query) {
   return result.length === 0 ? 0 : Number(result[0].value[1]);
 }
 
-async function lokiMatches(baseUrl, traceId) {
+async function waitForPrometheusValue(baseUrl, query) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const value = await prometheusValue(baseUrl, query);
+    if (value > 0) return value;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return 0;
+}
+
+async function prometheusExemplars(baseUrl, query) {
+  const url = new URL('/api/v1/query_exemplars', baseUrl);
+  url.searchParams.set('query', query);
+  url.searchParams.set('start', String((config.startMicros - 5_000_000) / 1_000_000));
+  url.searchParams.set('end', String((config.endMicros + 20_000_000) / 1_000_000));
+  const response = await json(url);
+  return (response.data || []).reduce(
+    (total, series) => total + (series.exemplars || []).length, 0);
+}
+
+async function lokiMatches(baseUrl, traceId, service = '.+') {
   const url = new URL('/loki/api/v1/query_range', baseUrl);
-  url.searchParams.set('query', `{service_name=~".+"} | trace_id = "${traceId}"`);
+  const selector = service === '.+' ? 'service_name=~".+"' : `service_name="${service}"`;
+  url.searchParams.set('query', `{${selector}} | trace_id = "${traceId}"`);
   url.searchParams.set('start', String((config.startMicros - 5_000_000) * 1000));
   url.searchParams.set('end', String((config.endMicros + 10_000_000) * 1000));
   url.searchParams.set('limit', '100');
   const response = await json(url);
   return (response.data?.result || []).reduce((total, stream) => total + stream.values.length, 0);
+}
+
+async function correlatedLokiMatches(baseUrl, traceId, service) {
+  const url = new URL('/loki/api/v1/query_range', baseUrl);
+  url.searchParams.set('query', `{service_name="${service}"} | trace_id = "${traceId}" | span_id != "" | severity_text != ""`);
+  url.searchParams.set('start', String((config.startMicros - 5_000_000) * 1000));
+  url.searchParams.set('end', String((config.endMicros + 20_000_000) * 1000));
+  url.searchParams.set('limit', '100');
+  const response = await json(url);
+  return (response.data?.result || []).reduce((total, stream) => total + stream.values.length, 0);
+}
+
+async function lokiQueryMatches(baseUrl, query) {
+  const url = new URL('/loki/api/v1/query_range', baseUrl);
+  url.searchParams.set('query', query);
+  url.searchParams.set('start', String((config.startMicros - 5_000_000) * 1000));
+  url.searchParams.set('end', String((config.endMicros + 20_000_000) * 1000));
+  url.searchParams.set('limit', '100');
+  const response = await json(url);
+  return (response.data?.result || []).reduce((total, stream) => total + stream.values.length, 0);
+}
+
+async function serviceTraceIds(service) {
+  const url = new URL('/api/traces', config.jaegerB);
+  url.searchParams.set('service', service);
+  url.searchParams.set('start', String(config.startMicros - 5_000_000));
+  url.searchParams.set('end', String(config.endMicros + 20_000_000));
+  url.searchParams.set('limit', '100');
+  const response = await json(url);
+  return [...new Set((response.data || []).map(trace => trace.traceID))];
+}
+
+async function waitForServiceLog(service) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    for (const traceId of await serviceTraceIds(service)) {
+      const matches = await correlatedLokiMatches(config.lokiB, traceId, service);
+      if (matches > 0) return { traceId, matches };
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return { traceId: null, matches: 0 };
 }
 
 async function waitForLokiMatches(baseUrl, traceId) {
@@ -147,9 +249,39 @@ const [aInB, bInA, conventionalA, conventionalB, otelA, otelB,
   ]);
 
 const bIdInLogsB = await waitForLokiMatches(config.lokiB, traceB.traceID);
-const [bIdInLogsA, aIdInLogsB] = await Promise.all([
+const [bIdInLogsA, aIdInLogsA, aIdInLogsB, spanFieldsInLogsA, conventionalHeaderFieldsInLogsA] = await Promise.all([
   lokiMatches(config.lokiA, traceB.traceID),
-  lokiMatches(config.lokiB, traceA.traceID)
+  lokiMatches(config.lokiA, traceA.traceID),
+  lokiMatches(config.lokiB, traceA.traceID),
+  lokiQueryMatches(config.lokiA, '{service_name=~".+"} | span_id != ""'),
+  lokiQueryMatches(config.lokiA, '{service_name=~".+"} | x_tcc_trace_id != ""')
+]);
+
+const metricValidation = {};
+const durationValidation = {};
+for (const service of applicationServices) {
+  const metric = directMetricPatterns[service];
+  const value = await waitForPrometheusValue(
+    config.prometheusB, `${metric}{service_name="${service}"}`);
+  metricValidation[service] = { metric, value };
+  const durationMetric = durationMetricPatterns[service];
+  const durationValue = await waitForPrometheusValue(
+    config.prometheusB, `${durationMetric}{service_name="${service}"}`);
+  durationValidation[service] = { metric: durationMetric, value: durationValue };
+}
+
+const logValidation = {};
+for (const service of applicationServices) {
+  logValidation[service] = await waitForServiceLog(service);
+}
+
+const [traceLabelA, spanLabelA, exemplarsA, traceLabelB, spanLabelB, spanMetricsB] = await Promise.all([
+  prometheusValue(config.prometheusA, 'count({__name__=~"tcc_conventional_.*",trace_id=~".+"})'),
+  prometheusValue(config.prometheusA, 'count({__name__=~"tcc_conventional_.*",span_id=~".+"})'),
+  prometheusExemplars(config.prometheusA, 'tcc_conventional_request_duration_seconds_sum'),
+  prometheusValue(config.prometheusB, 'count({__name__=~"online_boutique_otel_.*",trace_id=~".+"})'),
+  prometheusValue(config.prometheusB, 'count({__name__=~"online_boutique_otel_.*",span_id=~".+"})'),
+  prometheusValue(config.prometheusB, 'count({__name__=~".*span_metrics.*"})')
 ]);
 
 assert(traceA.traceID !== traceB.traceID, 'A and B produced the same trace ID');
@@ -165,8 +297,26 @@ assert(conventionalB === 0, 'conventional metrics found in Prometheus B');
 assert(otelA === 0, 'OTel metrics found in Prometheus A');
 assert(otelB > 0, 'OTel metrics missing from Prometheus B');
 assert(bIdInLogsA === 0, 'trace ID B found in Loki A');
+assert(aIdInLogsA === 0, 'trace ID A used as structured correlation in Loki A');
 assert(aIdInLogsB === 0, 'trace ID A found in Loki B');
+assert(spanFieldsInLogsA === 0, 'structured span_id fields found in Loki A');
+assert(conventionalHeaderFieldsInLogsA === 0, 'conventional trace headers found as structured fields in Loki A');
 assert(bIdInLogsB > 0, 'trace-correlated OTel logs missing from Loki B');
+for (const [service, result] of Object.entries(metricValidation)) {
+  assert(result.value > 0, `direct OTel SDK request metric missing for ${service}`);
+}
+for (const [service, result] of Object.entries(durationValidation)) {
+  assert(result.value > 0, `direct OTel SDK duration metric missing for ${service}`);
+}
+for (const [service, result] of Object.entries(logValidation)) {
+  assert(result.matches > 0, `trace-correlated OTel log missing for ${service}`);
+}
+assert(traceLabelA === 0, 'Prometheus A contains a trace_id label');
+assert(spanLabelA === 0, 'Prometheus A contains a span_id label');
+assert(exemplarsA === 0, 'Prometheus A contains trace-linked exemplars');
+assert(traceLabelB === 0, 'Prometheus B contains a trace_id metric label');
+assert(spanLabelB === 0, 'Prometheus B contains a span_id metric label');
+assert(spanMetricsB === 0, 'Prometheus B contains span-derived metric series');
 assert(frontendExporterSpans === 0, 'frontend traced its own OTLP exporter');
 assert(checkoutExporterSpans === 0, 'checkoutservice traced its own OTLP exporter');
 assert(catalogExporterSpans === 0, 'productcatalogservice traced its own OTLP exporter');
@@ -180,12 +330,24 @@ console.log(JSON.stringify({
     traceAInJaegerB: aInB,
     traceBInJaegerA: bInA,
     traceBInLokiA: bIdInLogsA,
+    traceAInLokiA: aIdInLogsA,
     traceAInLokiB: aIdInLogsB,
     traceBInLokiB: bIdInLogsB,
+    structuredSpanFieldsInLokiA: spanFieldsInLogsA,
+    structuredConventionalTraceHeadersInLokiA: conventionalHeaderFieldsInLogsA,
     conventionalSeriesInPrometheusA: conventionalA,
     conventionalSeriesInPrometheusB: conventionalB,
     otelSeriesInPrometheusA: otelA,
     otelSeriesInPrometheusB: otelB,
+    prometheusATraceIdLabels: traceLabelA,
+    prometheusASpanIdLabels: spanLabelA,
+    prometheusAExemplars: exemplarsA,
+    prometheusBTraceIdLabels: traceLabelB,
+    prometheusBSpanIdLabels: spanLabelB,
+    spanDerivedMetricsInPrometheusB: spanMetricsB,
     otlpExporterSpansInJaegerB: frontendExporterSpans + checkoutExporterSpans + catalogExporterSpans
-  }
+  },
+  directSdkMetrics: metricValidation,
+  directSdkDurationMetrics: durationValidation,
+  correlatedOtelLogs: logValidation
 }, null, 2));
