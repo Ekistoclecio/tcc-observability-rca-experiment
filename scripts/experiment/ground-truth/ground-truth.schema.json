@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcc:experiment-ground-truth:1.0",
+  "title": "TCC experiment ground truth",
+  "type": "object",
+  "required": ["schema_version", "run_id", "fault_id", "status", "fault", "schedule", "timing", "validation", "reasons"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "fault_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["valid", "invalid_precondition", "invalid_workload", "invalid_injection", "invalid_recovery", "invalid_control_plane", "aborted"]},
+    "fault": {
+      "type": "object",
+      "required": ["class", "type", "location", "parameters"],
+      "properties": {
+        "class": {"enum": ["F1", "F2", "F3", "F4", "F5"]},
+        "type": {"enum": ["cpu_saturation", "network_latency", "service_unavailable", "application_exception", "datastore_unavailable"]},
+        "location": {"oneOf": [
+          {"type": "object", "required": ["kind", "component"], "properties": {"kind": {"const": "service"}, "component": {"type": "string"}}, "additionalProperties": false},
+          {"type": "object", "required": ["kind", "source", "target"], "properties": {"kind": {"const": "service_edge"}, "source": {"type": "string"}, "target": {"type": "string"}}, "additionalProperties": false},
+          {"type": "object", "required": ["kind", "component", "operation"], "properties": {"kind": {"const": "operation"}, "component": {"type": "string"}, "operation": {"type": "string"}}, "additionalProperties": false},
+          {"type": "object", "required": ["kind", "component"], "properties": {"kind": {"const": "datastore"}, "component": {"type": "string"}}, "additionalProperties": false}
+        ]},
+        "parameters": {"type": "object"},
+        "mechanism": {"type": "object"}
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "required": ["start_after_steady_seconds", "duration_seconds", "post_fault_steady_seconds"],
+      "properties": {
+        "start_after_steady_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "duration_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "post_fault_steady_seconds": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "timing": {
+      "type": "object",
+      "required": ["scheduled_start", "requested_at", "confirmed_start", "scheduled_end", "recovery_requested_at", "confirmed_end"],
+      "properties": {
+        "scheduled_start": {"type": ["string", "null"], "format": "date-time"},
+        "requested_at": {"type": ["string", "null"], "format": "date-time"},
+        "confirmed_start": {"type": ["string", "null"], "format": "date-time"},
+        "scheduled_end": {"type": ["string", "null"], "format": "date-time"},
+        "recovery_requested_at": {"type": ["string", "null"], "format": "date-time"},
+        "confirmed_end": {"type": ["string", "null"], "format": "date-time"},
+        "steady_started_at": {"type": ["string", "null"], "format": "date-time"},
+        "steady_started_observed_monotonic": {"type": ["number", "null"]},
+        "scheduled_start_monotonic": {"type": ["number", "null"]},
+        "scheduled_end_monotonic": {"type": ["number", "null"]},
+        "requested_at_monotonic": {"type": ["number", "null"]},
+        "confirmed_start_monotonic": {"type": ["number", "null"]},
+        "recovery_requested_at_monotonic": {"type": ["number", "null"]},
+        "confirmed_end_monotonic": {"type": ["number", "null"]}
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["injection_confirmed", "recovery_confirmed", "workload_valid", "control_plane_valid"],
+      "properties": {
+        "injection_confirmed": {"type": "boolean"},
+        "recovery_confirmed": {"type": "boolean"},
+        "workload_valid": {"type": "boolean"},
+        "control_plane_valid": {"type": "boolean"},
+        "mechanism_confirmation": {"type": "object"},
+        "recovery_confirmation": {"type": "object"},
+        "compatibility": {"type": "object"},
+        "fault_effect_observed": {"type": ["boolean", "null"]},
+        "post_recovery_success_observed": {"type": ["boolean", "null"]}
+      }
+    },
+    "reasons": {"type": "array", "items": {"type": "object", "required": ["code", "message"], "properties": {"code": {"type": "string"}, "message": {"type": "string"}}, "additionalProperties": false}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": ["string", "null"], "format": "date-time"}
+  },
+  "additionalProperties": false
+}

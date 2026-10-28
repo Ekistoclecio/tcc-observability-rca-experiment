@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "fault": {
+    "class": "F1",
+    "type": "cpu_saturation",
+    "location": {
+      "kind": "service",
+      "component": "checkoutservice"
+    },
+    "parameters": {
+      "workers": 1,
+      "load_percent": 100
+    }
+  },
+  "schedule": {
+    "start_after_steady_seconds": 4,
+    "duration_seconds": 5,
+    "post_fault_steady_seconds": 4
+  },
+  "workload": {
+    "env_file": "src/loadgenerator/experiment/workload-validation.env.example",
+    "overrides": {
+      "TCC_DURATION": "20",
+      "TCC_TARGET_FLOW_RATE": "1",
+      "TCC_MAX_IN_FLIGHT_FLOWS": "16",
+      "TCC_WARMUP_DURATION": "2",
+      "TCC_COOLDOWN_DURATION": "3"
+    }
+  }
+}
