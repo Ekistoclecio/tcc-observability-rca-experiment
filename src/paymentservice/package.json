@@ -5,7 +5,7 @@
   "repository": "https://github.com/GoogleCloudPlatform/microservices-demo",
   "main": "index.js",
   "scripts": {
-    "test": "node --test conventional-telemetry.test.js"
+    "test": "node --test *.test.js"
   },
   "author": "Jonathan Lui",
   "license": "ISC",

@@ -15,6 +15,7 @@
 const cardValidator = require('simple-card-validator');
 const { v4: uuidv4 } = require('uuid');
 const pino = require('pino');
+const { throwControlledChargeException } = require('./fault-hook');
 
 const logger = pino({
   name: 'paymentservice-charge',
@@ -59,6 +60,7 @@ class ExpiredCreditCard extends CreditCardError {
  * @return transaction_id - a random uuid.
  */
 module.exports = function charge (request) {
+  throwControlledChargeException();
   const { amount, credit_card: creditCard } = request;
   const cardNumber = creditCard.credit_card_number;
   const cardInfo = cardValidator(cardNumber);
