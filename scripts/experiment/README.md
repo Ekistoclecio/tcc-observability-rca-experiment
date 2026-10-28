@@ -119,3 +119,33 @@ The F4 hook is inactive unless its deployment flag is enabled and the control fi
 Each run contains `run-metadata.json` from the Phase 3 workload, `ground-truth.json` validated against `scripts/experiment/ground-truth/ground-truth.schema.json`, a combined control/workload `orchestrator-events.jsonl`, and a local runner log. Artifacts are ignored by Git. Ground Truth stores requested and mechanism-confirmed actions separately, with UTC and host monotonic timestamps. It does not derive fault truth from metrics, logs, or traces.
 
 An execution is valid only when preflight, workload admission, injection and recovery are confirmed. Control-plane drops make the run ineligible; SUT request failures remain separate workload outcomes. Cleanup is attempted on exceptions, Ctrl+C and SIGTERM.
+
+## Integrated engineering validation (Phase 6.5)
+
+Run the fixed, non-scientific F1–F5 integration battery from the host/WSL:
+
+```bash
+scripts/experiment/run-integration-validation.sh \
+  --validation-id integration-smoke-001 --all
+```
+
+The runner performs a global preflight and then reuses the existing Phase 4
+orchestrator, Phase 2 observability validator, Phase 5 Dataset Builder, and Phase 6
+Canonical RCA Request Builder. It executes one fresh run per selected fault, in fixed
+F1-to-F5 order for `--all`. `--fault f4` runs only one class; `--dry-run` prints IDs,
+configs, commands, and expected artifact locations without starting experiments.
+Pre/post buffers default to the Phase 5 validation defaults and may be set with
+`TCC_DATASET_PRE_BUFFER_SECONDS` and `TCC_DATASET_POST_BUFFER_SECONDS` or CLI flags.
+
+Machine and human audit artifacts are written to the ignored directory
+`artifacts/integration-validation/<validation-id>/`. This includes `commands.jsonl`,
+before/during/after Kubernetes snapshots, raw command outputs, per-run
+`validation.json`/`evidence-summary.md`, `campaign-summary.json`,
+`validation-report.md`, and `evidence-index.md`. Large experiment, dataset, and request
+files are referenced by path, SHA-256, and byte count instead of being duplicated.
+Existing run/dataset/request artifacts cause a fail-closed no-overwrite error.
+
+The report is engineering evidence only. It is not an official campaign and its
+numbers must not be used to infer that telemetry scenario A or B is superior. Human
+review remains explicit and is never marked complete by automation. This workflow ends
+at the canonical A/B requests and performs no model calls or RCA scoring.

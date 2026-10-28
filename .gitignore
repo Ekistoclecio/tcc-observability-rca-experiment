@@ -32,4 +32,5 @@ artifacts/workload/runs/
 artifacts/experiments/
 artifacts/datasets/
 artifacts/rca-inputs/
+artifacts/integration-validation/
 .venv-tcc-workload/
