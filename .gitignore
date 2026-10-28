@@ -30,4 +30,5 @@ gha-creds-*.json
 docs/experiment/*
 artifacts/workload/runs/
 artifacts/experiments/
+artifacts/datasets/
 .venv-tcc-workload/

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcc.example/schemas/dataset-1.0.schema.json",
+  "title": "TCC normalized telemetry dataset",
+  "type": "object",
+  "required": ["schema_version", "run_id", "scenario", "window", "services", "metrics", "logs", "traces", "summary"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "run_id": {"type": "string"},
+    "scenario": {"enum": ["A", "B"]},
+    "window": {
+      "type": "object", "required": ["start", "end"],
+      "properties": {"start": {"type": "string", "format": "date-time"}, "end": {"type": "string", "format": "date-time"}},
+      "additionalProperties": false
+    },
+    "services": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "metrics": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "service", "native_name", "timestamp", "value", "labels"]}},
+    "logs": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "timestamp", "service", "body", "trace_id", "span_id", "attributes", "labels"]}},
+    "traces": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "trace_id", "start", "duration_ms", "services", "spans"]}},
+    "summary": {"type": "object"}
+  },
+  "additionalProperties": false
+}
