@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emailservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            # Python + both telemetry SDKs exceed the upstream 128Mi limit.
+            # This is an experiment overlay resource allowance; service behavior is unchanged.
+            limits:
+              memory: 256Mi
+              cpu: 200m

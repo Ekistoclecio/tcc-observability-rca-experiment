@@ -9,6 +9,7 @@ patches:
   - path: conventional-node.yaml
   - path: conventional-python.yaml
   - path: conventional-java.yaml
+  - path: email-resources.yaml
   - path: payment-fault-hook.yaml
   - path: loadgenerator-zero.yaml
 images:
