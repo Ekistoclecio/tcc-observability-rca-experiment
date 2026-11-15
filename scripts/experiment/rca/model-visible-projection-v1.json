@@ -1,0 +1,39 @@
+{
+  "version": "common-rca-view-v1",
+  "allowed_removals": {
+    "treatment_marker_normalized_key": "telemetryscenario",
+    "metadata_exact_keys": [
+      "native_name", "native_names", "native_metric_name", "native_metric_names", "native_metric_id", "native_metric_ids",
+      "scope_name", "scope_version", "instrumentation_scope", "instrumentation_scope_version", "otel_scope_name", "otel_scope_version",
+      "os_description", "os_type", "os_version", "telemetry_distro_name", "telemetry_distro_version",
+      "code_file_path", "code_function_name", "code_line_number", "container_id", "pod_uid", "exporter_name", "collector_name",
+      "process_pid", "process_command", "process_command_line", "runtime_version", "runtime_name"
+    ],
+    "metadata_prefixes": [
+      "telemetry.sdk.", "telemetry_sdk_", "instrumentation.scope.", "instrumentation_scope.",
+      "process.", "process_", "runtime.", "runtime_", "container.", "container_",
+      "exporter.", "exporter_", "collector.", "collector_", "telemetry.distro.", "telemetry_distro_",
+      "os.", "os_"
+    ],
+    "native_span_attribute_keys": [
+      "rpc.method", "rpc.service", "rpc.system.name", "server.address", "server.port",
+      "http.request.method", "http.response.status_code", "http.route", "url.path",
+      "network.peer.address", "network.peer.port", "db.operation.name", "db.system.name",
+      "otel.status_code", "grpc.status_code", "rpc.grpc.status_code", "rpc.response.status_code",
+      "attributes.result"
+    ],
+    "empty_span_events_only": true
+  },
+  "required_preserved_fields": {
+    "metrics": ["evidence_id", "service", "concept", "operation", "kind", "target", "timestamp", "value", "unit", "outcome", "labels", "delta_status", "counter_reset"],
+    "logs": ["evidence_id", "service", "timestamp", "severity", "body", "trace_id", "span_id", "attributes"],
+    "traces": ["evidence_id", "trace_id", "start", "duration_ms", "services", "spans"],
+    "spans": ["evidence_id", "trace_id", "span_id", "parent_span_id", "service", "operation", "kind", "target", "start", "duration_ms", "status"]
+  },
+  "allowed_canonical_transformations": [
+    "Dataset normalization has already canonicalized native metric names to semantic concepts before this projection.",
+    "Dataset normalization has already canonicalized span status/outcome before this projection.",
+    "Dataset normalization has already canonicalized equivalent error fields to attributes.error.message before this projection."
+  ],
+  "projection_transformations_from_dataset": []
+}

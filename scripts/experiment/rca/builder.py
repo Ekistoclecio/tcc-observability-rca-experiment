@@ -18,6 +18,7 @@ HERE = Path(__file__).resolve().parent
 PROMPT_PATH = HERE / "prompt.txt"
 REQUEST_SCHEMA_PATH = HERE / "rca-request.schema.json"
 OUTPUT_SCHEMA_PATH = HERE / "rca-output.schema.json"
+MODEL_VISIBLE_PROJECTION_VERSION = "common-rca-view-v1"
 FAULT_TYPES = ("cpu_saturation", "network_latency", "service_unavailable", "application_exception", "datastore_unavailable")
 LOCATION_KINDS = ("service", "service_edge", "operation", "datastore")
 
@@ -284,6 +285,7 @@ def generate_one(dataset_path: Path, output_path: Path, run_id: str, scenario: s
         source_label = dataset_path.name
     manifest = {
         "schema_version": "1.0",
+        "model_visible_projection_version": MODEL_VISIBLE_PROJECTION_VERSION,
         "run_id": run_id,
         "scenario": scenario,
         "source_dataset_path": source_label,

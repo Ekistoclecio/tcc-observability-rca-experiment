@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta, timezone
-from copy import deepcopy
 import hashlib
 import json
 import os
@@ -15,6 +14,10 @@ import time
 from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
+try:
+    from .rca.projection_provenance import PROJECTION_VERSION, audit_projection
+except ImportError:  # direct execution: python scripts/experiment/integration_validation.py
+    from rca.projection_provenance import PROJECTION_VERSION, audit_projection
 
 
 REPO = Path(__file__).resolve().parents[2]
@@ -56,11 +59,6 @@ def sha256_file(path: Path) -> str:
 def canonical_hash(value: Any) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
-
-
-def marker_counts_match(source: dict[str, int], recorded: dict[str, int]) -> bool:
-    keys = set(source) | set(recorded)
-    return all(int(source.get(key, 0)) == int(recorded.get(key, 0)) for key in keys)
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -171,29 +169,6 @@ def marker_key_paths(value: Any, path: str = "$") -> list[str]:
         for index, child in enumerate(value):
             hits.extend(marker_key_paths(child, f"{path}[{index}]"))
     return hits
-
-
-def expected_model_telemetry(dataset: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
-    """Apply only the explicit Phase 6 treatment-marker removal for audit comparison."""
-    telemetry = deepcopy({signal: dataset[signal] for signal in ("metrics", "logs", "traces")})
-    removed: dict[str, int] = {}
-
-    def visit(value: Any) -> None:
-        if isinstance(value, dict):
-            for key in list(value):
-                normalized = "".join(ch.lower() for ch in str(key) if ch.isalnum())
-                if normalized == "telemetryscenario":
-                    spelling = str(key)
-                    removed[spelling] = removed.get(spelling, 0) + 1
-                    del value[key]
-                else:
-                    visit(value[key])
-        elif isinstance(value, list):
-            for item in value:
-                visit(item)
-
-    visit(telemetry)
-    return telemetry, dict(sorted(removed.items()))
 
 
 def recursive_key_paths(value: Any, terms: set[str], path: str = "$") -> dict[str, list[str]]:
@@ -998,6 +973,7 @@ class IntegrationValidation:
                 "source_dataset_hash_matches_request_manifest": all(sha256_file(dataset_dir / f"scenario-{s.lower()}/dataset.json") == rca_manifests[s]["source_dataset_sha256"] for s in ("A", "B")),
                 "request_file_hash_matches_request_manifest": all(sha256_file(request_root / f"scenario-{s.lower()}/request.json") == rca_manifests[s]["request_sha256"] for s in ("A", "B")),
                 "request_sanitization_logged": all("model_visible_sanitization" in rca_manifests[s] for s in ("A", "B")),
+                "model_visible_projection_version_recorded": all(rca_manifests[s].get("model_visible_projection_version") == PROJECTION_VERSION for s in ("A", "B")),
                 "datasets_unchanged_during_request_build": request_checks["datasets_unchanged_during_request_build"],
             }
             result["statuses"]["provenance"] = "PASS" if all(provenance_checks.values()) else "FAIL"
@@ -1123,15 +1099,9 @@ class IntegrationValidation:
                                    "removed_fields": manifests[scenario].get("model_visible_sanitization", {}).get("removed_fields", {}),
                                    "native_metadata_preserved": manifests[scenario].get("native_telemetry_provenance_markers", {}),
                                    "passed": not explicit and "model_visible_sanitization" in manifests[scenario]}
-            expected_telemetry, expected_removed = expected_model_telemetry(datasets[scenario])
-            manifest_removed = manifests[scenario].get("model_visible_sanitization", {}).get("removed_fields", {})
-            marker_counts_equal = marker_counts_match(expected_removed, manifest_removed)
-            telemetry_integrity[scenario] = {
-                "matches_dataset_after_explicit_marker_removal": request.get("telemetry") == expected_telemetry,
-                "source_marker_counts": expected_removed,
-                "manifest_marker_counts": manifest_removed,
-                "marker_counts_match": marker_counts_equal,
-            }
+            telemetry_integrity[scenario] = audit_projection(
+                datasets[scenario], request, scenario, manifests[scenario]
+            )
         dataset_hashes = {s: sha256_file(dataset_dir / f"scenario-{s.lower()}/dataset.json") for s in ("A", "B")}
         request_hashes = {s: sha256_file(request_root / f"scenario-{s.lower()}/request.json") for s in ("A", "B")}
         preview_hashes = {s: sha256_file(request_root / f"scenario-{s.lower()}/request-preview.md") for s in ("A", "B")}
@@ -1159,7 +1129,7 @@ class IntegrationValidation:
                 "static_contract_parity": static_hash_a == static_hash_b,
                 "no_direct_control_leakage": all(leakage[s]["passed"] for s in ("A", "B")),
                 "explicit_treatment_markers_zero": all(treatment[s]["passed"] for s in ("A", "B")),
-                "telemetry_preserved_except_explicit_markers": all(item["matches_dataset_after_explicit_marker_removal"] and item["marker_counts_match"] for item in telemetry_integrity.values()),
+                "dataset_to_model_visible_projection": all(item["passed"] for item in telemetry_integrity.values()),
                 "hash_provenance": all(dataset_hashes[s] == manifests[s]["source_dataset_sha256"] and
                                         request_hashes[s] == manifests[s]["request_sha256"] and
                                         preview_hashes[s] == manifests[s]["preview_sha256"] for s in ("A", "B")) and

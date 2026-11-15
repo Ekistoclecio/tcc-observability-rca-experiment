@@ -33,12 +33,6 @@ class IntegrationValidationUnitTests(unittest.TestCase):
         datasets["A"]["fault_type"] = "cpu_saturation"
         self.assertFalse(obj.audit_dataset_blindness(datasets, "iv-integration-smoke-001-f1", Path("."))["passed"])
 
-    def test_zero_sanitization_counts_are_equivalent_when_omitted(self):
-        self.assertTrue(iv.marker_counts_match({"telemetry_scenario": 0}, {}))
-        self.assertTrue(iv.marker_counts_match({"telemetry_scenario": 2}, {"telemetry_scenario": 2,
-                                                                           "telemetry.scenario": 0}))
-        self.assertFalse(iv.marker_counts_match({"telemetry_scenario": 2}, {"telemetry_scenario": 1}))
-
     def test_dataset_window_chain_uses_only_confirmed_times(self):
         gt = {"timing": {"confirmed_start": "2026-10-28T12:00:00Z", "confirmed_end": "2026-10-28T12:00:10Z"},
               "fault": {"class": "F4", "location": {"component": "paymentservice"}}}
@@ -173,10 +167,12 @@ class IntegrationValidationUnitTests(unittest.TestCase):
                 request_dir.mkdir(parents=True)
                 dataset = {"schema_version": "1.0", "run_id": "run-1", "scenario": scenario,
                            "window": {"start": "2026-10-28T12:00:00Z", "end": "2026-10-28T12:00:10Z"},
-                           "metrics": [{"evidence_id": f"metric-{suffix}"}], "logs": [{"evidence_id": f"log-{suffix}"}],
+                           "metrics": [{"evidence_id": f"metric-{suffix}", "native_names": ["native.metric"]}], "logs": [{"evidence_id": f"log-{suffix}"}],
                            "traces": [{"evidence_id": f"trace-{suffix}", "spans": [{"evidence_id": f"span-{suffix}"}]}]}
+                telemetry = {k: json.loads(json.dumps(dataset[k])) for k in ("metrics", "logs", "traces")}
+                telemetry["metrics"][0].pop("native_names")
                 request = {"schema_version": "1.0", "task": "root_cause_analysis", "instructions": "same",
-                           "observation_window": dataset["window"], "telemetry": {k: dataset[k] for k in ("metrics", "logs", "traces")}}
+                           "observation_window": dataset["window"], "telemetry": telemetry}
                 ds_path, rq_path = scenario_dir / "dataset.json", request_dir / "request.json"
                 preview_path = request_dir / "request-preview.md"
                 ds_path.write_text(json.dumps(dataset), encoding="utf-8")
@@ -186,7 +182,8 @@ class IntegrationValidationUnitTests(unittest.TestCase):
                 manifests[scenario] = {"source_dataset_sha256": iv.sha256_file(ds_path), "request_sha256": iv.sha256_file(rq_path),
                                        "preview_sha256": iv.sha256_file(preview_path), "prompt_sha256": "p" * 64,
                                        "request_schema_sha256": "r" * 64, "output_schema_sha256": "o" * 64,
-                                       "model_visible_sanitization": {"removed_fields": {"telemetry_scenario": 0}}}
+                                       "model_visible_projection_version": "common-rca-view-v1",
+                                       "model_visible_sanitization": {"removed_fields": {"common_view_metadata:native_names": 1}}}
             result = obj.audit_requests("run-1", root, datasets, dataset_dir, request_root,
                                         requests["A"], requests["B"], manifests)
             self.assertTrue(result["checks"]["request_counts_match"])
@@ -194,6 +191,7 @@ class IntegrationValidationUnitTests(unittest.TestCase):
             self.assertTrue(result["checks"]["static_contract_parity"])
             self.assertTrue(result["checks"]["hash_provenance"])
             self.assertTrue(result["checks"]["no_direct_control_leakage"])
+            self.assertTrue(result["checks"]["dataset_to_model_visible_projection"])
             requests["B"]["run_id"] = "run-1"
             result = obj.audit_requests("run-1", root, datasets, dataset_dir, request_root,
                                         requests["A"], requests["B"], manifests)

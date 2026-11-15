@@ -142,6 +142,7 @@ class RCAInputTests(unittest.TestCase):
                     "removed_fields": {"common_view_metadata:native_name": 1,
                                        "telemetry.scenario": 1, "telemetry_scenario": 1},
                 })
+                self.assertEqual(manifest["model_visible_projection_version"], "common-rca-view-v1")
                 self.assertEqual(json.loads((root / "artifacts" / "datasets" / RUN_ID / f"scenario-{suffix}" / "dataset.json").read_text()), source_data_by_suffix[suffix])
                 self.assertNotIn("telemetry_scenario", json.dumps(request))
                 self.assertNotIn("telemetry.scenario", json.dumps(request))
