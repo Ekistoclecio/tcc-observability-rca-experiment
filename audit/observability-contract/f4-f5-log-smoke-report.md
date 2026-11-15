@@ -1,41 +1,31 @@
 # Canonical Log Revalidation — F4/F5
 
-No fault was re-executed. Existing RAW snapshots were reprocessed into separate derived artifact directories; source RAW hashes remained unchanged.
+Existing F4 and F5 executions were reused. No fault was re-executed. Reprocessed datasets and requests were generated from committed implementation `3921f77f5f7979a30148d62c0799b826146bd82f`; source RAW hashes were verified unchanged.
 
-## F5 existing execution
+## F5
 
-Run: `iv-edv-pv-f5-01-001-f5-f5`
+Run: `iv-edv-pv-f5-01-001-f5-f5`. Ground Truth, Dataset A/B, RCA Request A/B, provenance, and raw immutability: **PASS**.
+Canonical event classes A-only: **0**; B-only: **0**.
 
-Ground Truth, Dataset A/B, request A/B, projection provenance, and raw immutability: **PASS**.
-
-Canonical diagnostic event classes: A-only **0**, B-only **0**. F5 log parity: **PASS**.
-
-| Scenario | Visible metrics | Visible logs | Traces | Spans | Category counts |
+| Scenario | Metrics | Logs | Traces | Spans | Categories |
 |---|---:|---:|---:|---:|---|
 | A | 117 | 1361 | 85 | 2045 | `{"APPLICATION_DIAGNOSTIC": 1354, "APPLICATION_ERROR": 7, "HEALTH_CHECK": 6, "LIFECYCLE_NOISE": 72, "REDUNDANT_SUCCESS_EVENT": 15, "RUNTIME_NOISE": 18, "UNKNOWN": 55}` |
 | B | 117 | 1399 | 85 | 2045 | `{"APPLICATION_DIAGNOSTIC": 1392, "APPLICATION_ERROR": 7, "UNKNOWN": 55}` |
 
-F5 detailed evidence: `artifacts/integration-validation/canonical-log-revalidation-001/revalidation.md`.
+F5 revalidation: **PASS**.
 
-## F4 existing execution regression
+## F4
 
-Run: `iv-edv-view-smoke1-001-f4-f4`; Ground Truth, A/B provenance, and RAW immutability: **PASS**. Stack frames in requests: **0**. Canonical error span counts: A=30, B=30.
+Run: `iv-edv-view-smoke1-001-f4-f4`; Ground Truth, provenance, and raw immutability: **PASS**. Stack-frame lines in the generated requests: **0**.
+Application error logs: A=12, B=6; error span counts A=30, B=30.
+A-only canonical class: `[["paymentservice", "ERROR", "APPLICATION_ERROR", "", "controlled application fault in paymentservice.charge"]]`
+B-only canonical classes: `[]`
+Canonical error message parity: **FAIL**.
 
-Application error log records: A=12, B=6. Canonical error-message parity: **FAIL**.
-
-| Scenario | Category counts |
-|---|---|
-| A | `{"APPLICATION_DIAGNOSTIC": 1773, "APPLICATION_ERROR": 12, "HEALTH_CHECK": 5, "LIFECYCLE_NOISE": 6, "REDUNDANT_SUCCESS_EVENT": 16, "RUNTIME_NOISE": 66, "UNKNOWN": 92}` |
-| B | `{"APPLICATION_DIAGNOSTIC": 1824, "APPLICATION_ERROR": 6, "UNKNOWN": 62}` |
-
-A-only canonical event classes: `[["paymentservice", "ERROR", "APPLICATION_ERROR", "", "controlled application fault in paymentservice.charge"]]`
-
-B-only canonical event classes: `[]`
-
-The A-only paymentservice `APPLICATION_ERROR` remains model-visible, as required. It was not dropped or reclassified to manufacture parity. This is a genuine log-coverage parity failure under the new shared policy.
+The paymentservice `APPLICATION_ERROR` is present in A and absent from B logs. It was kept because error logs must not be removed to force parity. This is a parity failure under the new policy.
 
 ## Decision
 
-**F4/F5 smoke: FAIL.** The final F1–F5 battery was not started because F4 parity is not satisfied under this policy. No new fault was run and no silent retry occurred.
+**F4/F5 smoke: FAIL.** The final F1–F5 battery was not started. F5 passes; F4 does not pass under the same classifier, so proceeding would contradict the requirement to preserve A-only diagnostic errors.
 
-Machine-readable summary: `audit/observability-contract/f4-f5-log-smoke-summary.json`.
+Detailed machine-readable evidence: `audit/observability-contract/f4-log-revalidation.json` and `f5-log-revalidation.json`.

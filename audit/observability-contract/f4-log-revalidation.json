@@ -1,0 +1,282 @@
+{
+  "A_only_log_classes": [
+    [
+      "paymentservice",
+      "ERROR",
+      "APPLICATION_ERROR",
+      "",
+      "controlled application fault in paymentservice.charge"
+    ]
+  ],
+  "B_only_log_classes": [],
+  "application_error_logs": {
+    "A": 12,
+    "B": 6
+  },
+  "category_counts": {
+    "A": {
+      "APPLICATION_DIAGNOSTIC": 1773,
+      "APPLICATION_ERROR": 12,
+      "HEALTH_CHECK": 5,
+      "LIFECYCLE_NOISE": 6,
+      "REDUNDANT_SUCCESS_EVENT": 16,
+      "RUNTIME_NOISE": 66,
+      "UNKNOWN": 92
+    },
+    "B": {
+      "APPLICATION_DIAGNOSTIC": 1824,
+      "APPLICATION_ERROR": 6,
+      "UNKNOWN": 62
+    }
+  },
+  "dataset_counts": {
+    "A": {
+      "logs": 1785,
+      "metrics": 117,
+      "spans": 2712,
+      "traces": 112
+    },
+    "B": {
+      "logs": 1830,
+      "metrics": 117,
+      "spans": 2712,
+      "traces": 112
+    }
+  },
+  "error_message_parity": false,
+  "error_messages": {
+    "A": [
+      "controlled application fault in PaymentService.Charge",
+      "failed to charge card: could not charge the card: rpc error: code = Internal desc = controlled application fault in PaymentService.Charge"
+    ],
+    "B": [
+      "failed to charge card: could not charge the card: rpc error: code = Internal desc = controlled application fault in PaymentService.Charge"
+    ]
+  },
+  "error_spans": {
+    "A": 30,
+    "B": 30
+  },
+  "fault_reexecuted": false,
+  "ground_truth_valid": true,
+  "ground_truth_validation": {
+    "actual_location": {
+      "component": "paymentservice",
+      "kind": "operation",
+      "operation": "Charge"
+    },
+    "checks": {
+      "confirmed_end_after_start": true,
+      "confirmed_times_present": true,
+      "expected_location_matches": true,
+      "fault_class_matches": true,
+      "injection_confirmed": true,
+      "recovery_confirmed": true,
+      "run_id_matches": true,
+      "schema_valid": true,
+      "status_valid": true
+    },
+    "expected_location": {
+      "component": "paymentservice",
+      "kind": "operation",
+      "operation": "Charge"
+    },
+    "passed": true,
+    "timing": {
+      "confirmed_end": "2026-11-15T21:22:20.143Z",
+      "confirmed_start": "2026-11-15T21:22:13.546Z",
+      "recovery_requested_at": "2026-11-15T21:22:18.546Z",
+      "requested_at": "2026-11-15T21:22:12.175Z",
+      "scheduled_end": "2026-11-15T21:22:17.175Z",
+      "scheduled_start": "2026-11-15T21:22:12.175Z"
+    }
+  },
+  "log_parity_pass": false,
+  "passed": false,
+  "provenance": {
+    "A": true,
+    "B": true
+  },
+  "provenance_detail": {
+    "A": {
+      "allowed_removal_counts_match_manifest": true,
+      "allowed_removals": {
+        "common_view_metadata:native_names": 117
+      },
+      "canonical_transformations_applied": [],
+      "dataset_items": {
+        "logs": 1785,
+        "metrics": 117,
+        "spans": 2712,
+        "traces": 112
+      },
+      "evidence_ids": {
+        "dataset_count": 4726,
+        "dataset_only": [],
+        "match": true,
+        "request_count": 4726,
+        "request_only": []
+      },
+      "item_counts_match": true,
+      "log_correlation": {
+        "A_synthetic_correlation_detected": false,
+        "request_nonempty_records": 0,
+        "source_nonempty_records": 0
+      },
+      "manifest_projection_version": "common-rca-view-v1",
+      "manifest_projection_version_matches": true,
+      "passed": true,
+      "projection_version": "common-rca-view-v1",
+      "request_items": {
+        "logs": 1785,
+        "metrics": 117,
+        "spans": 2712,
+        "traces": 112
+      },
+      "required_fields": {
+        "checked": {
+          "logs.attributes": 1785,
+          "logs.body": 1785,
+          "logs.evidence_id": 1785,
+          "logs.service": 1785,
+          "logs.severity": 1785,
+          "logs.span_id": 1785,
+          "logs.timestamp": 1785,
+          "logs.trace_id": 1785,
+          "metrics.concept": 117,
+          "metrics.counter_reset": 106,
+          "metrics.delta_status": 106,
+          "metrics.evidence_id": 117,
+          "metrics.kind": 117,
+          "metrics.labels": 117,
+          "metrics.operation": 117,
+          "metrics.outcome": 117,
+          "metrics.service": 117,
+          "metrics.target": 117,
+          "metrics.timestamp": 117,
+          "metrics.unit": 117,
+          "metrics.value": 117,
+          "spans.duration_ms": 2712,
+          "spans.evidence_id": 2712,
+          "spans.kind": 2712,
+          "spans.operation": 2712,
+          "spans.parent_span_id": 2712,
+          "spans.service": 2712,
+          "spans.span_id": 2712,
+          "spans.start": 2712,
+          "spans.status": 2712,
+          "spans.target": 2712,
+          "traces.duration_ms": 112,
+          "traces.evidence_id": 112,
+          "traces.services": 112,
+          "traces.spans": 112,
+          "traces.start": 112,
+          "traces.trace_id": 112
+        },
+        "missing": []
+      },
+      "unexpected_additions": [],
+      "unexpected_mutations": [],
+      "unexpected_removals": []
+    },
+    "B": {
+      "allowed_removal_counts_match_manifest": true,
+      "allowed_removals": {
+        "common_view_metadata:native_names": 117
+      },
+      "canonical_transformations_applied": [],
+      "dataset_items": {
+        "logs": 1830,
+        "metrics": 117,
+        "spans": 2712,
+        "traces": 112
+      },
+      "evidence_ids": {
+        "dataset_count": 4771,
+        "dataset_only": [],
+        "match": true,
+        "request_count": 4771,
+        "request_only": []
+      },
+      "item_counts_match": true,
+      "log_correlation": {
+        "A_synthetic_correlation_detected": false,
+        "request_nonempty_records": 1830,
+        "source_nonempty_records": 1830
+      },
+      "manifest_projection_version": "common-rca-view-v1",
+      "manifest_projection_version_matches": true,
+      "passed": true,
+      "projection_version": "common-rca-view-v1",
+      "request_items": {
+        "logs": 1830,
+        "metrics": 117,
+        "spans": 2712,
+        "traces": 112
+      },
+      "required_fields": {
+        "checked": {
+          "logs.attributes": 1830,
+          "logs.body": 1830,
+          "logs.evidence_id": 1830,
+          "logs.service": 1830,
+          "logs.severity": 1830,
+          "logs.span_id": 1830,
+          "logs.timestamp": 1830,
+          "logs.trace_id": 1830,
+          "metrics.concept": 117,
+          "metrics.counter_reset": 106,
+          "metrics.delta_status": 106,
+          "metrics.evidence_id": 117,
+          "metrics.kind": 117,
+          "metrics.labels": 117,
+          "metrics.operation": 117,
+          "metrics.outcome": 117,
+          "metrics.service": 117,
+          "metrics.target": 117,
+          "metrics.timestamp": 117,
+          "metrics.unit": 117,
+          "metrics.value": 117,
+          "spans.duration_ms": 2712,
+          "spans.evidence_id": 2712,
+          "spans.kind": 2712,
+          "spans.operation": 2712,
+          "spans.parent_span_id": 2712,
+          "spans.service": 2712,
+          "spans.span_id": 2712,
+          "spans.start": 2712,
+          "spans.status": 2712,
+          "spans.target": 2712,
+          "traces.duration_ms": 112,
+          "traces.evidence_id": 112,
+          "traces.services": 112,
+          "traces.spans": 112,
+          "traces.start": 112,
+          "traces.trace_id": 112
+        },
+        "missing": []
+      },
+      "unexpected_additions": [],
+      "unexpected_mutations": [],
+      "unexpected_removals": []
+    }
+  },
+  "raw_hashes": {
+    "A/logs": "9bc3ef432a3d8d6be2efc55a05cf7afae3faf14f45d2b4f3f35224ffa6828c95",
+    "A/metrics": "4dd0a8a86ed5768bf70d192e06babf7a4afae30df49c603b22419b031c245c30",
+    "A/traces": "2308305752ad003c59429fdd61d7f1bc3e2d741b22fa5ea2fa58db10fd207dc1",
+    "B/logs": "b8053610de76c4e0e324340c32e5b0fa1f6739f0b14c28482b552d6d89195a37",
+    "B/metrics": "a2ab9aa9710fc9843688de459a519b0ae8eef6b260f6102766e48d5880a476ae",
+    "B/traces": "76e83e0befb6168b3971068fd56edcd9d4cb587bcb244cabcdc20c5fa3b81687"
+  },
+  "raw_unchanged": true,
+  "request_builder_commits": {
+    "A": "3921f77f5f7979a30148d62c0799b826146bd82f",
+    "B": "3921f77f5f7979a30148d62c0799b826146bd82f"
+  },
+  "run_id": "iv-edv-view-smoke1-001-f4-f4",
+  "stack_frame_logs_in_request": 0,
+  "unexpected_additions": 0,
+  "unexpected_mutations": 0,
+  "unexpected_removals": 0
+}

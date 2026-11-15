@@ -1,223 +1,52 @@
 {
-  "classification": {
+  "A_only_log_classes": [],
+  "B_only_log_classes": [],
+  "application_error_logs": {
+    "A": 7,
+    "B": 7
+  },
+  "category_counts": {
     "A": {
-      "categories": {
-        "APPLICATION_DIAGNOSTIC": 1354,
-        "APPLICATION_ERROR": 7,
-        "HEALTH_CHECK": 6,
-        "LIFECYCLE_NOISE": 72,
-        "REDUNDANT_SUCCESS_EVENT": 15,
-        "RUNTIME_NOISE": 18,
-        "UNKNOWN": 55
-      },
-      "excluded_samples": {
-        "HEALTH_CHECK": [
-          {
-            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
-            "reason": "health_or_probe_event",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
-            "reason": "health_or_probe_event",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
-            "reason": "health_or_probe_event",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
-            "reason": "health_or_probe_event",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
-            "reason": "health_or_probe_event",
-            "service": "cartservice",
-            "severity": "INFO"
-          }
-        ],
-        "LIFECYCLE_NOISE": [
-          {
-            "body": "1:M 15 Nov 2026 21:43:02.215 * <bf> \t{ bf-error-rate       :      0.01 }",
-            "reason": "process_or_datastore_lifecycle",
-            "service": "redis-cart",
-            "severity": "ERROR"
-          },
-          {
-            "body": "1:signal-handler (1794778972) Received SIGTERM scheduling shutdown...",
-            "reason": "process_or_datastore_lifecycle",
-            "service": "redis-cart",
-            "severity": null
-          },
-          {
-            "body": "1:M 15 Nov 2026 21:42:52.847 * User requested shutdown...",
-            "reason": "process_or_datastore_lifecycle",
-            "service": "redis-cart",
-            "severity": null
-          },
-          {
-            "body": "1:M 15 Nov 2026 21:42:52.848 * Saving the final RDB snapshot before exiting.",
-            "reason": "process_or_datastore_lifecycle",
-            "service": "redis-cart",
-            "severity": null
-          },
-          {
-            "body": "1:M 15 Nov 2026 21:42:52.851 * BGSAVE done, 45 keys saved, 0 keys skipped, 3844 bytes written.",
-            "reason": "process_or_datastore_lifecycle",
-            "service": "redis-cart",
-            "severity": null
-          }
-        ],
-        "REDUNDANT_SUCCESS_EVENT": [
-          {
-            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
-            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-            "service": "paymentservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
-            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-            "service": "paymentservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
-            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-            "service": "paymentservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
-            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-            "service": "paymentservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
-            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-            "service": "paymentservice",
-            "severity": "INFO"
-          }
-        ],
-        "RUNTIME_NOISE": [
-          {
-            "body": "env platform is either empty or invalid",
-            "reason": "runtime_or_platform_message",
-            "service": "frontend",
-            "severity": null
-          },
-          {
-            "body": "env platform is either empty or invalid",
-            "reason": "runtime_or_platform_message",
-            "service": "frontend",
-            "severity": null
-          },
-          {
-            "body": "env platform is either empty or invalid",
-            "reason": "runtime_or_platform_message",
-            "service": "frontend",
-            "severity": null
-          },
-          {
-            "body": "env platform is either empty or invalid",
-            "reason": "runtime_or_platform_message",
-            "service": "frontend",
-            "severity": null
-          },
-          {
-            "body": "env platform is either empty or invalid",
-            "reason": "runtime_or_platform_message",
-            "service": "frontend",
-            "severity": null
-          }
-        ],
-        "UNKNOWN": [
-          {
-            "body": "ENV_PLATFORM is: local",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "frontend",
-            "severity": "DEBUG"
-          },
-          {
-            "body": "ENV_PLATFORM is: local",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "frontend",
-            "severity": "DEBUG"
-          },
-          {
-            "body": "ENV_PLATFORM is: local",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "frontend",
-            "severity": "DEBUG"
-          },
-          {
-            "body": "view user cart",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "frontend",
-            "severity": "DEBUG"
-          },
-          {
-            "body": "ENV_PLATFORM is: local",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "frontend",
-            "severity": "DEBUG"
-          }
-        ]
-      },
-      "model_visible_records": 1361,
-      "raw_candidate_records": 1527
+      "APPLICATION_DIAGNOSTIC": 1354,
+      "APPLICATION_ERROR": 7,
+      "HEALTH_CHECK": 6,
+      "LIFECYCLE_NOISE": 72,
+      "REDUNDANT_SUCCESS_EVENT": 15,
+      "RUNTIME_NOISE": 18,
+      "UNKNOWN": 55
     },
     "B": {
-      "categories": {
-        "APPLICATION_DIAGNOSTIC": 1392,
-        "APPLICATION_ERROR": 7,
-        "UNKNOWN": 55
-      },
-      "excluded_samples": {
-        "UNKNOWN": [
-          {
-            "body": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "cartservice",
-            "severity": "INFO"
-          },
-          {
-            "body": "Error status code '{StatusCode}' with detail '{Detail}' raised.",
-            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-            "service": "cartservice",
-            "severity": "INFO"
-          }
-        ]
-      },
-      "model_visible_records": 1399,
-      "raw_candidate_records": 1454
+      "APPLICATION_DIAGNOSTIC": 1392,
+      "APPLICATION_ERROR": 7,
+      "UNKNOWN": 55
     }
+  },
+  "dataset_counts": {
+    "A": {
+      "logs": 1361,
+      "metrics": 117,
+      "spans": 2045,
+      "traces": 85
+    },
+    "B": {
+      "logs": 1399,
+      "metrics": 117,
+      "spans": 2045,
+      "traces": 85
+    }
+  },
+  "error_message_parity": true,
+  "error_messages": {
+    "A": [
+      "Can't access cart storage."
+    ],
+    "B": [
+      "Can't access cart storage."
+    ]
+  },
+  "error_spans": {
+    "A": 28,
+    "B": 28
   },
   "fault_reexecuted": false,
   "ground_truth_valid": true,
@@ -251,20 +80,177 @@
       "scheduled_start": "2026-11-15T21:42:52.124Z"
     }
   },
-  "log_parity": {
-    "A_only": [],
-    "B_only": []
+  "log_parity_pass": true,
+  "passed": true,
+  "provenance": {
+    "A": true,
+    "B": true
   },
-  "overall_pass": true,
-  "raw_hashes_after": {
-    "A/logs": "3a40a144c20d2d7cdade6c6d653b56fed311e7f70a5234433d6d63fd806e05b4",
-    "A/metrics": "1b5990919d73357a1064096a7d133d0c6d952c0b131c13322883330ad6c2276a",
-    "A/traces": "e99028817e844980eb0a0523cbaa3cda146b1b4417e62eab758b6ec26488321f",
-    "B/logs": "3179e0eb46321b1d08918e0c0c27714bce2f8a0cc34d4de1ebbfbc0c19cb0337",
-    "B/metrics": "19308a37a6577e59b7461b58d392f09a9e90fa43782c0852bb9df034b72b00b0",
-    "B/traces": "b0d9a8bcc9017500728f653dd8e34cbdfbbfc830f73afffac4cc5fe68ce5e12f"
+  "provenance_detail": {
+    "A": {
+      "allowed_removal_counts_match_manifest": true,
+      "allowed_removals": {
+        "common_view_metadata:native_names": 117
+      },
+      "canonical_transformations_applied": [],
+      "dataset_items": {
+        "logs": 1361,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      },
+      "evidence_ids": {
+        "dataset_count": 3608,
+        "dataset_only": [],
+        "match": true,
+        "request_count": 3608,
+        "request_only": []
+      },
+      "item_counts_match": true,
+      "log_correlation": {
+        "A_synthetic_correlation_detected": false,
+        "request_nonempty_records": 0,
+        "source_nonempty_records": 0
+      },
+      "manifest_projection_version": "common-rca-view-v1",
+      "manifest_projection_version_matches": true,
+      "passed": true,
+      "projection_version": "common-rca-view-v1",
+      "request_items": {
+        "logs": 1361,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      },
+      "required_fields": {
+        "checked": {
+          "logs.attributes": 1361,
+          "logs.body": 1361,
+          "logs.evidence_id": 1361,
+          "logs.service": 1361,
+          "logs.severity": 1361,
+          "logs.span_id": 1361,
+          "logs.timestamp": 1361,
+          "logs.trace_id": 1361,
+          "metrics.concept": 117,
+          "metrics.counter_reset": 106,
+          "metrics.delta_status": 106,
+          "metrics.evidence_id": 117,
+          "metrics.kind": 117,
+          "metrics.labels": 117,
+          "metrics.operation": 117,
+          "metrics.outcome": 117,
+          "metrics.service": 117,
+          "metrics.target": 117,
+          "metrics.timestamp": 117,
+          "metrics.unit": 117,
+          "metrics.value": 117,
+          "spans.duration_ms": 2045,
+          "spans.evidence_id": 2045,
+          "spans.kind": 2045,
+          "spans.operation": 2045,
+          "spans.parent_span_id": 2045,
+          "spans.service": 2045,
+          "spans.span_id": 2045,
+          "spans.start": 2045,
+          "spans.status": 2045,
+          "spans.target": 2045,
+          "traces.duration_ms": 85,
+          "traces.evidence_id": 85,
+          "traces.services": 85,
+          "traces.spans": 85,
+          "traces.start": 85,
+          "traces.trace_id": 85
+        },
+        "missing": []
+      },
+      "unexpected_additions": [],
+      "unexpected_mutations": [],
+      "unexpected_removals": []
+    },
+    "B": {
+      "allowed_removal_counts_match_manifest": true,
+      "allowed_removals": {
+        "common_view_metadata:native_names": 117
+      },
+      "canonical_transformations_applied": [],
+      "dataset_items": {
+        "logs": 1399,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      },
+      "evidence_ids": {
+        "dataset_count": 3646,
+        "dataset_only": [],
+        "match": true,
+        "request_count": 3646,
+        "request_only": []
+      },
+      "item_counts_match": true,
+      "log_correlation": {
+        "A_synthetic_correlation_detected": false,
+        "request_nonempty_records": 1399,
+        "source_nonempty_records": 1399
+      },
+      "manifest_projection_version": "common-rca-view-v1",
+      "manifest_projection_version_matches": true,
+      "passed": true,
+      "projection_version": "common-rca-view-v1",
+      "request_items": {
+        "logs": 1399,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      },
+      "required_fields": {
+        "checked": {
+          "logs.attributes": 1399,
+          "logs.body": 1399,
+          "logs.evidence_id": 1399,
+          "logs.service": 1399,
+          "logs.severity": 1399,
+          "logs.span_id": 1399,
+          "logs.timestamp": 1399,
+          "logs.trace_id": 1399,
+          "metrics.concept": 117,
+          "metrics.counter_reset": 106,
+          "metrics.delta_status": 106,
+          "metrics.evidence_id": 117,
+          "metrics.kind": 117,
+          "metrics.labels": 117,
+          "metrics.operation": 117,
+          "metrics.outcome": 117,
+          "metrics.service": 117,
+          "metrics.target": 117,
+          "metrics.timestamp": 117,
+          "metrics.unit": 117,
+          "metrics.value": 117,
+          "spans.duration_ms": 2045,
+          "spans.evidence_id": 2045,
+          "spans.kind": 2045,
+          "spans.operation": 2045,
+          "spans.parent_span_id": 2045,
+          "spans.service": 2045,
+          "spans.span_id": 2045,
+          "spans.start": 2045,
+          "spans.status": 2045,
+          "spans.target": 2045,
+          "traces.duration_ms": 85,
+          "traces.evidence_id": 85,
+          "traces.services": 85,
+          "traces.spans": 85,
+          "traces.start": 85,
+          "traces.trace_id": 85
+        },
+        "missing": []
+      },
+      "unexpected_additions": [],
+      "unexpected_mutations": [],
+      "unexpected_removals": []
+    }
   },
-  "raw_hashes_before": {
+  "raw_hashes": {
     "A/logs": "3a40a144c20d2d7cdade6c6d653b56fed311e7f70a5234433d6d63fd806e05b4",
     "A/metrics": "1b5990919d73357a1064096a7d133d0c6d952c0b131c13322883330ad6c2276a",
     "A/traces": "e99028817e844980eb0a0523cbaa3cda146b1b4417e62eab758b6ec26488321f",
@@ -273,188 +259,13 @@
     "B/traces": "b0d9a8bcc9017500728f653dd8e34cbdfbbfc830f73afffac4cc5fe68ce5e12f"
   },
   "raw_unchanged": true,
-  "run_id": "iv-edv-pv-f5-01-001-f5-f5",
-  "scenarios": {
-    "A": {
-      "dataset_counts": {
-        "logs": 1361,
-        "metrics": 117,
-        "spans": 2045,
-        "traces": 85
-      },
-      "provenance": {
-        "allowed_removal_counts_match_manifest": true,
-        "allowed_removals": {
-          "common_view_metadata:native_names": 117
-        },
-        "canonical_transformations_applied": [],
-        "dataset_items": {
-          "logs": 1361,
-          "metrics": 117,
-          "spans": 2045,
-          "traces": 85
-        },
-        "evidence_ids": {
-          "dataset_count": 3608,
-          "dataset_only": [],
-          "match": true,
-          "request_count": 3608,
-          "request_only": []
-        },
-        "item_counts_match": true,
-        "log_correlation": {
-          "A_synthetic_correlation_detected": false,
-          "request_nonempty_records": 0,
-          "source_nonempty_records": 0
-        },
-        "manifest_projection_version": "common-rca-view-v1",
-        "manifest_projection_version_matches": true,
-        "passed": true,
-        "projection_version": "common-rca-view-v1",
-        "request_items": {
-          "logs": 1361,
-          "metrics": 117,
-          "spans": 2045,
-          "traces": 85
-        },
-        "required_fields": {
-          "checked": {
-            "logs.attributes": 1361,
-            "logs.body": 1361,
-            "logs.evidence_id": 1361,
-            "logs.service": 1361,
-            "logs.severity": 1361,
-            "logs.span_id": 1361,
-            "logs.timestamp": 1361,
-            "logs.trace_id": 1361,
-            "metrics.concept": 117,
-            "metrics.counter_reset": 106,
-            "metrics.delta_status": 106,
-            "metrics.evidence_id": 117,
-            "metrics.kind": 117,
-            "metrics.labels": 117,
-            "metrics.operation": 117,
-            "metrics.outcome": 117,
-            "metrics.service": 117,
-            "metrics.target": 117,
-            "metrics.timestamp": 117,
-            "metrics.unit": 117,
-            "metrics.value": 117,
-            "spans.duration_ms": 2045,
-            "spans.evidence_id": 2045,
-            "spans.kind": 2045,
-            "spans.operation": 2045,
-            "spans.parent_span_id": 2045,
-            "spans.service": 2045,
-            "spans.span_id": 2045,
-            "spans.start": 2045,
-            "spans.status": 2045,
-            "spans.target": 2045,
-            "traces.duration_ms": 85,
-            "traces.evidence_id": 85,
-            "traces.services": 85,
-            "traces.spans": 85,
-            "traces.start": 85,
-            "traces.trace_id": 85
-          },
-          "missing": []
-        },
-        "unexpected_additions": [],
-        "unexpected_mutations": [],
-        "unexpected_removals": []
-      },
-      "provenance_pass": true
-    },
-    "B": {
-      "dataset_counts": {
-        "logs": 1399,
-        "metrics": 117,
-        "spans": 2045,
-        "traces": 85
-      },
-      "provenance": {
-        "allowed_removal_counts_match_manifest": true,
-        "allowed_removals": {
-          "common_view_metadata:native_names": 117
-        },
-        "canonical_transformations_applied": [],
-        "dataset_items": {
-          "logs": 1399,
-          "metrics": 117,
-          "spans": 2045,
-          "traces": 85
-        },
-        "evidence_ids": {
-          "dataset_count": 3646,
-          "dataset_only": [],
-          "match": true,
-          "request_count": 3646,
-          "request_only": []
-        },
-        "item_counts_match": true,
-        "log_correlation": {
-          "A_synthetic_correlation_detected": false,
-          "request_nonempty_records": 1399,
-          "source_nonempty_records": 1399
-        },
-        "manifest_projection_version": "common-rca-view-v1",
-        "manifest_projection_version_matches": true,
-        "passed": true,
-        "projection_version": "common-rca-view-v1",
-        "request_items": {
-          "logs": 1399,
-          "metrics": 117,
-          "spans": 2045,
-          "traces": 85
-        },
-        "required_fields": {
-          "checked": {
-            "logs.attributes": 1399,
-            "logs.body": 1399,
-            "logs.evidence_id": 1399,
-            "logs.service": 1399,
-            "logs.severity": 1399,
-            "logs.span_id": 1399,
-            "logs.timestamp": 1399,
-            "logs.trace_id": 1399,
-            "metrics.concept": 117,
-            "metrics.counter_reset": 106,
-            "metrics.delta_status": 106,
-            "metrics.evidence_id": 117,
-            "metrics.kind": 117,
-            "metrics.labels": 117,
-            "metrics.operation": 117,
-            "metrics.outcome": 117,
-            "metrics.service": 117,
-            "metrics.target": 117,
-            "metrics.timestamp": 117,
-            "metrics.unit": 117,
-            "metrics.value": 117,
-            "spans.duration_ms": 2045,
-            "spans.evidence_id": 2045,
-            "spans.kind": 2045,
-            "spans.operation": 2045,
-            "spans.parent_span_id": 2045,
-            "spans.service": 2045,
-            "spans.span_id": 2045,
-            "spans.start": 2045,
-            "spans.status": 2045,
-            "spans.target": 2045,
-            "traces.duration_ms": 85,
-            "traces.evidence_id": 85,
-            "traces.services": 85,
-            "traces.spans": 85,
-            "traces.start": 85,
-            "traces.trace_id": 85
-          },
-          "missing": []
-        },
-        "unexpected_additions": [],
-        "unexpected_mutations": [],
-        "unexpected_removals": []
-      },
-      "provenance_pass": true
-    }
+  "request_builder_commits": {
+    "A": "3921f77f5f7979a30148d62c0799b826146bd82f",
+    "B": "3921f77f5f7979a30148d62c0799b826146bd82f"
   },
-  "source_run_reused": true
+  "run_id": "iv-edv-pv-f5-01-001-f5-f5",
+  "stack_frame_logs_in_request": 0,
+  "unexpected_additions": 0,
+  "unexpected_mutations": 0,
+  "unexpected_removals": 0
 }
