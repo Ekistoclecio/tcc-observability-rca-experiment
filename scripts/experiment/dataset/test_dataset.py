@@ -367,6 +367,7 @@ class DatasetBuilderTests(unittest.TestCase):
             ["1793164800000000001", "    at charge (/app/charge.js:4:2)"],
             ["1793164800000000002", "Error: controlled failure in Charge"],
             ["1793164800000000003", '{"severity":"ERROR","message":"request failed","exception_message":"charge unavailable","scope_name":"native"}'],
+            ["1793164800000000004", '{"severity":"WARN","message":"1:M 15 Nov 2026 20:26:32.407 # Redis lifecycle warning"}'],
         ]}]}}}
         rows = common_logs(raw, "A")
         self.assertEqual(len(rows), 2)

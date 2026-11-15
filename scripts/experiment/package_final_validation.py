@@ -13,6 +13,9 @@ import subprocess
 import sys
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.experiment.dataset.contract import canonical_log_event, canonical_span_outcome
+
 REPO = Path(__file__).resolve().parents[2]
 RESULTS = REPO / "audit/results"
 FINAL_AUDIT = REPO / "audit/final-validation"
@@ -80,9 +83,8 @@ def clean_exact(repo_root: Path, target: Path, child_name: str) -> Path:
 
 
 def span_failed(span: dict[str, Any]) -> bool:
-    status = str(span.get("status") or "").casefold()
-    attrs = span.get("attributes", {})
-    return status in {"error", "failed", "failure", "2"} or str(attrs.get("otel.status_code", "")).casefold() in {"error", "2"} or bool(attrs.get("error"))
+    """Compatibility wrapper; all span outcome interpretation lives in contract.py."""
+    return canonical_span_outcome(span) == "ERROR"
 
 
 def deterministic_sample(dataset: dict[str, Any], log_cap: int = 80) -> dict[str, Any]:
@@ -105,22 +107,37 @@ def deterministic_sample(dataset: dict[str, Any], log_cap: int = 80) -> dict[str
         chosen = ordered[:2] + ordered[-2:]
         for row in chosen:
             selected_logs[str(row.get("evidence_id", json.dumps(row, sort_keys=True)))] = row
-    logs = [selected_logs[key] for key in sorted(selected_logs)][:log_cap]
-
     traces = sorted(dataset.get("traces", []), key=lambda x: (str(x.get("trace_id", "")), str(x.get("start", ""))))
     error_traces, success_traces = [], []
     for trace in traces:
-        (error_traces if any(span_failed(span) for span in trace.get("spans", [])) else success_traces).append(trace)
+        outcomes = {canonical_span_outcome(span) for span in trace.get("spans", [])}
+        if "ERROR" in outcomes:
+            error_traces.append(trace)
+        elif "SUCCESS" in outcomes:
+            success_traces.append(trace)
     selected_traces = []
     if success_traces:
         selected_traces.append(success_traces[0])
     if error_traces:
         selected_traces.append(error_traces[0])
     selected_traces.sort(key=lambda x: (str(x.get("start", "")), str(x.get("trace_id", ""))))
+    selected_trace_ids = {str(trace.get("trace_id")) for trace in selected_traces}
+    # Keep native B log↔trace references when a selected trace has matching logs.
+    # This is deterministic and never enriches one scenario from the other.
+    linked_selected: dict[str, dict[str, Any]] = {}
+    for row in dataset.get("logs", []):
+        if row.get("trace_id") and str(row["trace_id"]) in selected_trace_ids:
+            key = str(row.get("evidence_id", json.dumps(row, sort_keys=True)))
+            selected_logs[key] = row
+            linked_selected[key] = row
+    ordered_logs = [linked_selected[key] for key in sorted(linked_selected)] + [
+        selected_logs[key] for key in sorted(selected_logs) if key not in linked_selected
+    ]
+    logs = ordered_logs[:log_cap]
     return {"schema_version": "1.0", "sampling_policy": {
         "metrics": "up to 3 per semantic concept after stable service/operation/concept/timestamp/evidence_id ordering",
-        "logs": f"first 2 and last 2 per service+severity, stable ordering, global cap {log_cap}",
-        "traces": "lexicographically smallest trace ID in each success/error class; all spans of selected traces",
+        "logs": f"first 2 and last 2 per service+severity, plus logs linked to selected traces; stable ordering, global cap {log_cap}",
+        "traces": "lexicographically smallest trace ID in each canonical success/error class; all spans of selected traces",
         "ground_truth_blind": True,
     }, "metrics": metrics, "logs": logs, "traces": selected_traces}
 
@@ -130,10 +147,10 @@ def semantic_views(dataset: dict[str, Any]) -> dict[str, set[tuple[str, ...]]]:
         (str(x.get("concept")), str(x.get("service")), str(x.get("operation")), str(x.get("kind")),
          str(x.get("outcome")), str(x.get("target"))) for x in dataset.get("metrics", [])
     }
-    logs = {(str(x.get("service")), str(x.get("severity")), "application_event") for x in dataset.get("logs", [])}
+    logs = {canonical_log_event(x) for x in dataset.get("logs", [])}
     spans = {
         (str(span.get("service")), str(span.get("operation")), str(span.get("kind")),
-         str(span.get("target")), "error" if span_failed(span) else "success")
+         str(span.get("target")), canonical_span_outcome(span))
         for trace in dataset.get("traces", []) for span in trace.get("spans", [])
     }
     return {"metrics": metrics, "logs": logs, "spans": spans}
@@ -175,6 +192,10 @@ def request_summary(request_path: Path, request_manifest_path: Path, dataset: di
     forbidden_operational_keys = {"run_id", "scenario", "ground_truth", "fault_id", "fault_class", "fault_target",
                                   "confirmed_start", "confirmed_end", "fault_location", "fault_parameters",
                                   "telemetry_scenario", "telemetry.scenario"}
+    forbidden_model_metadata = {"native_name", "native_names", "scope_name", "scope_version", "os_description",
+        "os_type", "os_version", "telemetry_distro_name", "telemetry_distro_version", "code_file_path",
+        "code_function_name", "code_line_number", "process_pid", "process_command", "process_command_line",
+        "runtime_version", "container_id", "pod_uid", "exception_type", "exception_stacktrace"}
     root_ids = {str(x.get("evidence_id")) for x in dataset.get("metrics", []) + dataset.get("logs", []) if x.get("evidence_id")}
     root_ids.update(str(trace.get("evidence_id")) for trace in dataset.get("traces", []) if trace.get("evidence_id"))
     root_ids.update(str(span.get("evidence_id")) for trace in dataset.get("traces", []) for span in trace.get("spans", []) if span.get("evidence_id"))
@@ -185,6 +206,9 @@ def request_summary(request_path: Path, request_manifest_path: Path, dataset: di
         "run_id_literal_matches": serialized.count(run_id),
         "validation_id_literal_matches": serialized.count(validation_id),
         "explicit_treatment_marker_matches": sum(request_keys.count(k) for k in ("telemetry_scenario", "telemetry.scenario")),
+        "forbidden_model_metadata_matches": sorted((Counter(k.casefold().replace(".", "_").replace("-", "_" ) for k in request_keys)
+                                                     & Counter(forbidden_model_metadata)).elements()),
+        "native_metric_name_matches": {str(name): serialized.count(str(name)) for name in sorted({name for row in dataset.get("metrics", []) for name in row.get("native_names", [])})},
         "operational_key_matches": sorted((Counter(control_keys) & Counter(forbidden_operational_keys)).elements()),
         "ground_truth_causal_fields_at_request_root": sorted(set(request) & {"fault", "location", "parameters", "confirmed_start", "confirmed_end"}),
     }
@@ -364,11 +388,13 @@ def make_fault_package(target: Path, row: dict[str, Any], validation_id: str, re
         "injection_and_recovery_confirmed": row["gt"].get("validation", {}).get("injection_confirmed") and row["gt"].get("validation", {}).get("recovery_confirmed"),
         "same_physical_run": same_run, "same_rca_window": same_window,
         "metric_semantic_parity": not diffs["metrics"]["A_only"] and not diffs["metrics"]["B_only"],
-        "log_service_severity_parity": not diffs["logs"]["A_only"] and not diffs["logs"]["B_only"],
+        "canonical_application_log_parity": not diffs["logs"]["A_only"] and not diffs["logs"]["B_only"],
         "logical_span_parity": not diffs["spans"]["A_only"] and not diffs["spans"]["B_only"],
         "requests_valid": all(all(req["dataset_count_match"].values()) for req in request_summaries.values()),
         "no_run_or_validation_id_leakage": all(req["leakage_checks"]["run_id_literal_matches"] == 0 and req["leakage_checks"]["validation_id_literal_matches"] == 0 and not req["leakage_checks"]["operational_key_matches"] for req in request_summaries.values()),
         "no_explicit_treatment_markers": all(req["leakage_checks"]["explicit_treatment_marker_matches"] == 0 for req in request_summaries.values()),
+        "no_forbidden_model_metadata": all(not req["leakage_checks"]["forbidden_model_metadata_matches"] for req in request_summaries.values()),
+        "no_native_metric_names": all(not any(req["leakage_checks"]["native_metric_name_matches"].values()) for req in request_summaries.values()),
         "evidence_ids_preserved": all(not req["evidence_ids"]["dataset_only"] and not req["evidence_ids"]["request_only"] for req in request_summaries.values()),
     }
     validation = {"fault_type": row["fault_type"], "run_id": row["run_id"], "checks": checks, "parity": diffs,
@@ -423,7 +449,13 @@ def build(validation_id: str) -> dict[str, Any]:
     raw = raw_inventory(RESULTS)
     write_json(root / "validation/raw-inventory.json", raw)
     fault_results = [make_fault_package(root, row, validation_id, REPO / "artifacts/rca-inputs") for row in rows]
-    parity = {"validation_id": validation_id, "faults": []}
+    parity = {"validation_id": validation_id, "raw_observability_difference": {
+                  "classification": "AUDIT_ONLY",
+                  "metrics": {scenario: {"families": len(raw["scenarios"][scenario]["metrics"]["names"]),
+                                          "series": raw["scenarios"][scenario]["metrics"]["series"],
+                                          "samples": raw["scenarios"][scenario]["metrics"]["samples"]}
+                              for scenario in ("A", "B")}},
+              "model_visible_diagnostic_difference": "evaluated by common semantic views below", "faults": []}
     for row in rows:
         validation = read_json(root / "faults" / row["directory"] / "validation.json")
         parity["faults"].append({"fault": row["directory"], "checks": validation["checks"], "differences": validation["parity"]})
@@ -434,14 +466,39 @@ def build(validation_id: str) -> dict[str, Any]:
         for scenario in ("A", "B"):
             request_path = REPO / "artifacts/rca-inputs" / row["run_id"] / f"scenario-{scenario.lower()}" / "request.json"
             text = request_path.read_text(encoding="utf-8")
+            request_data = read_json(request_path)
+            all_request_keys = []
+            def collect_keys(value: Any) -> None:
+                if isinstance(value, dict):
+                    all_request_keys.extend(str(key).casefold().replace(".", "_").replace("-", "_") for key in value)
+                    for child in value.values(): collect_keys(child)
+                elif isinstance(value, list):
+                    for child in value: collect_keys(child)
+            collect_keys(request_data)
+            forbidden_keys = {"native_name", "native_names", "scope_name", "scope_version", "os_description", "os_type", "os_version",
+                "telemetry_distro_name", "telemetry_distro_version", "code_file_path", "code_function_name", "code_line_number",
+                "process_pid", "process_command", "process_command_line", "container_id", "pod_uid", "exception_type", "exception_stacktrace"}
             leakage_rows.append({"run_id": row["run_id"], "request_sha256": sha256(request_path),
                 "scenario_operational_only": scenario, "checks": {
                     "run_id_literal": text.count(row["run_id"]), "validation_id_literal": text.count(validation_id),
                     "telemetry_scenario_key": text.count("telemetry_scenario"), "telemetry.scenario_key": text.count("telemetry.scenario"),
                     "top_level_scenario": "\"scenario\"" in text[:text.find("\"telemetry\"")] if "\"telemetry\"" in text else False,
+                    "forbidden_model_metadata_keys": sum(all_request_keys.count(k) for k in forbidden_keys),
+                    "native_metric_name_matches": {name: text.count(name) for name in sorted({str(name) for metric in row[scenario].get("metrics", []) for name in metric.get("native_names", [])})},
                 }})
+    def checks_clean(checks: dict[str, Any]) -> bool:
+        for name, value in checks.items():
+            if name == "top_level_scenario":
+                if value: return False
+            elif isinstance(value, dict):
+                if any(count != 0 for count in value.values()): return False
+            elif isinstance(value, list):
+                if value: return False
+            elif value != 0:
+                return False
+        return True
     leakage = {"requests_checked": len(leakage_rows), "requests": leakage_rows,
-               "result": "ZERO" if all(all(v == 0 for k, v in row["checks"].items() if k != "top_level_scenario") and not row["checks"]["top_level_scenario"] for row in leakage_rows) else "ERROR"}
+               "result": "ZERO" if all(checks_clean(row["checks"]) for row in leakage_rows) else "ERROR"}
     write_json(root / "validation/leakage-scan.json", leakage)
 
     test_command = [sys.executable, "-m", "unittest", "scripts.experiment.dataset.test_dataset", "scripts.experiment.orchestrator.test_orchestrator", "scripts.experiment.orchestrator.test_preflight", "scripts.experiment.rca.test_rca_input", "scripts.experiment.test_experiment_data_validation", "scripts.experiment.test_integration_validation", "scripts.experiment.test_run_results_battery", "scripts.experiment.package_final_validation_test"]
@@ -530,8 +587,8 @@ def report_text(validation_id: str, summary: dict[str, Any], faults: list[dict[s
     lines = ["# Final Integrated Validation", "", f"- Validation ID: `{validation_id}`", f"- Commit: `{summary['validation_commit']}`", f"- Overall: **{summary['overall_status']}**", f"- Global window: `{window['experiment_start']}` → `{window['experiment_end']}`", "", "| Fault | Ground Truth | Metrics | Logs | Traces | RCA input | Overall |", "|---|---|---|---|---|---|---|"]
     for fault in faults:
         checks = fault["checks"]
-        lines.append(f"| {fault['fault_type']} | {checks['ground_truth_valid']} | {checks['metric_semantic_parity']} | {checks['log_service_severity_parity']} | {checks['logical_span_parity']} | {checks['requests_valid']} | {fault['overall']} |")
-    lines += ["", "## Collection lag", "", "Prometheus scrape interval A/B=5s; OpenTelemetry metric reader=5s. The Builder evaluates Prometheus range queries at a shared 1s step. Values at the cutoff remain observed values; no interpolation or trace-derived metric values are used.", "", "## Leakage", "", f"RCA requests checked: {leakage['requests_checked']}; result: **{leakage['result']}**.", "", "## RAW snapshot", "", "Full-run RAW hashes, bytes, samples, records, traces, spans and services are in `teste/validation/raw-inventory.json`; source RAW payloads are not copied into `teste/`.", "", "## Interpretation", "", "Engineering validation only; not part of the official scientific campaign. No LLM was called and no RCA evaluation was performed.", ""]
+        lines.append(f"| {fault['fault_type']} | {checks['ground_truth_valid']} | {checks['metric_semantic_parity']} | {checks['canonical_application_log_parity']} | {checks['logical_span_parity']} | {checks['requests_valid']} | {fault['overall']} |")
+    lines += ["", "## Collection lag", "", "Prometheus scrape interval A/B=5s; OpenTelemetry metric reader=5s. The Builder evaluates Prometheus range queries at a shared 1s step. Values at the cutoff remain observed values; no interpolation or trace-derived metric values are used.", "", "## Leakage", "", f"RCA requests checked: {leakage['requests_checked']}; result: **{leakage['result']}**.", "", "## RAW snapshot", "", "Full-run RAW hashes, bytes, samples, records, traces, spans and services are in `teste/validation/raw-inventory.json`; source RAW payloads are not copied into `teste/`. RAW metric family/series/sample differences are recorded for audit only; model-visible semantic parity is the blocker.", "", "## Interpretation", "", "Engineering validation only; not part of the official scientific campaign. No LLM was called and no RCA evaluation was performed.", ""]
     return "\n".join(lines)
 
 

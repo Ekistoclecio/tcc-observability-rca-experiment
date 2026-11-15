@@ -65,8 +65,7 @@ _LOG_METADATA_KEYS = {
 }
 _STACK_FRAME_RE = re.compile(r"^\s*(?:at\s+[\w.$<>`+/-]+\s*\(|---\s+End of|Caused by:|Traceback \(most recent call last\):)")
 _RUNTIME_NOISE_RE = re.compile(
-    r"^(?:env platform is either empty or invalid|\d+:[A-Z]\s+\d{2} [A-Z][a-z]{2} \d{4} .*"
-    r"(?:shutdown|saving the final rdb|redis is now ready to exit)|redis is starting|"
+    r"^(?:env platform is either empty or invalid|\d+:[A-Z]\s|redis is starting|"
     r"DeprecationWarning:|RuntimeWarning:|ExperimentalWarning:|.*(?:health|ready|startup).*(?:check|probe).*|"
     r".*checking\s+[\w.-]+\s+(?:service\s+)?health.*)",
     re.IGNORECASE,
@@ -604,7 +603,7 @@ def _canonical_error_message(value: Any) -> str | None:
     descriptions = re.findall(r"\bdesc\s*=\s*([^\n]+)", text, flags=re.IGNORECASE)
     if descriptions:
         text = descriptions[-1].strip()
-    text = re.split(r"\n|\s+--->\s+|\s+at\s+", text, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+    text = re.split(r"\n|\s+--->\s+|\s+at\s+[\w.$<>`+/-]+\s*\(", text, maxsplit=1, flags=re.IGNORECASE)[0].strip()
     exception = re.search(r"\b[\w.$+]*(?:Exception|Error):", text)
     if exception:
         text = text[:exception.start()].strip()
