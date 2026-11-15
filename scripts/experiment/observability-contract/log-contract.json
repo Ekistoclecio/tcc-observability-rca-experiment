@@ -1,7 +1,9 @@
 {
   "contract_version": "1.0",
   "common_fields": ["timestamp", "service", "canonical severity", "body/event", "error.message", "native trace_id/span_id when available"],
+  "model_visible_categories": ["APPLICATION_ERROR", "APPLICATION_WARNING", "APPLICATION_DIAGNOSTIC"],
+  "excluded_categories": ["REDUNDANT_SUCCESS_EVENT", "HEALTH_CHECK", "RUNTIME_NOISE", "LIFECYCLE_NOISE", "UNKNOWN"],
   "allowed_treatment_difference": ["B preserves native trace_id and span_id when an active span exists; A does not gain trace/span correlation"],
   "excluded_noise": ["events without safely classifiable severity", "stack frames", "known runtime/health/lifecycle noise", "telemetry SDK/resource identity", "process/runtime/host/container identity", "instrumentation/exporter metadata", "code location", "exception type and stacktrace fields"],
-  "policy": "retain canonical SUT application events only; unknown-severity and known non-application noise remain in RAW but are excluded from the Common RCA View; never filter using fault metadata or scenario data"
+  "policy": "canonical_log_classification(log) is shared by normalization, parity, audit sampling, and reports; retain explicit application errors/warnings and recognized application diagnostics; exclude known health/runtime/lifecycle noise, the narrowly classified Transaction processed success event when request metrics and trace outcome represent the same completion, and UNKNOWN by default; all excluded records remain in RAW; never filter using fault metadata, scenario data, or Ground Truth"
 }

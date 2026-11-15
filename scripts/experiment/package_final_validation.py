@@ -14,7 +14,7 @@ import sys
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from scripts.experiment.dataset.contract import canonical_log_event, canonical_span_outcome
+from scripts.experiment.dataset.contract import canonical_log_classification, canonical_log_event, canonical_span_outcome
 
 REPO = Path(__file__).resolve().parents[2]
 RESULTS = REPO / "audit/results"
@@ -100,6 +100,8 @@ def deterministic_sample(dataset: dict[str, Any], log_cap: int = 80) -> dict[str
 
     grouped_logs: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for item in dataset.get("logs", []):
+        if not canonical_log_classification(item)["model_visible"]:
+            continue
         grouped_logs[(str(item.get("service", "")), str(item.get("severity", "UNKNOWN")))].append(item)
     selected_logs: dict[str, dict[str, Any]] = {}
     for key in sorted(grouped_logs):
@@ -147,7 +149,8 @@ def semantic_views(dataset: dict[str, Any]) -> dict[str, set[tuple[str, ...]]]:
         (str(x.get("concept")), str(x.get("service")), str(x.get("operation")), str(x.get("kind")),
          str(x.get("outcome")), str(x.get("target"))) for x in dataset.get("metrics", [])
     }
-    logs = {canonical_log_event(x) for x in dataset.get("logs", [])}
+    logs = {canonical_log_event(x) for x in dataset.get("logs", [])
+            if canonical_log_classification(x)["model_visible"]}
     spans = {
         (str(span.get("service")), str(span.get("operation")), str(span.get("kind")),
          str(span.get("target")), canonical_span_outcome(span))

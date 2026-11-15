@@ -14,7 +14,8 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from scripts.experiment.dataset.contract import common_traces  # noqa: E402
-from scripts.experiment.dataset.contract import common_logs, common_metrics  # noqa: E402
+from scripts.experiment.dataset.contract import (canonical_log_event, common_logs, common_logs_with_audit,
+                                                  common_metrics)  # noqa: E402
 from scripts.experiment.dataset.core import SUT_SERVICES  # noqa: E402
 
 
@@ -179,12 +180,8 @@ def log_event_concepts(raw: dict[str, Any], scenario: str) -> list[str]:
     rows = common_logs(raw, scenario)
     counts = Counter()
     for row in rows:
-        body = body_object(row.get("body"))
-        message = body.get("message") or body.get("msg") or row.get("body")
-        message = re.sub(r"\s+", " ", str(message)).strip()
-        message = re.sub(r"\b\d+(?:\.\d+)?\b", "#", message)
-        counts[(row.get("service"), str(row.get("severity") or ""), message)] += 1
-    return sorted("|".join((service, severity, message)) for service, severity, message in counts)
+        counts[canonical_log_event(row)] += 1
+    return sorted("|".join(event) for event in counts)
 
 
 def build_inventory(results_root: Path) -> dict[str, Any]:
@@ -201,6 +198,7 @@ def build_inventory(results_root: Path) -> dict[str, Any]:
             "traces": trace_inventory(read(root / "traces.json")),
             "metric_contract_concepts": metric_concepts(metrics_raw[scenario], scenario),
             "log_event_concepts": log_event_concepts(logs_raw[scenario], scenario),
+            "log_classification": common_logs_with_audit(logs_raw[scenario], scenario)[1],
         }
     result["comparison"] = {
         "metric_names_a_only": sorted(set(result["A"]["metrics"]["metric_names"]) - set(result["B"]["metrics"]["metric_names"])),

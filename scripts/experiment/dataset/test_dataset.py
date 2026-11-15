@@ -335,7 +335,7 @@ class DatasetBuilderTests(unittest.TestCase):
     def test_log_view_preserves_only_native_correlation_and_compacts_resources(self):
         from .contract import common_logs
         raw_a = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_scenario": "conventional", "filename": "/pod/x"}, "values": [["1793164800000000000", '{"severity":"ERROR","message":"Charge failed"}']]}]}}}
-        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "INFO", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
+        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "ERROR", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
         a = common_logs(raw_a, "A")[0]
         b = common_logs(raw_b, "B")[0]
         self.assertIsNone(a["trace_id"]); self.assertIsNone(a["span_id"])
@@ -437,6 +437,56 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(len(traces[0]["spans"]), 1)
         self.assertEqual(traces[0]["spans"][0]["kind"], "datastore")
         self.assertEqual(traces[0]["spans"][0]["target"], "redis-cart")
+
+    def test_canonical_log_classifier_excludes_health_and_redundant_success_without_fault_context(self):
+        from .contract import canonical_log_classification, common_logs_with_audit
+        raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "INFO"}, "values": [
+            ["1793164800000000000", "GetCartAsync called with userId=abc\nChecking CartService Health"],
+            ["1793164800000000001", "Reading cart for user {UserId}"],
+        ]}, {"stream": {"service_name": "paymentservice", "severity": "INFO"}, "values": [
+            ["1793164800000000002", "Transaction processed: visa ending 0454 amount USD28.98"],
+        ]}]}}}
+        original = copy.deepcopy(raw)
+        visible, audit = common_logs_with_audit(raw, "A")
+        self.assertEqual([row["body"] for row in visible], ["Reading cart for user {UserId}"])
+        self.assertEqual(audit["categories"]["HEALTH_CHECK"], 1)
+        self.assertEqual(audit["categories"]["REDUNDANT_SUCCESS_EVENT"], 1)
+        self.assertEqual(canonical_log_classification({"service": "cartservice", "severity": "INFO",
+            "body": "GetCartAsync called with userId=abc\nChecking CartService Health", "fault_type": "anything"})["category"], "HEALTH_CHECK")
+        self.assertEqual(raw, original)
+
+    def test_canonical_log_classifier_covers_application_runtime_lifecycle_and_unknown(self):
+        from .contract import canonical_log_classification
+        cases = [
+            ({"service": "paymentservice", "severity": "ERROR", "body": "Charge failed"}, "APPLICATION_ERROR", True),
+            ({"service": "paymentservice", "severity": "WARN", "body": "Retrying charge"}, "APPLICATION_WARNING", True),
+            ({"service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"}, "APPLICATION_DIAGNOSTIC", True),
+            ({"service": "frontend", "severity": "WARN", "body": "DeprecationWarning: legacy API"}, "RUNTIME_NOISE", False),
+            ({"service": "redis-cart", "severity": "INFO", "body": "1:M User requested shutdown"}, "LIFECYCLE_NOISE", False),
+            ({"service": "cartservice", "severity": None, "body": "unclassified output"}, "UNKNOWN", False),
+        ]
+        for log, category, visible in cases:
+            with self.subTest(log=log):
+                classified = canonical_log_classification(log)
+                self.assertEqual(classified["category"], category)
+                self.assertEqual(classified["model_visible"], visible)
+
+    def test_canonical_log_classifier_normalizes_dynamic_values_and_is_scenario_agnostic(self):
+        from .contract import canonical_log_classification
+        first = {"service": "paymentservice", "severity": "INFO", "body": "PaymentService#Charge invoked with request 123"}
+        second = {"service": "paymentservice", "severity": "INFO", "body": "PaymentService#Charge invoked with request 987", "scenario": "B"}
+        self.assertEqual(canonical_log_classification(first)["category"], "APPLICATION_DIAGNOSTIC")
+        self.assertEqual(canonical_log_classification(first)["event_class"], canonical_log_classification(second)["event_class"])
+
+    def test_log_classification_does_not_read_ground_truth_or_scenario(self):
+        from .contract import canonical_log_classification
+        event = {"service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"}
+        left = canonical_log_classification({**event, "fault_type": "datastore_unavailable",
+                                             "fault_location": "redis-cart", "scenario": "A"})
+        right = canonical_log_classification({**event, "fault_type": "application_exception",
+                                              "fault_location": "paymentservice", "scenario": "B"})
+        self.assertEqual(left, right)
+        self.assertEqual(left["category"], "APPLICATION_DIAGNOSTIC")
 
     def test_jaeger_process_ids_are_scoped_to_each_search_payload(self):
         from .contract import common_traces

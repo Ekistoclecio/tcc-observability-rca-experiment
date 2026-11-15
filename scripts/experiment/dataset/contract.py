@@ -70,6 +70,26 @@ _RUNTIME_NOISE_RE = re.compile(
     r".*checking\s+[\w.-]+\s+(?:service\s+)?health.*)",
     re.IGNORECASE,
 )
+_HEALTH_LOG_RE = re.compile(
+    r"(?:\bhealth\s*(?:check|probe)\b|\bchecking\s+[\w.-]+\s+(?:service\s+)?health\b|"
+    r"\bhealth endpoint\b)", re.IGNORECASE,
+)
+_LIFECYCLE_LOG_RE = re.compile(
+    r"(?:^\s*\d+:[A-Z]\s|^\s*starting\s+redis\b|\bredis is (?:starting|now ready to exit|ready to accept connections)\b|"
+    r"\b(?:saving the final rdb snapshot|user requested shutdown|scheduling shutdown|server initialized)\b|"
+    r"\b(?:service|process|container) (?:starting|started|stopping|stopped|shutting down)\b)",
+    re.IGNORECASE,
+)
+_REDUNDANT_SUCCESS_LOG_RE = re.compile(r"^\s*transaction processed\b", re.IGNORECASE)
+_APPLICATION_DIAGNOSTIC_LOG_RE = re.compile(
+    r"^\s*(?:request\s+(?:started|complete|error)\b|checkout\s+started\b|home\b|"
+    r"[\w.]+async\s+called\b|"
+    r"(?:getting|listing|reading|adding|added|emptying|empty|received|serving|placing|placed)\b|"
+    r"conversion request successful\b|order placed\b|paymentservice#\w+\b|"
+    r"\[(?:recv|getquote|shiporder|placeorder)\b|"
+    r"a request to send\b|order confirmation email sent\b)",
+    re.IGNORECASE,
+)
 
 
 def _normalized_key(value: Any) -> str:
@@ -545,20 +565,64 @@ def canonical_log_severity(value: Any) -> str | None:
     return None
 
 
-def canonical_log_event(log: dict[str, Any]) -> tuple[str, ...]:
-    """A/B factual event identity; correlation IDs and native formatting are excluded."""
+def canonical_log_classification(log: dict[str, Any]) -> dict[str, Any]:
+    """Classify a normalized log without scenario, fault, or Ground Truth context.
+
+    Only explicit application error/warning classes and recognized application
+    diagnostic event forms enter the Common RCA View. Unknown events remain in
+    RAW and are excluded by default.
+    """
     attrs = log.get("attributes") if isinstance(log.get("attributes"), dict) else {}
+    severity = canonical_log_severity(log.get("severity"))
+    body = str(log.get("body") or "").strip()
+    error_message = next((str(attrs[k]) for k in ("error.message", "error_message", "exception.message", "exception_message") if attrs.get(k)), "")
+    classification_text = f"{body}\n{error_message}".strip()
+    if not body:
+        return {"category": "UNKNOWN", "model_visible": False, "reason": "empty_message", "event_class": ""}
+    if _HEALTH_LOG_RE.search(classification_text):
+        return {"category": "HEALTH_CHECK", "model_visible": False, "reason": "health_or_probe_event", "event_class": _canonical_log_message(classification_text)}
+    if _LIFECYCLE_LOG_RE.search(body):
+        return {"category": "LIFECYCLE_NOISE", "model_visible": False, "reason": "process_or_datastore_lifecycle", "event_class": _canonical_log_message(classification_text)}
+    if _RUNTIME_NOISE_RE.match(body) or re.match(r"^(?:DeprecationWarning|RuntimeWarning|ExperimentalWarning):", body, re.IGNORECASE):
+        return {"category": "RUNTIME_NOISE", "model_visible": False, "reason": "runtime_or_platform_message", "event_class": _canonical_log_message(classification_text)}
+    if severity in {"INFO", "DEBUG"} and _REDUNDANT_SUCCESS_LOG_RE.match(body):
+        return {"category": "REDUNDANT_SUCCESS_EVENT", "model_visible": False,
+                "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+                "event_class": _canonical_log_message(classification_text)}
+    if severity in {"ERROR", "FATAL"}:
+        category, reason = "APPLICATION_ERROR", "explicit_error_severity"
+    elif severity == "WARN":
+        category, reason = "APPLICATION_WARNING", "explicit_application_warning_severity"
+    elif severity in {"INFO", "DEBUG"} and _APPLICATION_DIAGNOSTIC_LOG_RE.match(body):
+        category, reason = "APPLICATION_DIAGNOSTIC", "recognized_sut_operation_event"
+    else:
+        return {"category": "UNKNOWN", "model_visible": False,
+                "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+                "event_class": _canonical_log_message(classification_text)}
+    return {"category": category, "model_visible": True, "reason": reason,
+            "event_class": _canonical_log_message(classification_text)}
+
+
+def _canonical_log_message(value: Any) -> str:
+    text = str(value or "").casefold().strip()
+    text = re.sub(r"\b[0-9a-f]{8}-[0-9a-f-]{27,}\b", "{uuid}", text)
+    text = re.sub(r"\b\d+(?:\.\d+)?\b", "{number}", text)
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def canonical_log_event(log: dict[str, Any]) -> tuple[str, ...]:
+    """A/B factual identity for included application logs; IDs are correlation only."""
+    attrs = log.get("attributes") if isinstance(log.get("attributes"), dict) else {}
+    classification = canonical_log_classification(log)
     service = str(log.get("service") or "")
     severity = canonical_log_severity(log.get("severity")) or "UNKNOWN"
     operation = next((str(attrs[k]) for k in ("operation", "rpc.method", "rpc_method", "http.route", "http_route") if attrs.get(k)), "")
     error_message = next((str(attrs[k]) for k in ("error.message", "error_message", "exception.message", "exception_message") if attrs.get(k)), "")
     body = str(log.get("body") or "")
     factual_message = error_message or body
-    factual_message = factual_message.casefold().strip()
-    factual_message = re.sub(r"\b[0-9a-f]{8}-[0-9a-f-]{27,}\b", "{uuid}", factual_message)
-    factual_message = re.sub(r"\b\d+(?:\.\d+)?\b", "{number}", factual_message)
-    factual_message = re.sub(r"\s+", " ", factual_message)
-    return service, severity, operation.casefold(), factual_message
+    factual_message = _canonical_log_message(factual_message)
+    return service, severity, str(classification["category"]), operation.casefold(), factual_message
 
 
 def _common_error_event(message: Any, attributes: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
@@ -611,8 +675,10 @@ def _canonical_error_message(value: Any) -> str | None:
     return text or None
 
 
-def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
+def common_logs_with_audit(raw: dict[str, Any], scenario: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     rows = []
+    categories: dict[str, int] = defaultdict(int)
+    excluded_samples: dict[str, list[dict[str, Any]]] = defaultdict(list)
     # collect_loki stores both the merged response and original pages; consume only
     # the merged response to avoid duplicating log records.
     responses = [raw.get("response", {})]
@@ -637,10 +703,20 @@ def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
                 # Only explicit, safely classifiable severity is admitted to the Common RCA View.
                 severity = canonical_log_severity(severity_value)
                 message_text = str(normalized_body or "")
-                if _STACK_FRAME_RE.match(message_text) or _RUNTIME_NOISE_RE.match(message_text):
-                    continue
                 # Do not represent stack continuations as independent application events.
-                if severity is None:
+                if _STACK_FRAME_RE.match(message_text):
+                    category = "RUNTIME_NOISE"
+                    classification = {"category": category, "model_visible": False,
+                                      "reason": "stack_frame_or_continuation", "event_class": _canonical_log_message(message_text)}
+                else:
+                    classification = canonical_log_classification({"service": service, "severity": severity,
+                        "body": normalized_body, "attributes": attrs})
+                    category = str(classification["category"])
+                categories[category] += 1
+                if not classification["model_visible"]:
+                    if len(excluded_samples[category]) < 5:
+                        excluded_samples[category].append({"service": service, "severity": severity,
+                            "body": normalized_body, "reason": classification["reason"]})
                     continue
                 canonical_attrs = {}
                 for key, value in attrs.items():
@@ -666,7 +742,15 @@ def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
     rows.sort(key=lambda x: (x["timestamp"], x["service"], str(x["body"]), str(x.get("trace_id"))))
     for index, row in enumerate(rows, 1):
         row["evidence_id"] = f"log-{index:06d}"
-    return rows
+    return rows, {"categories": dict(sorted(categories.items())),
+                  "excluded_samples": dict(sorted(excluded_samples.items())),
+                  "raw_candidate_records": sum(categories.values()),
+                  "model_visible_records": len(rows)}
+
+
+def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
+    """Return only the model-visible Common RCA log projection."""
+    return common_logs_with_audit(raw, scenario)[0]
 
 
 def _canonical_span_operation(span: dict[str, Any], tags: dict[str, Any]) -> str | None:

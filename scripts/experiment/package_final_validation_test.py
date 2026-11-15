@@ -95,8 +95,8 @@ class FinalValidationPackageTests(unittest.TestCase):
     def test_sampler_preserves_logs_linked_to_selected_trace(self) -> None:
         dataset = {"metrics": [], "traces": [{"trace_id": "a-trace", "start": "1", "spans": [
             {"span_id": "s1", "status": "ERROR"}]}], "logs": [
-            {"evidence_id": "log-linked", "trace_id": "a-trace", "service": "cartservice", "severity": "ERROR"},
-            {"evidence_id": "log-other", "trace_id": "other", "service": "cartservice", "severity": "INFO"},
+            {"evidence_id": "log-linked", "trace_id": "a-trace", "service": "cartservice", "severity": "ERROR", "body": "cart unavailable"},
+            {"evidence_id": "log-other", "trace_id": "other", "service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"},
         ]}
         sampled = deterministic_sample(dataset)
         self.assertEqual([row["evidence_id"] for row in sampled["logs"]], ["log-linked", "log-other"])
