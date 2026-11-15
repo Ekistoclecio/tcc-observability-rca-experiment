@@ -50,8 +50,6 @@ data:
           - targets: [localhost]
             labels: {namespace: default, service_name: checkoutservice, __path__: "/var/log/pods/default_checkoutservice-*_*/*/*.log"}
           - targets: [localhost]
-            labels: {namespace: default, service_name: cartservice, __path__: "/var/log/pods/default_cartservice-*_*/*/*.log"}
-          - targets: [localhost]
             labels: {namespace: default, service_name: productcatalogservice, __path__: "/var/log/pods/default_productcatalogservice-*_*/*/*.log"}
           - targets: [localhost]
             labels: {namespace: default, service_name: currencyservice, __path__: "/var/log/pods/default_currencyservice-*_*/*/*.log"}
@@ -67,6 +65,16 @@ data:
             labels: {namespace: default, service_name: adservice, __path__: "/var/log/pods/default_adservice-*_*/*/*.log"}
           - targets: [localhost]
             labels: {namespace: default, service_name: redis-cart, __path__: "/var/log/pods/default_redis-cart-*_*/*/*.log"}
+      - job_name: cartservice-conventional-dotnet
+        pipeline_stages:
+          - cri: {}
+          - multiline:
+              firstline: '^(trce|dbug|info|warn|fail|crit): .+\[\d+\]$'
+              max_wait_time: 3s
+              max_lines: 128
+        static_configs:
+          - targets: [localhost]
+            labels: {namespace: default, service_name: cartservice, __path__: "/var/log/pods/default_cartservice-*_*/*/*.log"}
 ---
 apiVersion: apps/v1
 kind: DaemonSet

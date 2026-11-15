@@ -19,12 +19,16 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	otelmetric "go.opentelemetry.io/otel/metric"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 )
+
+var otelHTTPRequests otelmetric.Int64Counter
+var otelHTTPDuration otelmetric.Float64Histogram
 
 func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.ClientConn, logger *logrus.Logger) (*sdktrace.TracerProvider, error) {
 	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(
@@ -56,6 +60,15 @@ func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.
 		metric.WithReader(metric.NewPeriodicReader(metricExporter, metric.WithInterval(5*time.Second))),
 	)
 	otel.SetMeterProvider(mp)
+	meter := otel.Meter("online-boutique/frontend", otelmetric.WithInstrumentationVersion("0.10.7"))
+	otelHTTPRequests, err = meter.Int64Counter("tcc.otel.http.server.requests", otelmetric.WithUnit("{request}"))
+	if err != nil {
+		return nil, err
+	}
+	otelHTTPDuration, err = meter.Float64Histogram("tcc.otel.http.server.duration", otelmetric.WithUnit("s"))
+	if err != nil {
+		return nil, err
+	}
 
 	logExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithGRPCConn(conn))
 	if err != nil {

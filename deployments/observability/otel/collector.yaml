@@ -14,6 +14,39 @@ data:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
+      prometheus/cadvisor:
+        config:
+          scrape_configs:
+            - job_name: tcc-sut-cadvisor
+              scrape_interval: 5s
+              scheme: https
+              metrics_path: /metrics/cadvisor
+              kubernetes_sd_configs:
+                - role: node
+              bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+              tls_config:
+                insecure_skip_verify: true
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_node_address_InternalIP]
+                  regex: (.+)
+                  target_label: __address__
+                  replacement: $$1:10250
+              metric_relabel_configs:
+                - source_labels: [namespace]
+                  regex: default
+                  action: keep
+                - source_labels: [pod]
+                  regex: (frontend|checkoutservice|cartservice|productcatalogservice|currencyservice|paymentservice|shippingservice|emailservice|recommendationservice|adservice|redis-cart)-.*
+                  action: keep
+                - source_labels: [container]
+                  regex: POD
+                  action: drop
+                - source_labels: [container]
+                  regex: .+
+                  action: keep
+                - source_labels: [__name__]
+                  regex: container_cpu_usage_seconds_total
+                  action: keep
     processors:
       memory_limiter:
         check_interval: 1s
@@ -27,6 +60,15 @@ data:
           - key: telemetry.scenario
             value: otel
             action: upsert
+      filter/rca_contract:
+        error_mode: ignore
+        metric_conditions:
+          - 'not IsMatch(metric.name, "^(rpc\\.client\\.call\\.duration|rpc\\.server\\.call\\.duration|rpc\\.server\\.duration|http\\.server\\.request\\.duration|cart\\.redis\\.(operations|operation\\.duration)|tcc\\.otel\\.rpc\\.(client|server)\\.(requests|duration)|tcc\\.otel\\.http\\.server\\.(requests|duration)|container_cpu_usage_seconds_total)$")'
+        trace_conditions:
+          - 'IsMatch(span.name, ".*grpc.health.v1.Health/Check$")'
+          - 'span.attributes["url.path"] == "/_healthz"'
+          - 'IsMatch(span.attributes["url.path"], ".*/metrics$")'
+          - 'IsMatch(span.attributes["server.address"], ".*observability.*")'
       batch:
         timeout: 1s
         send_batch_size: 512
@@ -56,11 +98,11 @@ data:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [memory_limiter, resource/environment, batch]
+          processors: [memory_limiter, filter/rca_contract, resource/environment, batch]
           exporters: [otlp_grpc/jaeger]
         metrics:
-          receivers: [otlp]
-          processors: [memory_limiter, resource/environment, batch]
+          receivers: [otlp, prometheus/cadvisor]
+          processors: [memory_limiter, filter/rca_contract, resource/environment, batch]
           exporters: [prometheus]
         logs:
           receivers: [otlp]
@@ -83,6 +125,7 @@ spec:
       labels:
         app: otel-collector
     spec:
+      serviceAccountName: tcc-cadvisor-reader
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001

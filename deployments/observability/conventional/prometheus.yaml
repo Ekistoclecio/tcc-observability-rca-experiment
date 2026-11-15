@@ -24,6 +24,40 @@ data:
               - emailservice.default.svc.cluster.local:9464
               - recommendationservice.default.svc.cluster.local:9464
               - adservice.default.svc.cluster.local:9464
+      - job_name: tcc-sut-cadvisor
+        scrape_interval: 5s
+        scheme: https
+        metrics_path: /metrics/cadvisor
+        kubernetes_sd_configs:
+          - role: node
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        tls_config:
+          insecure_skip_verify: true
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_node_address_InternalIP]
+            regex: (.+)
+            target_label: __address__
+            replacement: $1:10250
+        metric_relabel_configs:
+          - source_labels: [namespace]
+            regex: default
+            action: keep
+          - source_labels: [pod]
+            regex: (frontend|checkoutservice|cartservice|productcatalogservice|currencyservice|paymentservice|shippingservice|emailservice|recommendationservice|adservice|redis-cart)-.*
+            action: keep
+          - source_labels: [container]
+            regex: POD
+            action: drop
+          - source_labels: [container]
+            regex: .+
+            action: keep
+          - source_labels: [__name__]
+            regex: container_cpu_usage_seconds_total
+            action: keep
+          - source_labels: [pod]
+            regex: (frontend|checkoutservice|cartservice|productcatalogservice|currencyservice|paymentservice|shippingservice|emailservice|recommendationservice|adservice|redis-cart)-.*
+            target_label: service_name
+            replacement: $1
 ---
 apiVersion: apps/v1
 kind: Deployment

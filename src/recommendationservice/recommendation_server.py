@@ -35,9 +35,15 @@ from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient, GrpcInstr
 
 from logger import getJSONLogger
 from conventional_telemetry import ConventionalTelemetry
-from otel_telemetry import configure_otel, otel_rpc
+from otel_telemetry import configure_otel, otel_rpc, otel_rpc_client
 logger = getJSONLogger('recommendationservice-server')
 conventional_telemetry = ConventionalTelemetry('recommendationservice')
+product_catalog_stub = None
+
+
+@otel_rpc_client("/hipstershop.ProductCatalogService/ListProducts")
+def list_products():
+    return product_catalog_stub.ListProducts(demo_pb2.Empty())
 
 def initStackdriverProfiling():
   project_id = None
@@ -70,7 +76,7 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
     def ListRecommendations(self, request, context):
         max_responses = 5
         # fetch list of products from product catalog stub
-        cat_response = product_catalog_stub.ListProducts(demo_pb2.Empty())
+        cat_response = list_products()
         product_ids = [x.id for x in cat_response.products]
         filtered_products = list(set(product_ids)-set(request.product_ids))
         num_products = len(filtered_products)

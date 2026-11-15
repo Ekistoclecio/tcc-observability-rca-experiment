@@ -6,3 +6,5 @@ resources:
   - loki.yaml
   - promtail.yaml
   - jaeger.yaml
+patches:
+  - path: cadvisor-scrape.yaml

@@ -62,11 +62,16 @@ class OTelTelemetry:
         "tcc.otel.rpc.server.errors", unit="{error}")
     self.duration = meter.create_histogram(
         "tcc.otel.rpc.server.duration", unit="s")
+    self.client_requests = meter.create_counter(
+        "tcc.otel.rpc.client.requests", unit="{request}")
+    self.client_duration = meter.create_histogram(
+        "tcc.otel.rpc.client.duration", unit="s")
 
-  def record(self, operation, started_at, context, error):
+  def record(self, operation, started_at, context, error, span_kind="server"):
     status = "OK"
     if error is not None:
-      status = type(error).__name__
+      code = getattr(error, "code", None)
+      status = code().name if callable(code) and code() is not None else type(error).__name__
     elif context is not None and context.code() not in (None, grpc.StatusCode.OK):
       status = context.code().name
     attributes = {
@@ -74,10 +79,14 @@ class OTelTelemetry:
         "rpc.method": operation,
         "rpc.response.status_code": status,
     }
-    self.requests.add(1, attributes)
-    if status != "OK":
-      self.errors.add(1, attributes)
-    self.duration.record(time.perf_counter() - started_at, attributes)
+    if span_kind == "client":
+      self.client_requests.add(1, attributes)
+      self.client_duration.record(time.perf_counter() - started_at, attributes)
+    else:
+      self.requests.add(1, attributes)
+      if status != "OK":
+        self.errors.add(1, attributes)
+      self.duration.record(time.perf_counter() - started_at, attributes)
 
 
 def configure_otel(service_name, application_logger):
@@ -102,5 +111,24 @@ def otel_rpc(operation):
         if _telemetry is not None:
           context = args[2] if len(args) > 2 else kwargs.get("context")
           _telemetry.record(operation, started_at, context, error)
+    return invoke
+  return decorate
+
+
+def otel_rpc_client(operation):
+  """Record a logical outbound RPC without exporting library internals."""
+  def decorate(function):
+    @functools.wraps(function)
+    def invoke(*args, **kwargs):
+      started_at = time.perf_counter()
+      error = None
+      try:
+        return function(*args, **kwargs)
+      except Exception as exception:
+        error = exception
+        raise
+      finally:
+        if _telemetry is not None:
+          _telemetry.record(operation, started_at, None, error, span_kind="client")
     return invoke
   return decorate

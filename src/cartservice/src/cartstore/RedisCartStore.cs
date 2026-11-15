@@ -151,7 +151,13 @@ namespace cartservice.cartstore
 
         private static void RecordRedisOperation(string operation, long startedAt, bool failed)
         {
-            var tags = new TagList { { "db.operation.name", operation }, { "db.system.name", "redis" } };
+            var outcome = failed ? "error" : "success";
+            var tags = new TagList
+            {
+                { "db.operation.name", operation },
+                { "db.system.name", "redis" },
+                { "outcome", outcome }
+            };
             CartTelemetry.RedisOperations.Add(1, tags);
             if (failed)
             {

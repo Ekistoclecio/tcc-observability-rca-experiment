@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-conventional
+spec:
+  template:
+    spec:
+      serviceAccountName: tcc-cadvisor-reader
+      containers:
+        - name: prometheus
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=24h
+            - --web.enable-lifecycle
