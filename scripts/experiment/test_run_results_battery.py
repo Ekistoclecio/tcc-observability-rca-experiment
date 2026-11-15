@@ -177,10 +177,12 @@ class ResultsBatteryTests(unittest.TestCase):
         def fake_collect(_url, part, scenario, _query, limit):
             documents.append((part.start, part.end))
             span_id = "s1" if part.start.minute == 0 else "s2"
-            spans = [{"spanID": "s1", "startTime": 1}]
+            process = "frontend" if span_id == "s1" else "cartservice"
+            spans = [{"spanID": "s1", "processID": "p1", "startTime": 1}]
             if span_id != "s1":
-                spans.append({"spanID": span_id, "startTime": 2})
-            trace = {"traceID": "trace-1", "spans": spans, "processes": {}}
+                spans.append({"spanID": span_id, "processID": "p1", "startTime": 2})
+            trace = {"traceID": "trace-1", "spans": spans,
+                     "processes": {"p1": {"serviceName": process}}}
             return {"schema_version": "1.0", "scenario": scenario, "source": "jaeger",
                     "query": {"window": {"start": iso_utc(part.start), "end": iso_utc(part.end)},
                               "service_discovery": {"sut_services_available": ["frontend"]},
@@ -195,6 +197,10 @@ class ResultsBatteryTests(unittest.TestCase):
         traces = result["search_results"][0]["response"]["data"]
         self.assertEqual(len(traces), 1)
         self.assertEqual({span["spanID"] for span in traces[0]["spans"]}, {"s1", "s2"})
+        processes = traces[0]["processes"]
+        span_services = {span["spanID"]: processes[span["processID"]]["serviceName"] for span in traces[0]["spans"]}
+        self.assertEqual(span_services, {"s1": "frontend", "s2": "cartservice"})
+        self.assertEqual(len(processes), 2)
         self.assertEqual(result["query"]["unique_traces_returned"], 1)
         self.assertEqual(result["query"]["unique_spans_returned"], 2)
 

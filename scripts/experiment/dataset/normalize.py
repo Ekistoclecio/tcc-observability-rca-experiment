@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from .core import DatasetError, SUT_SERVICES, Window, iso_utc, validate_dataset_shape
+from .contract import CONTRACT_VERSION, common_logs, common_metrics, common_traces
 
 
 _CORRELATION_FIELDS = {
@@ -204,11 +205,13 @@ def normalize_scenario(run_id: str, scenario: str, window: Window, raw_signals: 
         raise DatasetError("normalization requires all three raw signals")
     if scenario == "A":
         _validate_scenario_a_logs(raw_signals["logs"])
-    metrics = _prom_metrics(raw_signals["metrics"])
-    logs = _loki_logs(raw_signals["logs"], scenario)
-    traces = _jaeger_traces(raw_signals["traces"])
-    dataset = {"schema_version": "1.0", "run_id": run_id, "scenario": scenario,
-               "window": {"start": iso_utc(window.start), "end": iso_utc(window.end)},
+    window_json = {"start": iso_utc(window.start), "end": iso_utc(window.end)}
+    metrics = common_metrics(raw_signals["metrics"], scenario, window_json)
+    logs = common_logs(raw_signals["logs"], scenario)
+    traces = common_traces(raw_signals["traces"])
+    dataset = {"schema_version": "1.0", "observability_contract_version": CONTRACT_VERSION,
+               "run_id": run_id, "scenario": scenario,
+               "window": window_json,
                "services": list(SUT_SERVICES), "metrics": metrics, "logs": logs, "traces": traces,
                "summary": {"metrics_samples": len(metrics), "logs": len(logs), "traces": len(traces),
                            "spans": sum(len(trace["spans"]) for trace in traces)}}
@@ -218,14 +221,15 @@ def normalize_scenario(run_id: str, scenario: str, window: Window, raw_signals: 
 
 def scenario_stats(dataset: dict[str, Any], raw_bytes: dict[str, int], normalized_bytes: int) -> dict[str, Any]:
     metric_services = sorted({item["service"] for item in dataset["metrics"]})
-    metric_names = sorted({item["native_name"] for item in dataset["metrics"]})
+    metric_names = sorted({name for item in dataset["metrics"] for name in item.get("native_names", [])})
+    metric_concepts = sorted({item.get("concept", "native") for item in dataset["metrics"]})
     log_services = sorted({item["service"] for item in dataset["logs"]})
     traces = dataset["traces"]
     trace_services = sorted({service for trace in traces for service in trace["services"]})
     total_raw = sum(raw_bytes.values())
     return {
         "schema_version": "1.0", "run_id": dataset["run_id"], "scenario": dataset["scenario"],
-        "metrics": {"metric_names": metric_names, "series": len({(item["service"], item["native_name"], json.dumps(item["labels"], sort_keys=True)) for item in dataset["metrics"]}),
+        "metrics": {"metric_names": metric_names, "concepts": metric_concepts, "series": len(dataset["metrics"]),
                     "samples": len(dataset["metrics"]), "services": metric_services, "raw_bytes": raw_bytes["metrics"],
                     "normalized_bytes": len(json.dumps(dataset["metrics"], ensure_ascii=False, separators=(",", ":")).encode())},
         "logs": {"records": len(dataset["logs"]), "services": log_services,

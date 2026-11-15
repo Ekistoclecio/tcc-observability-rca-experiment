@@ -1,23 +1,72 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tcc.example/schemas/dataset-1.0.schema.json",
-  "title": "TCC normalized telemetry dataset",
+  "title": "TCC common RCA telemetry dataset",
   "type": "object",
-  "required": ["schema_version", "run_id", "scenario", "window", "services", "metrics", "logs", "traces", "summary"],
+  "required": ["schema_version", "observability_contract_version", "run_id", "scenario", "window", "services", "metrics", "logs", "traces", "summary"],
   "properties": {
     "schema_version": {"const": "1.0"},
+    "observability_contract_version": {"const": "1.0"},
     "run_id": {"type": "string"},
     "scenario": {"enum": ["A", "B"]},
+    "window": {"$ref": "#/$defs/window"},
+    "services": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "metrics": {"type": "array", "items": {"$ref": "#/$defs/metric"}},
+    "logs": {"type": "array", "items": {"$ref": "#/$defs/log"}},
+    "traces": {"type": "array", "items": {"$ref": "#/$defs/trace"}},
+    "summary": {"type": "object"}
+  },
+  "$defs": {
     "window": {
       "type": "object", "required": ["start", "end"],
       "properties": {"start": {"type": "string", "format": "date-time"}, "end": {"type": "string", "format": "date-time"}},
       "additionalProperties": false
     },
-    "services": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-    "metrics": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "service", "native_name", "timestamp", "value", "labels"]}},
-    "logs": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "timestamp", "service", "body", "trace_id", "span_id", "attributes", "labels"]}},
-    "traces": {"type": "array", "items": {"type": "object", "required": ["evidence_id", "trace_id", "start", "duration_ms", "services", "spans"]}},
-    "summary": {"type": "object"}
+    "metric": {
+      "type": "object",
+      "required": ["evidence_id", "service", "concept", "operation", "kind", "target", "outcome", "timestamp", "value", "unit", "labels", "native_names"],
+      "properties": {
+        "evidence_id": {"type": "string", "pattern": "^metric-[0-9]{6}$"},
+        "service": {"type": "string"}, "concept": {"enum": ["request_count", "request_duration", "cpu_utilization"]},
+        "operation": {"type": ["string", "null"]}, "kind": {"type": ["string", "null"]},
+        "target": {"type": ["string", "null"]}, "outcome": {"type": ["string", "null"]},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "value": {"type": ["number", "object", "null"]}, "unit": {"type": "string"},
+        "labels": {"type": "object"}, "native_names": {"type": "array", "items": {"type": "string"}},
+        "count_delta": {"type": ["number", "null"]}, "sum_delta_seconds": {"type": ["number", "null"]},
+        "counter_reset": {"type": "boolean"}, "delta_status": {"enum": ["valid", "missing_baseline", "counter_reset"]},
+        "window": {"$ref": "#/$defs/window"}, "sample_count": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "log": {
+      "type": "object", "required": ["evidence_id", "timestamp", "service", "severity", "body", "trace_id", "span_id", "attributes"],
+      "properties": {
+        "evidence_id": {"type": "string", "pattern": "^log-[0-9]{6}$"},
+        "timestamp": {"type": "string", "format": "date-time"}, "service": {"type": "string"},
+        "severity": {"type": ["string", "number", "null"]}, "body": {},
+        "trace_id": {"type": ["string", "null"]}, "span_id": {"type": ["string", "null"]}, "attributes": {"type": "object"}
+      }, "additionalProperties": false
+    },
+    "trace": {
+      "type": "object", "required": ["evidence_id", "trace_id", "start", "duration_ms", "services", "spans"],
+      "properties": {
+        "evidence_id": {"type": "string", "pattern": "^trace-[0-9]{6}$"}, "trace_id": {"type": "string"},
+        "start": {"type": "string", "format": "date-time"}, "duration_ms": {"type": "number", "minimum": 0},
+        "services": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "spans": {"type": "array", "items": {"$ref": "#/$defs/span"}}
+      }, "additionalProperties": false
+    },
+    "span": {
+      "type": "object", "required": ["evidence_id", "span_id", "parent_span_id", "service", "operation", "kind", "target", "start", "duration_ms", "status", "attributes", "events"],
+      "properties": {
+        "evidence_id": {"type": "string", "pattern": "^span-[0-9]{6}-[0-9]{4}$"}, "span_id": {"type": "string"},
+        "parent_span_id": {"type": ["string", "null"]}, "service": {"type": "string"}, "operation": {"type": "string"},
+        "kind": {"enum": ["server", "client", "datastore"]}, "target": {"type": ["string", "null"]},
+        "start": {"type": "string", "format": "date-time"}, "duration_ms": {"type": "number", "minimum": 0},
+        "status": {}, "attributes": {"type": "object"}, "events": {"type": "array", "items": {"type": "object"}}
+      }, "additionalProperties": false
+    }
   },
   "additionalProperties": false
 }

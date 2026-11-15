@@ -108,6 +108,8 @@ def build_query_plan(window: Window) -> dict[str, list[dict[str, Any]]]:
     # PromQL/RE2 treats '-' literally outside a character class; Python's re.escape
     # emits "\\-", which Prometheus rejects as an unknown escape.
     services_regex = "^(" + "|".join(SUT_SERVICES) + ")$"
+    pod_regex = "^(" + "|".join(SUT_SERVICES) + ")-.*$"
+    prometheus_selector = f'{{service_name=~"{services_regex}"}} or {{pod=~"{pod_regex}"}}'
     start_s = epoch_seconds_decimal(window.start)
     end_s = epoch_seconds_decimal(window.end)
     start_ns = epoch_nanoseconds(window.start)
@@ -120,7 +122,7 @@ def build_query_plan(window: Window) -> dict[str, list[dict[str, Any]]]:
             {
                 "backend": "prometheus", "scenario": scenario,
                 "method": "GET", "path": "/api/v1/query_range",
-                "params": {"query": f'{{service_name=~"{services_regex}"}}', "start": start_s,
+                "params": {"query": prometheus_selector, "start": start_s,
                            "end": end_s, "step": "5s"},
             },
             {

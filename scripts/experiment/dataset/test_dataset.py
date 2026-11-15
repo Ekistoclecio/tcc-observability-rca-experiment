@@ -49,6 +49,8 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(build_query_plan(window_a), build_query_plan(window_b))
         plan = build_query_plan(window_a)
         self.assertEqual(plan["A"][0]["params"], plan["B"][0]["params"])
+        self.assertIn('pod=~"^(', plan["A"][0]["params"]["query"])
+        self.assertIn("redis-cart)-.*$", plan["A"][0]["params"]["query"])
         self.assertEqual(plan["A"][1]["params"], plan["B"][1]["params"])
         self.assertEqual(plan["A"][2]["search"], plan["B"][2]["search"])
         for query_a, query_b in zip(plan["A"], plan["B"]):
@@ -82,7 +84,7 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(raw_a, original_a)
         self.assertIsNone(data_a["logs"][0]["trace_id"])
         self.assertIsNone(data_a["logs"][0]["span_id"])
-        self.assertNotIn("trace_id", data_a["logs"][0]["labels"])
+        self.assertNotIn("trace_id", data_a["logs"][0]["attributes"])
         self.assertEqual(data_b["logs"][0]["trace_id"], "b-trace")
         self.assertEqual(data_b["logs"][0]["span_id"], "b-span")
         self.assertNotIn("fault", str(data_a))
@@ -177,6 +179,210 @@ class DatasetBuilderTests(unittest.TestCase):
         second = normalize_scenario("run-001", "B", window, raw2)
         self.assertEqual(first, second)
         self.assertEqual(first["logs"][0]["trace_id"], "b-trace")
+
+    def test_common_metric_contract_maps_a_b_without_runtime_noise(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:55Z"}
+        a_series = []
+        for name, values in (
+            ("tcc_conventional_requests_total", [[100, "10"], [110, "12"]]),
+            ("tcc_conventional_request_duration_seconds_count", [[100, "10"], [110, "12"]]),
+            ("tcc_conventional_request_duration_seconds_sum", [[100, "2.0"], [110, "2.6"]]),
+        ):
+            a_series.append({"metric": {"__name__": name, "service_name": "checkoutservice",
+                "operation": "/hipstershop.PaymentService/Charge", "span_kind": "client", "status_code": "OK"}, "values": values})
+        a = common_metrics({"response": {"data": {"result": a_series}}}, "A", window)
+        b_series = []
+        for suffix, values in (("count", [[100, "20"], [110, "22"]]), ("sum", [[100, "4"], [110, "4.6"]])):
+            b_series.append({"metric": {"__name__": f"online_boutique_otel_rpc_client_call_duration_seconds_{suffix}",
+                "service_name": "checkoutservice", "rpc_method": "hipstershop.PaymentService/Charge",
+                "rpc_response_status_code": "OK"}, "values": values})
+        b_series.append({"metric": {"__name__": "online_boutique_otel_jvm_gc_duration_seconds_sum",
+            "service_name": "checkoutservice"}, "values": [[100, "3"], [110, "4"]]})
+        b_series.append({"metric": {"__name__": "container_cpu_usage_seconds_total",
+            "service_name": "checkoutservice", "pod": "checkoutservice-abc"}, "values": [[100, "0"], [110, "10"]]})
+        b = common_metrics({"response": {"data": {"result": b_series}}}, "B", window)
+        self.assertEqual([(x["concept"], x["operation"], x["kind"]) for x in a],
+                         [(x["concept"], x["operation"], x["kind"]) for x in b if x["concept"] != "cpu_utilization"])
+        for left, right in zip(a, [x for x in b if x["concept"] != "cpu_utilization"]):
+            self.assertAlmostEqual(left["value"], right["value"])
+        duration_a = next(x for x in a if x["concept"] == "request_duration")
+        duration_b = next(x for x in b if x["concept"] == "request_duration")
+        self.assertAlmostEqual(duration_a["value"], duration_b["value"])
+        self.assertFalse(any("jvm" in name for item in b for name in item.get("native_names", [])))
+        cpu = next(x for x in b if x["concept"] == "cpu_utilization")
+        self.assertEqual(cpu["unit"], "cpu_cores")
+        self.assertEqual(cpu["value"]["avg"], 1.0)
+
+    def test_counter_reset_and_missing_baseline_are_explicit(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:55Z"}
+        def series(values):
+            return {"metric": {"__name__": "tcc_conventional_requests_total", "service_name": "checkoutservice",
+                "operation": "/hipstershop.PaymentService/Charge", "span_kind": "client", "status_code": "OK"}, "values": values}
+        reset = common_metrics({"response": {"data": {"result": [series([[100, "10"], [110, "3"]])]}}}, "A", window)[0]
+        missing = common_metrics({"response": {"data": {"result": [series([[110, "3"]])]}}}, "A", window)[0]
+        self.assertEqual(reset["value"], 3)
+        self.assertEqual(reset["delta_status"], "counter_reset")
+        self.assertTrue(reset["counter_reset"])
+        self.assertIsNone(missing["value"])
+        self.assertEqual(missing["delta_status"], "missing_baseline")
+
+        appeared_during_window = common_metrics({"response": {"data": {"result": [series(
+            [[110, "5"], [115, "5"]])]}}}, "A", window)[0]
+        self.assertIsNone(appeared_during_window["value"])
+        self.assertEqual(appeared_during_window["delta_status"], "missing_baseline")
+
+        multi_reset = common_metrics({"response": {"data": {"result": [series(
+            [[100, "10"], [105, "12"], [110, "2"], [115, "5"]])]}}}, "A", window)[0]
+        self.assertEqual(multi_reset["value"], 7)
+        self.assertEqual(multi_reset["delta_status"], "counter_reset")
+
+    def test_common_metric_contract_maps_http_client_cpu_and_redis_errors(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:55Z"}
+        cpu = {"__name__": "container_cpu_usage_seconds_total", "service_name": "frontend",
+               "pod": "frontend-abc", "container": "server"}
+        cpu_values = [[100, "5"], [105, "10"], [110, "12"]]
+        a = common_metrics({"response": {"data": {"result": [{"metric": cpu, "values": cpu_values}]}}}, "A", window)
+        b = common_metrics({"response": {"data": {"result": [{"metric": cpu, "values": cpu_values}]}}}, "B", window)
+        self.assertEqual(a, b)
+        self.assertEqual(a[0]["concept"], "cpu_utilization")
+        self.assertEqual(a[0]["value"], {"first": 1.0, "min": 0.4, "max": 1.0, "avg": 0.7, "last": 0.4})
+
+        b_series = []
+        for suffix, values in (("count", [[100, "0"], [110, "3"]]), ("sum", [[100, "0"], [110, "1.5"]])):
+            b_series.append({"metric": {"__name__": f"online_boutique_otel_tcc_otel_rpc_client_duration_seconds_{suffix}",
+                "service_name": "recommendationservice", "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+                "rpc_response_status_code": "OK"}, "values": values})
+        b_series.append({"metric": {"__name__": "online_boutique_otel_tcc_otel_rpc_client_requests_total",
+            "service_name": "recommendationservice", "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+            "rpc_response_status_code": "OK"}, "values": [[100, "0"], [110, "3"]]})
+        b_series.append({"metric": {"__name__": "online_boutique_otel_tcc_otel_http_server_requests_total",
+            "service_name": "frontend", "http_request_method": "GET", "http_route": "/cart",
+            "http_response_status_code": "200"}, "values": [[100, "0"], [110, "2"]]})
+        b_series.append({"metric": {"__name__": "online_boutique_otel_cart_redis_operations_total",
+            "service_name": "cartservice", "db_operation_name": "get", "outcome": "error"},
+            "values": [[100, "0"], [110, "1"]]})
+        b_series.append({"metric": {"__name__": "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_bucket",
+            "service_name": "recommendationservice", "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+            "le": "+Inf"}, "values": [[100, "2"], [110, "5"]]})
+        output = common_metrics({"response": {"data": {"result": b_series}}}, "B", window)
+        concepts = {(row["service"], row["operation"], row["kind"], row["outcome"], row["concept"])
+                    for row in output if row["concept"] != "cpu_utilization"}
+        self.assertIn(("recommendationservice", "ProductCatalogService/ListProducts", "client", "success", "request_count"), concepts)
+        self.assertIn(("frontend", "GET /cart", "server", "success", "request_count"), concepts)
+        self.assertIn(("cartservice", "redis GET", "datastore", "error", "request_count"), concepts)
+        self.assertFalse(any("bucket" in name for row in output for name in row["native_names"]))
+
+    def test_http_route_with_leading_slash_is_canonicalized(self):
+        from .contract import _canonical_operation
+        labels = {"http_request_method": "GET", "http_route": "/cart"}
+        self.assertEqual(_canonical_operation(labels, "tcc_otel_http_server_requests_total"), "GET /cart")
+
+    def test_log_view_preserves_only_native_correlation_and_compacts_resources(self):
+        from .contract import common_logs
+        raw_a = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_scenario": "conventional", "filename": "/pod/x"}, "values": [["1793164800000000000", '{"severity":"ERROR","message":"Charge failed"}']]}]}}}
+        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
+        a = common_logs(raw_a, "A")[0]
+        b = common_logs(raw_b, "B")[0]
+        self.assertIsNone(a["trace_id"]); self.assertIsNone(a["span_id"])
+        self.assertEqual(b["trace_id"], "abc"); self.assertEqual(b["span_id"], "def")
+        self.assertNotIn("telemetry_sdk_name", b["attributes"])
+        self.assertEqual(raw_b["response"]["data"]["result"][0]["stream"]["telemetry_sdk_name"], "opentelemetry")
+
+    def test_log_contract_compacts_structured_logger_envelopes_and_dynamic_ids(self):
+        from .contract import common_logs
+        a_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
+            "1793164800000000000", json.dumps({"timestamp": "t", "pid": 1, "name": "cart", "level": "Information",
+                "message": "AddItemAsync called with userId=abc-123, productId=OLJCESPC7Z, quantity=1"})]]}]}}}
+        b_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "trace_id": "t1", "span_id": "s1"}, "values": [[
+            "1793164800000000000", "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}"]]}]}}}
+        a_original = copy.deepcopy(a_raw)
+        a = common_logs(a_raw, "A")[0]
+        b = common_logs(b_raw, "B")[0]
+        self.assertEqual(a["body"], b["body"])
+        self.assertEqual(a["body"], "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}")
+        self.assertEqual(a["severity"], "INFO")
+        self.assertEqual(a["attributes"], {})
+        self.assertEqual((b["trace_id"], b["span_id"]), ("t1", "s1"))
+        self.assertEqual(a_raw, a_original)
+
+    def test_conventional_dotnet_console_envelope_matches_structured_otel_event(self):
+        from .contract import common_logs
+        timestamp = "1793164800000000000"
+        conventional = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
+            timestamp, "info: cartservice.services.CartService[0]\n      Reading cart for user 123e4567-e89b-12d3-a456-426614174000"]]}]}}}
+        otel = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "Information",
+            "trace_id": "abc", "span_id": "def"}, "values": [[timestamp, "Reading cart for user {UserId}"]]}]}}}
+        a = common_logs(conventional, "A")[0]
+        b = common_logs(otel, "B")[0]
+        self.assertEqual(a["severity"], "INFO")
+        self.assertEqual(b["severity"], "INFO")
+        self.assertEqual(a["body"], b["body"])
+        self.assertEqual(a["body"], "Reading cart for user {UserId}")
+        self.assertIsNone(a["trace_id"])
+        self.assertEqual(b["trace_id"], "abc")
+
+    def test_dotnet_error_details_are_common_without_stacktrace(self):
+        from .contract import common_logs
+        timestamp = "1793164800000000000"
+        detail = "Can't access cart storage. StackExchange.Redis.RedisConnectionException: SocketFailure\n ---> System.Exception: nested\n   at Redis.Read()"
+        a = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
+            timestamp, f"Error status code 'FailedPrecondition' with detail '{detail}' raised."]]}]}}}
+        b = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "StatusCode": "FailedPrecondition",
+            "Detail": detail, "severity_text": "Error", "trace_id": "t", "span_id": "s"}, "values": [[
+                timestamp, "Error status code '{StatusCode}' with detail '{Detail}' raised."]]}]}}}
+        log_a = common_logs(a, "A")[0]
+        log_b = common_logs(b, "B")[0]
+        self.assertEqual(log_a["body"], log_b["body"])
+        self.assertEqual(log_a["attributes"], log_b["attributes"])
+        self.assertEqual(log_a["attributes"]["error.type"], "StackExchange.Redis.RedisConnectionException")
+        self.assertNotIn("nested", str(log_b))
+        self.assertIsNone(log_a["trace_id"])
+        self.assertEqual(log_b["trace_id"], "t")
+
+    def test_common_trace_view_drops_health_scrape_noise_and_preserves_datastore_correlation(self):
+        from .contract import common_traces
+        raw = {"search_results": [{"response": {"data": [{"traceID": "trace-x", "processes": {"p": {"serviceName": "cartservice"}},
+            "spans": [
+                {"spanID": "s1", "processID": "p", "operationName": "redis GET", "startTime": 1793164800000000, "duration": 2000,
+                 "references": [], "tags": [{"key": "span.kind", "value": "client"}, {"key": "db.system.name", "value": "redis"}]},
+                {"spanID": "s2", "processID": "p", "operationName": "grpc.health.v1.Health/Check", "startTime": 1793164800000000, "duration": 100,
+                 "references": [], "tags": [{"key": "span.kind", "value": "server"}]},
+            ]}]}}]}
+        traces = common_traces(raw)
+        self.assertEqual(len(traces), 1)
+        self.assertEqual(len(traces[0]["spans"]), 1)
+        self.assertEqual(traces[0]["spans"][0]["kind"], "datastore")
+        self.assertEqual(traces[0]["spans"][0]["target"], "redis-cart")
+
+    def test_jaeger_process_ids_are_scoped_to_each_search_payload(self):
+        from .contract import common_traces
+        raw = {"search_results": [
+            {"response": {"data": [{"traceID": "trace-x", "processes": {"p1": {"serviceName": "cartservice"}},
+                "spans": [{"spanID": "cart-span", "processID": "p1", "operationName": "/hipstershop.CartService/GetCart",
+                    "startTime": 1793164800000000, "duration": 1200, "references": [],
+                    "tags": [{"key": "span.kind", "value": "server"}]}]}]}},
+            {"response": {"data": [{"traceID": "trace-x", "processes": {"p1": {"serviceName": "checkoutservice"}},
+                "spans": [{"spanID": "checkout-span", "processID": "p1", "operationName": "/hipstershop.CheckoutService/PlaceOrder",
+                    "startTime": 1793164800001000, "duration": 900, "references": [],
+                    "tags": [{"key": "span.kind", "value": "server"}]}]}]}},
+        ]}
+        traces = common_traces(raw)
+        self.assertEqual(len(traces), 1)
+        services = {span["span_id"]: span["service"] for span in traces[0]["spans"]}
+        self.assertEqual(services, {"cart-span": "cartservice", "checkout-span": "checkoutservice"})
+
+    def test_metric_contract_is_independent_of_fault_ground_truth(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:50Z"}
+        raw = {"response": {"data": {"result": [{"metric": {"__name__": "tcc_conventional_requests_total",
+            "service_name": "checkoutservice", "operation": "/hipstershop.PaymentService/Charge", "span_kind": "client"},
+            "values": [[100, "1"], [110, "2"]]}]}}}
+        # The transform has no Ground Truth parameter, so changing fault metadata
+        # cannot affect its selected evidence.
+        self.assertEqual(common_metrics(raw, "A", window), common_metrics(raw, "A", window))
 
     def test_loki_limit_is_paged_without_dropping_entries(self):
         window = window_from_ground_truth(_ground_truth("paymentservice", "x"), 10, 10)

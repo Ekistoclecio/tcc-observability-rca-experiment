@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -269,6 +270,30 @@ def collect_global_jaeger(base_url: str, window: Window, scenario: str, query: d
     segments: list[dict[str, Any]] = []
     available_services: set[str] = set()
     occurrences = 0
+
+    def canonical_process_ids(trace: dict[str, Any]) -> dict[str, Any]:
+        """Namespace Jaeger process IDs by process metadata before cross-search union.
+
+        Jaeger assigns short IDs such as ``p1`` independently in each search
+        response. A later response can reuse ``p1`` for another service. Remap
+        each payload's IDs to stable IDs derived from its complete process
+        metadata so merging search results cannot silently change span owners.
+        """
+        value = json.loads(json.dumps(trace))
+        remapped: dict[str, dict[str, Any]] = {}
+        process_ids: dict[str, str] = {}
+        for old_id, process in value.get("processes", {}).items():
+            encoded = json.dumps(process, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+            new_id = "process-" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:16]
+            process_ids[old_id] = new_id
+            remapped[new_id] = process
+        for span in value.get("spans", []):
+            old_id = span.get("processID")
+            if old_id in process_ids:
+                span["processID"] = process_ids[old_id]
+        value["processes"] = remapped
+        return value
+
     for document in documents:
         available_services.update(document["query"]["service_discovery"].get("sut_services_available", []))
         segments.append({"window": document["query"]["window"],
@@ -281,16 +306,17 @@ def collect_global_jaeger(base_url: str, window: Window, scenario: str, query: d
                 if not trace_id:
                     continue
                 occurrences += 1
+                normalized_trace = canonical_process_ids(trace)
                 if trace_id not in traces:
-                    traces[trace_id] = json.loads(json.dumps(trace))
+                    traces[trace_id] = normalized_trace
                     continue
                 target = traces[trace_id]
                 known_spans = {span.get("spanID") for span in target.get("spans", [])}
                 target.setdefault("spans", []).extend(
-                    json.loads(json.dumps(span)) for span in trace.get("spans", [])
+                    span for span in normalized_trace.get("spans", [])
                     if span.get("spanID") not in known_spans
                 )
-                target.setdefault("processes", {}).update(trace.get("processes", {}))
+                target.setdefault("processes", {}).update(normalized_trace.get("processes", {}))
                 target["spans"].sort(key=lambda span: (span.get("startTime", 0), span.get("spanID", "")))
     unique = [traces[key] for key in sorted(traces)]
     span_count = sum(len(trace.get("spans", [])) for trace in unique)
