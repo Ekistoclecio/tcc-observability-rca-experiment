@@ -63,6 +63,19 @@ _LOG_METADATA_KEYS = {
     "exporter", "exporter_name", "collector", "collector_name", "exception_type", "error_type",
     "exception_stacktrace", "stacktrace",
 }
+_SHARED_APPLICATION_EVENTS = {
+    "application_error", "application_warning", "downstream_operation_failed",
+    "downstream_call_failed", "datastore_operation_failed", "payment_charge_failed",
+}
+
+
+def _shared_event_value(attributes: dict[str, Any], *names: str) -> Any:
+    normalized = {_normalized_key(key): value for key, value in attributes.items()}
+    for name in names:
+        key = _normalized_key(name)
+        if key in normalized:
+            return normalized[key]
+    return None
 _STACK_FRAME_RE = re.compile(r"^\s*(?:at\s+[\w.$<>`+/-]+\s*\(|---\s+End of|Caused by:|Traceback \(most recent call last\):)")
 _RUNTIME_NOISE_RE = re.compile(
     r"^(?:env platform is either empty or invalid|\d+:[A-Z]\s|redis is starting|"
@@ -370,6 +383,11 @@ def common_metrics(raw: dict[str, Any], scenario: str, window: dict[str, str]) -
         candidate = _metric_candidate(scenario, labels, name)
         if candidate is None:
             continue
+        if scenario == "B" and not ("tcc_otel_" in name.casefold() or "cart_redis_" in name.casefold()):
+            # Native SDK/framework metrics remain available in RAW for audit.
+            # Only instruments emitted by a shared observation adapter enter
+            # the model-visible common contract.
+            continue
         priority, family, component, unit = candidate
         operation = _canonical_operation(labels, name)
         if operation is None:
@@ -413,6 +431,12 @@ def common_metrics(raw: dict[str, Any], scenario: str, window: dict[str, str]) -
         duration_sum = sum_row["delta"] if sum_row else None
         if duration_sum is not None and sum_row and sum_row.get("unit") == "ms":
             duration_sum /= 1000.0
+        # A valid cumulative counter/histogram with no increment contributes no
+        # activity to the RCA interval. Missing baselines remain unknown and
+        # are deliberately not treated as zero.
+        activity_delta = count if count_row is not None else duration_count
+        if activity_delta == 0:
+            continue
         timestamp = next((v["last_sample"] for v in native.values() if v.get("last_sample")), window["end"])
         if count_row is not None:
             out.append({"service": group["service"], "concept": "request_count", "operation": group["operation"],
@@ -573,34 +597,21 @@ def canonical_log_classification(log: dict[str, Any]) -> dict[str, Any]:
     RAW and are excluded by default.
     """
     attrs = log.get("attributes") if isinstance(log.get("attributes"), dict) else {}
+    event_name = str(_shared_event_value(attrs, "event_name") or log.get("event_name") or "").strip().casefold()
+    marked_value = _shared_event_value(attrs, "observation_event")
+    if marked_value is None:
+        marked_value = log.get("observation_event")
+    marked = marked_value is True or str(marked_value).casefold() in {"true", "1"}
+    if not marked or event_name not in _SHARED_APPLICATION_EVENTS:
+        return {"category": "RAW_AUDIT_ONLY", "model_visible": False,
+                "reason": "not_a_marked_shared_observation_event", "event_class": event_name}
     severity = canonical_log_severity(log.get("severity"))
-    body = str(log.get("body") or "").strip()
-    error_message = next((str(attrs[k]) for k in ("error.message", "error_message", "exception.message", "exception_message") if attrs.get(k)), "")
-    classification_text = f"{body}\n{error_message}".strip()
-    if not body:
-        return {"category": "UNKNOWN", "model_visible": False, "reason": "empty_message", "event_class": ""}
-    if _HEALTH_LOG_RE.search(classification_text):
-        return {"category": "HEALTH_CHECK", "model_visible": False, "reason": "health_or_probe_event", "event_class": _canonical_log_message(classification_text)}
-    if _LIFECYCLE_LOG_RE.search(body):
-        return {"category": "LIFECYCLE_NOISE", "model_visible": False, "reason": "process_or_datastore_lifecycle", "event_class": _canonical_log_message(classification_text)}
-    if _RUNTIME_NOISE_RE.match(body) or re.match(r"^(?:DeprecationWarning|RuntimeWarning|ExperimentalWarning):", body, re.IGNORECASE):
-        return {"category": "RUNTIME_NOISE", "model_visible": False, "reason": "runtime_or_platform_message", "event_class": _canonical_log_message(classification_text)}
-    if severity in {"INFO", "DEBUG"} and _REDUNDANT_SUCCESS_LOG_RE.match(body):
-        return {"category": "REDUNDANT_SUCCESS_EVENT", "model_visible": False,
-                "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
-                "event_class": _canonical_log_message(classification_text)}
-    if severity in {"ERROR", "FATAL"}:
-        category, reason = "APPLICATION_ERROR", "explicit_error_severity"
-    elif severity == "WARN":
-        category, reason = "APPLICATION_WARNING", "explicit_application_warning_severity"
-    elif severity in {"INFO", "DEBUG"} and _APPLICATION_DIAGNOSTIC_LOG_RE.match(body):
-        category, reason = "APPLICATION_DIAGNOSTIC", "recognized_sut_operation_event"
-    else:
-        return {"category": "UNKNOWN", "model_visible": False,
-                "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
-                "event_class": _canonical_log_message(classification_text)}
-    return {"category": category, "model_visible": True, "reason": reason,
-            "event_class": _canonical_log_message(classification_text)}
+    if severity not in {"WARN", "ERROR", "FATAL"}:
+        return {"category": "RAW_AUDIT_ONLY", "model_visible": False,
+                "reason": "shared_event_has_non_diagnostic_severity", "event_class": event_name}
+    category = "APPLICATION_WARNING" if severity == "WARN" else "APPLICATION_ERROR"
+    return {"category": category, "model_visible": True,
+            "reason": "explicit_shared_observation_event", "event_class": event_name}
 
 
 def _canonical_log_message(value: Any) -> str:
@@ -612,17 +623,16 @@ def _canonical_log_message(value: Any) -> str:
 
 
 def canonical_log_event(log: dict[str, Any]) -> tuple[str, ...]:
-    """A/B factual identity for included application logs; IDs are correlation only."""
+    """A/B identity for explicit shared events; rendered text and IDs are secondary."""
     attrs = log.get("attributes") if isinstance(log.get("attributes"), dict) else {}
     classification = canonical_log_classification(log)
     service = str(log.get("service") or "")
     severity = canonical_log_severity(log.get("severity")) or "UNKNOWN"
-    operation = next((str(attrs[k]) for k in ("operation", "rpc.method", "rpc_method", "http.route", "http_route") if attrs.get(k)), "")
-    error_message = next((str(attrs[k]) for k in ("error.message", "error_message", "exception.message", "exception_message") if attrs.get(k)), "")
-    body = str(log.get("body") or "")
-    factual_message = error_message or body
-    factual_message = _canonical_log_message(factual_message)
-    return service, severity, str(classification["category"]), operation.casefold(), factual_message
+    event_name = str(_shared_event_value(attrs, "event_name") or log.get("event_name") or "").casefold()
+    operation = str(_shared_event_value(attrs, "operation", "rpc.method", "rpc_method", "http.route", "http_route") or "")
+    outcome = str(_shared_event_value(attrs, "outcome") or log.get("outcome") or "").casefold()
+    error_type = str(_shared_event_value(attrs, "error.type", "error_type") or "").casefold()
+    return service, severity, event_name, operation.casefold(), outcome, error_type
 
 
 def _common_error_event(message: Any, attributes: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
@@ -721,9 +731,18 @@ def common_logs_with_audit(raw: dict[str, Any], scenario: str) -> tuple[list[dic
                 canonical_attrs = {}
                 for key, value in attrs.items():
                     normalized_key = _normalized_key(key)
-                    if normalized_key in {"error", "error_type", "error_message", "exception_message", "exception_type", "exception_stacktrace", "exception_stack_trace"}:
+                    if normalized_key in {"error", "error_type", "error_message", "exception_message", "exception_type", "exception_stacktrace", "exception_stack_trace", "observation_event"}:
                         continue
                     canonical_attrs[key] = value
+                event_name = _shared_event_value(attrs, "event_name") or body_fields.get("event_name")
+                if event_name:
+                    canonical_attrs["event_name"] = str(event_name).casefold()
+                operation = _shared_event_value(attrs, "operation") or body_fields.get("operation") or body_fields.get("Operation")
+                if operation:
+                    canonical_attrs["operation"] = str(operation)
+                outcome = _shared_event_value(attrs, "outcome") or body_fields.get("outcome")
+                if outcome:
+                    canonical_attrs["outcome"] = str(outcome).upper()
                 error_message = next((value for key, value in attrs.items()
                                       if _normalized_key(key) in {"error_message", "exception_message", "error"}), None)
                 error_message = error_message or attrs.get("error.message") or attrs.get("exception.message")
@@ -738,6 +757,7 @@ def common_logs_with_audit(raw: dict[str, Any], scenario: str) -> tuple[list[dic
                     canonical_attrs["error.message"] = _canonical_error_message(error_message) or str(error_message)
                 rows.append({"timestamp": _utc_iso_epoch(int(timestamp) / 1_000_000_000), "service": service,
                              "severity": severity, "body": normalized_body,
+                             "event_name": str(event_name or "").casefold(),
                              "trace_id": view["trace_id"], "span_id": view["span_id"], "attributes": canonical_attrs})
     rows.sort(key=lambda x: (x["timestamp"], x["service"], str(x["body"]), str(x.get("trace_id"))))
     for index, row in enumerate(rows, 1):

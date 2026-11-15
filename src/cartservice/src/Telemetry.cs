@@ -13,8 +13,11 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace cartservice
 {
@@ -62,6 +65,33 @@ namespace cartservice
             RpcRequests.Add(1, tags);
             if (status != "OK") RpcErrors.Add(1, tags);
             RpcDuration.Record(durationSeconds, tags);
+        }
+
+        internal static void EmitApplicationEvent(ILogger logger, string eventName, string operation,
+            string outcome, string message)
+        {
+            // Build one semantic event, then let each deployment adapter encode it
+            // independently. The A representation deliberately carries no trace IDs.
+            var observation = new Dictionary<string, object>
+            {
+                ["timestamp"] = DateTimeOffset.UtcNow,
+                ["service"] = "cartservice",
+                ["severity"] = outcome == "ERROR" ? "ERROR" : "WARN",
+                ["observation_event"] = true,
+                ["event_name"] = eventName,
+                ["operation"] = operation,
+                ["outcome"] = outcome,
+                ["message"] = message
+            };
+            if (Environment.GetEnvironmentVariable("ENABLE_CONVENTIONAL_TELEMETRY") == "1")
+            {
+                Console.WriteLine(JsonSerializer.Serialize(observation));
+                return;
+            }
+
+            logger.LogError("{message} {observation_event} {event_name} {service} {severity} {operation} {outcome}",
+                observation["message"], observation["observation_event"], observation["event_name"],
+                observation["service"], observation["severity"], observation["operation"], observation["outcome"]);
         }
     }
 }

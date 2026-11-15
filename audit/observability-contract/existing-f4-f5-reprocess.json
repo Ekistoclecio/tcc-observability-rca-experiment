@@ -1,0 +1,372 @@
+{
+  "policy": "read-only offline reprocessing of existing F4/F5 RAW snapshots; no new faults; no RAW mutation",
+  "runs": [
+    {
+      "fault": "F4",
+      "run_id": "iv-edv-so-115b-001-f4-f4",
+      "scenarios": {
+        "A": {
+          "explicit_shared_events_in_raw": 0,
+          "event_names": {},
+          "dataset_counts": {
+            "metrics": 103,
+            "logs": 0,
+            "traces": 110,
+            "spans": 2656
+          },
+          "request_counts": {
+            "metrics": 103,
+            "logs": 0,
+            "traces": 110,
+            "spans": 2656
+          },
+          "projection_version": "common-rca-view-v1",
+          "allowed_removals": {
+            "common_view_metadata:native_names": 103,
+            "telemetry.scenario": 0,
+            "telemetry_scenario": 0
+          },
+          "unexpected_removals": 0,
+          "unexpected_additions": 0,
+          "unexpected_mutations": 0,
+          "evidence_ids_match": true,
+          "counts_match": true,
+          "provenance_pass": true
+        },
+        "B": {
+          "explicit_shared_events_in_raw": 0,
+          "event_names": {},
+          "dataset_counts": {
+            "metrics": 59,
+            "logs": 0,
+            "traces": 110,
+            "spans": 2656
+          },
+          "request_counts": {
+            "metrics": 59,
+            "logs": 0,
+            "traces": 110,
+            "spans": 2656
+          },
+          "projection_version": "common-rca-view-v1",
+          "allowed_removals": {
+            "common_view_metadata:native_names": 59,
+            "telemetry.scenario": 0,
+            "telemetry_scenario": 0
+          },
+          "unexpected_removals": 0,
+          "unexpected_additions": 0,
+          "unexpected_mutations": 0,
+          "evidence_ids_match": true,
+          "counts_match": true,
+          "provenance_pass": true
+        }
+      },
+      "parity": {
+        "logs": {
+          "A_only_count": 0,
+          "B_only_count": 0,
+          "A_only_examples": [],
+          "B_only_examples": [],
+          "pass": true
+        },
+        "metrics": {
+          "A_only_count": 44,
+          "B_only_count": 0,
+          "A_only_examples": [
+            [
+              "request_count",
+              "adservice",
+              "AdService/GetAds",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/AddItem",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/EmptyCart",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/GetCart",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis GET",
+              "datastore",
+              "success",
+              "redis-cart"
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis GET/SET",
+              "datastore",
+              "success",
+              "redis-cart"
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis SET",
+              "datastore",
+              "success",
+              "redis-cart"
+            ],
+            [
+              "request_count",
+              "frontend",
+              "AdService/GetAds",
+              "client",
+              "success",
+              "adservice"
+            ]
+          ],
+          "B_only_examples": [],
+          "pass": false
+        },
+        "traces": {
+          "A_only_count": 0,
+          "B_only_count": 0,
+          "pass": true
+        }
+      },
+      "shared_event_source_parity": false,
+      "overall_reprocess_pass": false,
+      "raw_hashes_valid": true,
+      "raw_hashes_checked": {
+        "scenario-a/raw/logs.json": {
+          "expected": "29454167c4233a37221e850696a6f1f3f2e10c2434d8fdf207289a7d51863a17",
+          "actual": "29454167c4233a37221e850696a6f1f3f2e10c2434d8fdf207289a7d51863a17",
+          "match": true
+        },
+        "scenario-a/raw/metrics.json": {
+          "expected": "fc4ae197cd2289d64b7be299f33ca1c458615ead883bb9c4652e68deeb2e0da4",
+          "actual": "fc4ae197cd2289d64b7be299f33ca1c458615ead883bb9c4652e68deeb2e0da4",
+          "match": true
+        },
+        "scenario-a/raw/traces.json": {
+          "expected": "339a83f1209dd4951167c7249506b2490fcce3c06d874481d2cd0a247972d2cd",
+          "actual": "339a83f1209dd4951167c7249506b2490fcce3c06d874481d2cd0a247972d2cd",
+          "match": true
+        },
+        "scenario-b/raw/logs.json": {
+          "expected": "f5b3e0509bea35e6fc804e60008e3892c1c4aa302d40ac7e60d6a122dd352636",
+          "actual": "f5b3e0509bea35e6fc804e60008e3892c1c4aa302d40ac7e60d6a122dd352636",
+          "match": true
+        },
+        "scenario-b/raw/metrics.json": {
+          "expected": "97d2a94b191f3c8ebbb1e6da11cbbeb82f563c12c7e034260edb4dcd86dc50ba",
+          "actual": "97d2a94b191f3c8ebbb1e6da11cbbeb82f563c12c7e034260edb4dcd86dc50ba",
+          "match": true
+        },
+        "scenario-b/raw/traces.json": {
+          "expected": "6900c2d0b7c7a7d904e75e1f95a33021e612545a6948bea9b52d59c383cd9035",
+          "actual": "6900c2d0b7c7a7d904e75e1f95a33021e612545a6948bea9b52d59c383cd9035",
+          "match": true
+        }
+      }
+    },
+    {
+      "fault": "F5",
+      "run_id": "iv-edv-so-115b-002-f5-f5",
+      "scenarios": {
+        "A": {
+          "explicit_shared_events_in_raw": 0,
+          "event_names": {},
+          "dataset_counts": {
+            "metrics": 103,
+            "logs": 0,
+            "traces": 94,
+            "spans": 2329
+          },
+          "request_counts": {
+            "metrics": 103,
+            "logs": 0,
+            "traces": 94,
+            "spans": 2329
+          },
+          "projection_version": "common-rca-view-v1",
+          "allowed_removals": {
+            "common_view_metadata:native_names": 103,
+            "telemetry.scenario": 0,
+            "telemetry_scenario": 0
+          },
+          "unexpected_removals": 0,
+          "unexpected_additions": 0,
+          "unexpected_mutations": 0,
+          "evidence_ids_match": true,
+          "counts_match": true,
+          "provenance_pass": true
+        },
+        "B": {
+          "explicit_shared_events_in_raw": 0,
+          "event_names": {},
+          "dataset_counts": {
+            "metrics": 55,
+            "logs": 0,
+            "traces": 94,
+            "spans": 2329
+          },
+          "request_counts": {
+            "metrics": 55,
+            "logs": 0,
+            "traces": 94,
+            "spans": 2329
+          },
+          "projection_version": "common-rca-view-v1",
+          "allowed_removals": {
+            "common_view_metadata:native_names": 55,
+            "telemetry.scenario": 0,
+            "telemetry_scenario": 0
+          },
+          "unexpected_removals": 0,
+          "unexpected_additions": 0,
+          "unexpected_mutations": 0,
+          "evidence_ids_match": true,
+          "counts_match": true,
+          "provenance_pass": true
+        }
+      },
+      "parity": {
+        "logs": {
+          "A_only_count": 0,
+          "B_only_count": 0,
+          "A_only_examples": [],
+          "B_only_examples": [],
+          "pass": true
+        },
+        "metrics": {
+          "A_only_count": 48,
+          "B_only_count": 0,
+          "A_only_examples": [
+            [
+              "request_count",
+              "adservice",
+              "AdService/GetAds",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/AddItem",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/EmptyCart",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/GetCart",
+              "server",
+              "error",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "CartService/GetCart",
+              "server",
+              "success",
+              null
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis GET",
+              "datastore",
+              "error",
+              "redis-cart"
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis GET",
+              "datastore",
+              "success",
+              "redis-cart"
+            ],
+            [
+              "request_count",
+              "cartservice",
+              "redis GET/SET",
+              "datastore",
+              "success",
+              "redis-cart"
+            ]
+          ],
+          "B_only_examples": [],
+          "pass": false
+        },
+        "traces": {
+          "A_only_count": 0,
+          "B_only_count": 0,
+          "pass": true
+        }
+      },
+      "shared_event_source_parity": false,
+      "overall_reprocess_pass": false,
+      "raw_hashes_valid": true,
+      "raw_hashes_checked": {
+        "scenario-a/raw/logs.json": {
+          "expected": "00287570fa26a227ac512420ae0f4a03465e470642374eda89421254816e6c2c",
+          "actual": "00287570fa26a227ac512420ae0f4a03465e470642374eda89421254816e6c2c",
+          "match": true
+        },
+        "scenario-a/raw/metrics.json": {
+          "expected": "494d53cd962acef64df1b59a1119eee946182bea5eee432ef189c7c4f34baa1d",
+          "actual": "494d53cd962acef64df1b59a1119eee946182bea5eee432ef189c7c4f34baa1d",
+          "match": true
+        },
+        "scenario-a/raw/traces.json": {
+          "expected": "133ebeb04217c0251df116cae38b2a1bae4480b8dd857ee6086c6697a80b00c6",
+          "actual": "133ebeb04217c0251df116cae38b2a1bae4480b8dd857ee6086c6697a80b00c6",
+          "match": true
+        },
+        "scenario-b/raw/logs.json": {
+          "expected": "c98ea781142a01b85acc1bbaf4762abcc7cee77c0826e34fb242b6efd981f81e",
+          "actual": "c98ea781142a01b85acc1bbaf4762abcc7cee77c0826e34fb242b6efd981f81e",
+          "match": true
+        },
+        "scenario-b/raw/metrics.json": {
+          "expected": "5f361ca286fd47bbe3d1d4ab4a77e1b6cb0d2859ed08d0e9d6a9647eb996c9ba",
+          "actual": "5f361ca286fd47bbe3d1d4ab4a77e1b6cb0d2859ed08d0e9d6a9647eb996c9ba",
+          "match": true
+        },
+        "scenario-b/raw/traces.json": {
+          "expected": "bd545136b9e57be8f8089cbd1b2a9d972e525380de7e3ea8e97a96e16de828ce",
+          "actual": "bd545136b9e57be8f8089cbd1b2a9d972e525380de7e3ea8e97a96e16de828ce",
+          "match": true
+        }
+      }
+    }
+  ],
+  "overall_reprocess_pass": false
+}

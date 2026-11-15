@@ -95,17 +95,19 @@ class FinalValidationPackageTests(unittest.TestCase):
     def test_sampler_preserves_logs_linked_to_selected_trace(self) -> None:
         dataset = {"metrics": [], "traces": [{"trace_id": "a-trace", "start": "1", "spans": [
             {"span_id": "s1", "status": "ERROR"}]}], "logs": [
-            {"evidence_id": "log-linked", "trace_id": "a-trace", "service": "cartservice", "severity": "ERROR", "body": "cart unavailable"},
-            {"evidence_id": "log-other", "trace_id": "other", "service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"},
+            {"evidence_id": "log-linked", "trace_id": "a-trace", "service": "cartservice", "severity": "ERROR",
+             "event_name":"datastore_operation_failed", "observation_event":True, "body": "cart unavailable"},
+            {"evidence_id": "log-other", "trace_id": "other", "service": "cartservice", "severity": "INFO",
+             "event_name":"application_warning", "observation_event":True, "body": "Reading cart for user {UserId}"},
         ]}
         sampled = deterministic_sample(dataset)
-        self.assertEqual([row["evidence_id"] for row in sampled["logs"]], ["log-linked", "log-other"])
+        self.assertEqual([row["evidence_id"] for row in sampled["logs"]], ["log-linked"])
 
     def test_log_parity_uses_canonical_event_and_ignores_native_correlation(self) -> None:
         left = {"metrics": [], "traces": [], "logs": [{"service": "paymentservice", "severity": "ERROR",
-            "body": "charge failed", "trace_id": None, "span_id": None, "attributes": {"error.message": "charge failed"}}]}
+            "event_name":"payment_charge_failed", "observation_event":True, "body": "charge failed", "trace_id": None, "span_id": None, "attributes": {"error.message": "charge failed"}}]}
         right = {"metrics": [], "traces": [], "logs": [{"service": "paymentservice", "severity": "Error",
-            "body": "charge failed", "trace_id": "trace-b", "span_id": "span-b", "attributes": {"exception_message": "charge failed"}}]}
+            "event_name":"payment_charge_failed", "observation_event":True, "body": "charge failed", "trace_id": "trace-b", "span_id": "span-b", "attributes": {"exception_message": "charge failed"}}]}
         self.assertEqual(semantic_views(left)["logs"], semantic_views(right)["logs"])
 
 

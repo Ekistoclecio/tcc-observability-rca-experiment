@@ -29,6 +29,30 @@ class SharedObservationContractTests(unittest.TestCase):
         self.assertIn("x-tcc-trace-id/x-tcc-span-id propagation", self.contract["treatment_differences"]["scenario_a"])
         self.assertIn("W3C Trace Context", self.contract["treatment_differences"]["scenario_b"])
 
+    def test_contract_explicitly_declares_coverage_for_every_sut_service(self):
+        expected = {"frontend", "checkoutservice", "cartservice", "productcatalogservice", "currencyservice",
+                    "paymentservice", "shippingservice", "emailservice", "recommendationservice", "adservice"}
+        coverage = self.contract["service_coverage"]
+        self.assertEqual(set(coverage), expected)
+        for service, declaration in coverage.items():
+            with self.subTest(service=service):
+                self.assertIn(declaration["status"], {"implemented", "partial"})
+                self.assertIn("server_request", declaration)
+                self.assertIn("client_downstream", declaration)
+                self.assertIn("datastore", declaration)
+                self.assertIn("application_events", declaration)
+                self.assertIn("shared_metric_adapters", declaration)
+        self.assertEqual(self.contract["coverage_status"], "partial")
+
+    def test_contract_makes_shared_event_identity_and_zero_delta_policy_explicit(self):
+        event = self.contract["shared_application_event"]
+        self.assertIn("event_name", event["required_fields"])
+        self.assertFalse(event["message_is_identity"])
+        self.assertFalse(event["marker_model_visible"])
+        policy = self.contract["model_visible_source_policy"]
+        self.assertIn("omit", policy["zero_delta_cumulative_observation"])
+        self.assertIn("never", policy["missing_baseline"])
+
     def test_payment_charge_error_is_one_neutral_shared_application_event(self):
         self.assertIn("dispatchApplicationEvent(event, [conventionalTelemetry, otelTelemetry])", self.payment_server)
         self.assertIn("eventName: 'payment_charge_failed'", self.payment_server)
@@ -46,7 +70,9 @@ class SharedObservationContractTests(unittest.TestCase):
         self.assertIn("CartTelemetry.RedisDuration.Record(elapsed.TotalSeconds, tags)", self.cart_store)
 
     def test_cart_error_event_comes_from_shared_datastore_operation(self):
-        self.assertIn('_logger.LogError("datastore_operation_failed operation={Operation}", operation)', self.cart_store)
+        self.assertIn("EmitApplicationEvent(_logger", self.cart_store)
+        self.assertIn('"observation_event"] = true', self.cart_telemetry)
+        self.assertIn('"datastore_operation_failed"', self.cart_store)
 
     def test_checkout_downstream_completion_is_shared_across_metric_adapters(self):
         self.assertIn('recordSharedRPCObservation(ctx, "CLIENT", method, targetService(method), statusCode, duration)', self.checkout_wrapper)

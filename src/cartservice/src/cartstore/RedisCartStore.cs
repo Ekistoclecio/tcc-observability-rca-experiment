@@ -153,7 +153,8 @@ namespace cartservice.cartstore
                 activity?.SetStatus(ActivityStatusCode.Error);
                 // The same application event is written in A and exported through
                 // the configured OTel logging provider in B; no exception/stack is attached.
-                _logger.LogError("datastore_operation_failed operation={Operation}", operation);
+                CartTelemetry.EmitApplicationEvent(_logger, "datastore_operation_failed", operation,
+                    "ERROR", "datastore operation failed");
             }
 
             var outcome = failed ? "error" : "success";

@@ -95,6 +95,7 @@ function createConventionalTelemetry(serviceName) {
       timestamp: new Date().toISOString(),
       service: serviceName,
       severity: event.severity,
+      observation_event: true,
       event_name: event.eventName,
       operation: event.operation,
       error_type: event.errorType,

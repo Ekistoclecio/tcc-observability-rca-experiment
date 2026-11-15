@@ -1,0 +1,19 @@
+{
+  "tests": {
+    "python_passed": 91,
+    "python_failed": 0,
+    "cartservice_dotnet": "not_run_dotnet_unavailable"
+  },
+  "service_coverage_status": "partial",
+  "existing_f4_f5_reprocess_pass": false,
+  "fresh_faults_started": 0,
+  "final_battery_started": false,
+  "physical_validation_allowed": false,
+  "stop_reason": "existing F4/F5 reprocessing failed: zero explicitly marked shared events and model-visible metric parity has A-only concepts",
+  "reports": [
+    "audit/observability-contract/shared-observation-coverage.md",
+    "audit/observability-contract/fault-observation-coverage.md",
+    "audit/observability-contract/existing-f4-f5-reprocess.md",
+    "audit/observability-contract/existing-f4-f5-reprocess.json"
+  ]
+}

@@ -23,7 +23,7 @@ def _ground_truth(component: str, fault_type: str) -> dict:
 
 
 def _raw(scenario: str) -> dict:
-    labels = {"service_name": "checkoutservice", "severity": "INFO"}
+    labels = {"service_name": "checkoutservice"}
     if scenario == "B":
         labels.update({"trace_id": "b-trace", "span_id": "b-span"})
     return {
@@ -32,7 +32,8 @@ def _raw(scenario: str) -> dict:
              "values": [[1793164800, "2"]]}]}}, "metadata": {}},
         "logs": {"response": {"data": {"result": [{
             "stream": labels,
-            "values": [["1793164800000000000", "checkout started"]]}]}}},
+            "values": [["1793164800000000000", json.dumps({"severity": "ERROR", "observation_event": True,
+                "event_name": "application_error", "operation": "Checkout", "message": "checkout failed"})]]}]}}},
         "traces": {"search_results": [{"service": "checkoutservice", "response": {"data": [
             {"traceID": "trace-1", "processes": {"p1": {"serviceName": "checkoutservice"}},
              "spans": [{"spanID": "s1", "processID": "p1", "operationName": "Checkout", "startTime": 1793164800000000,
@@ -246,7 +247,7 @@ class DatasetBuilderTests(unittest.TestCase):
         a = common_metrics({"response": {"data": {"result": a_series}}}, "A", window)
         b_series = []
         for suffix, values in (("count", [[100, "20"], [110, "22"]]), ("sum", [[100, "4"], [110, "4.6"]])):
-            b_series.append({"metric": {"__name__": f"online_boutique_otel_rpc_client_call_duration_seconds_{suffix}",
+            b_series.append({"metric": {"__name__": f"online_boutique_otel_tcc_otel_rpc_client_call_duration_seconds_{suffix}",
                 "service_name": "checkoutservice", "rpc_method": "hipstershop.PaymentService/Charge",
                 "rpc_response_status_code": "OK"}, "values": values})
         b_series.append({"metric": {"__name__": "online_boutique_otel_jvm_gc_duration_seconds_sum",
@@ -290,6 +291,27 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(multi_reset["value"], 7)
         self.assertEqual(multi_reset["delta_status"], "counter_reset")
 
+    def test_zero_delta_counters_are_omitted_but_missing_baseline_and_gauges_are_not_zeroed(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:55Z"}
+        zero = {"metric": {"__name__":"tcc_conventional_requests_total", "service_name":"paymentservice",
+            "operation":"/hipstershop.PaymentService/Charge", "span_kind":"server", "status_code":"ERROR"},
+            "values":[[100,"4"],[115,"4"]]}
+        missing = {"metric": {"__name__":"tcc_conventional_requests_total", "service_name":"paymentservice",
+            "operation":"/hipstershop.PaymentService/Charge", "span_kind":"server", "status_code":"OK"},
+            "values":[[110,"4"],[115,"4"]]}
+        rows = common_metrics({"response":{"data":{"result":[zero, missing]}}}, "A", window)
+        self.assertFalse(any(row["outcome"] == "error" for row in rows))
+        missing_row = next(row for row in rows if row["outcome"] == "success")
+        self.assertIsNone(missing_row["value"])
+        self.assertEqual(missing_row["delta_status"], "missing_baseline")
+
+        cpu = {"metric":{"__name__":"container_cpu_usage_seconds_total", "service_name":"paymentservice", "pod":"paymentservice-x"},
+               "values":[[100,"10"],[110,"10"]]}
+        gauge_rows = common_metrics({"response":{"data":{"result":[cpu]}}}, "B", window)
+        self.assertEqual(len(gauge_rows), 1)
+        self.assertEqual(gauge_rows[0]["concept"], "cpu_utilization")
+
     def test_common_metric_contract_maps_http_client_cpu_and_redis_errors(self):
         from .contract import common_metrics
         window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:55Z"}
@@ -332,93 +354,73 @@ class DatasetBuilderTests(unittest.TestCase):
         labels = {"http_request_method": "GET", "http_route": "/cart"}
         self.assertEqual(_canonical_operation(labels, "tcc_otel_http_server_requests_total"), "GET /cart")
 
-    def test_log_view_preserves_only_native_correlation_and_compacts_resources(self):
-        from .contract import common_logs
-        raw_a = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_scenario": "conventional", "filename": "/pod/x"}, "values": [["1793164800000000000", '{"severity":"ERROR","message":"Charge failed"}']]}]}}}
-        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "ERROR", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
+    def test_common_logs_accept_only_explicit_shared_observation_events(self):
+        from .contract import common_logs, common_logs_with_audit
+        timestamp = "1793164800000000000"
+        raw_a = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_scenario": "conventional"}, "values": [[
+            timestamp, json.dumps({"severity":"ERROR", "observation_event":True, "event_name":"payment_charge_failed",
+                "operation":"Charge", "error_message":"charge failed", "message":"Payment charge failed"})]]}]}}}
+        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "ERROR",
+            "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope",
+            "observation.event": True, "event.name":"payment_charge_failed", "operation":"Charge"}, "values": [[timestamp, 'Payment charge failed']]}]}}}
         a = common_logs(raw_a, "A")[0]
         b = common_logs(raw_b, "B")[0]
         self.assertIsNone(a["trace_id"]); self.assertIsNone(a["span_id"])
-        self.assertEqual(b["trace_id"], "abc"); self.assertEqual(b["span_id"], "def")
-        self.assertNotIn("telemetry_sdk_name", b["attributes"])
+        self.assertEqual((b["trace_id"], b["span_id"]), ("abc", "def"))
+        self.assertEqual(a["event_name"], b["event_name"])
+        self.assertEqual(a["attributes"]["error.message"], "charge failed")
+        self.assertNotIn("observation_event", str(a))
+        self.assertNotIn("telemetry_sdk_name", str(b))
         self.assertEqual(raw_b["response"]["data"]["result"][0]["stream"]["telemetry_sdk_name"], "opentelemetry")
 
-    def test_log_contract_compacts_structured_logger_envelopes_and_dynamic_ids(self):
-        from .contract import common_logs
-        a_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
-            "1793164800000000000", json.dumps({"timestamp": "t", "pid": 1, "name": "cart", "level": "Information",
-                "message": "AddItemAsync called with userId=abc-123, productId=OLJCESPC7Z, quantity=1"})]]}]}}}
-        b_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "INFO", "trace_id": "t1", "span_id": "s1"}, "values": [[
-            "1793164800000000000", "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}"]]}]}}}
-        a_original = copy.deepcopy(a_raw)
-        a = common_logs(a_raw, "A")[0]
-        b = common_logs(b_raw, "B")[0]
-        self.assertEqual(a["body"], b["body"])
-        self.assertEqual(a["body"], "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}")
-        self.assertEqual(a["severity"], "INFO")
-        self.assertEqual(a["attributes"], {})
-        self.assertEqual((b["trace_id"], b["span_id"]), ("t1", "s1"))
-        self.assertEqual(a_raw, a_original)
+        legacy = {"response": {"data": {"result": [{"stream": {"service_name":"adservice", "severity":"INFO"},
+            "values": [[timestamp, "Received ad request"]]}]}}}
+        visible, audit = common_logs_with_audit(legacy, "A")
+        self.assertEqual(visible, [])
+        self.assertEqual(audit["categories"]["RAW_AUDIT_ONLY"], 1)
 
-    def test_common_logs_exclude_unknown_severity_runtime_and_stack_noise(self):
-        from .contract import common_logs
-        raw = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice"}, "values": [
-            ["1793164800000000000", "env platform is either empty or invalid"],
-            ["1793164800000000001", "    at charge (/app/charge.js:4:2)"],
-            ["1793164800000000002", "Error: controlled failure in Charge"],
-            ["1793164800000000003", '{"severity":"ERROR","message":"request failed","exception_message":"charge unavailable","scope_name":"native"}'],
-            ["1793164800000000004", '{"severity":"WARN","message":"1:M 15 Nov 2026 20:26:32.407 # Redis lifecycle warning"}'],
-        ]}]}}}
-        rows = common_logs(raw, "A")
-        self.assertEqual(len(rows), 2)
-        self.assertEqual([row["severity"] for row in rows], ["ERROR", "ERROR"])
-        self.assertTrue(all("at charge" not in str(row) for row in rows))
-        self.assertEqual(rows[1]["attributes"]["error.message"], "charge unavailable")
-        self.assertNotIn("scope_name", str(rows))
-
-    def test_canonical_log_event_ignores_correlation_but_compares_normalized_error(self):
-        from .contract import canonical_log_event, common_logs
-        timestamp = "1793164800000000000"
-        left = common_logs({"response": {"data": {"result": [{"stream": {"service_name": "paymentservice"}, "values": [[
-            timestamp, "Error: charge unavailable"]]}]}}}, "A")[0]
-        right = common_logs({"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "ERROR",
-            "trace_id": "abc", "span_id": "def", "exception_message": "rpc error: code = Internal desc = charge unavailable"}, "values": [[
-                timestamp, "request failed"]]}]}}}, "B")[0]
-        self.assertEqual(left["attributes"]["error.message"], "charge unavailable")
-        self.assertEqual(right["attributes"]["error.message"], "charge unavailable")
+    def test_shared_log_identity_ignores_rendered_message_and_correlation(self):
+        from .contract import canonical_log_event
+        left = {"service":"cartservice", "severity":"ERROR", "event_name":"datastore_operation_failed",
+                "observation_event":True, "body":"datastore_operation_failed operation=GET",
+                "attributes":{"operation":"GET", "outcome":"ERROR"}}
+        right = {"service":"cartservice", "severity":"ERROR", "event_name":"datastore_operation_failed",
+                 "observation_event":True, "body":"datastore_operation_failed operation={operation}",
+                 "trace_id":"trace-b", "span_id":"span-b",
+                 "attributes":{"Operation":"GET", "outcome":"ERROR"}}
         self.assertEqual(canonical_log_event(left), canonical_log_event(right))
 
-    def test_conventional_dotnet_console_envelope_matches_structured_otel_event(self):
-        from .contract import common_logs
-        timestamp = "1793164800000000000"
-        conventional = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
-            timestamp, "info: cartservice.services.CartService[0]\n      Reading cart for user 123e4567-e89b-12d3-a456-426614174000"]]}]}}}
-        otel = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "Information",
-            "trace_id": "abc", "span_id": "def"}, "values": [[timestamp, "Reading cart for user {UserId}"]]}]}}}
-        a = common_logs(conventional, "A")[0]
-        b = common_logs(otel, "B")[0]
-        self.assertEqual(a["severity"], "INFO")
-        self.assertEqual(b["severity"], "INFO")
-        self.assertEqual(a["body"], b["body"])
-        self.assertEqual(a["body"], "Reading cart for user {UserId}")
-        self.assertIsNone(a["trace_id"])
-        self.assertEqual(b["trace_id"], "abc")
+    def test_legacy_stdout_is_raw_only_even_when_it_looks_diagnostic(self):
+        from .contract import canonical_log_classification, common_logs
+        cases = [
+            ("ERROR", "Error: payment failed"),
+            ("INFO", "GetCartAsync called with userId=abc"),
+            ("INFO", "Transaction processed"),
+            (None, "at PaymentService.Charge()"),
+        ]
+        for severity, body in cases:
+            raw = {"response":{"data":{"result":[{"stream":{"service_name":"paymentservice", "severity":severity},
+                "values":[["1793164800000000000", body]]}]}}}
+            self.assertEqual(common_logs(raw, "A"), [])
+            result = canonical_log_classification({"service":"paymentservice", "severity":severity, "body":body})
+            self.assertEqual(result["category"], "RAW_AUDIT_ONLY")
+            self.assertFalse(result["model_visible"])
 
-    def test_dotnet_error_details_are_common_without_stacktrace(self):
+    def test_dotnet_error_fields_are_normalized_only_for_marked_shared_event(self):
         from .contract import common_logs
         timestamp = "1793164800000000000"
         detail = "Can't access cart storage. StackExchange.Redis.RedisConnectionException: SocketFailure\n ---> System.Exception: nested\n   at Redis.Read()"
-        a = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
+        a = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "observation_event": "true",
+            "event_name":"datastore_operation_failed", "operation":"GET", "severity":"ERROR"}, "values": [[
             timestamp, f"Error status code 'FailedPrecondition' with detail '{detail}' raised."]]}]}}}
         b = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "StatusCode": "FailedPrecondition",
-            "Detail": detail, "severity_text": "Error", "trace_id": "t", "span_id": "s"}, "values": [[
+            "Detail": detail, "severity_text": "Error", "trace_id": "t", "span_id": "s", "observation_event":"true",
+            "event_name":"datastore_operation_failed", "operation":"GET"}, "values": [[
                 timestamp, "Error status code '{StatusCode}' with detail '{Detail}' raised."]]}]}}}
         log_a = common_logs(a, "A")[0]
         log_b = common_logs(b, "B")[0]
-        self.assertEqual(log_a["body"], log_b["body"])
-        self.assertEqual(log_a["attributes"], log_b["attributes"])
+        self.assertEqual(log_a["event_name"], log_b["event_name"])
         self.assertEqual(log_a["attributes"]["error.message"], "Can't access cart storage.")
-        self.assertNotIn("error.type", log_a["attributes"])
         self.assertNotIn("nested", str(log_b))
         self.assertIsNone(log_a["trace_id"])
         self.assertEqual(log_b["trace_id"], "t")
@@ -438,32 +440,31 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(traces[0]["spans"][0]["kind"], "datastore")
         self.assertEqual(traces[0]["spans"][0]["target"], "redis-cart")
 
-    def test_canonical_log_classifier_excludes_health_and_redundant_success_without_fault_context(self):
+    def test_legacy_health_success_and_runtime_logs_are_audit_only(self):
         from .contract import canonical_log_classification, common_logs_with_audit
-        raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "INFO"}, "values": [
-            ["1793164800000000000", "GetCartAsync called with userId=abc\nChecking CartService Health"],
-            ["1793164800000000001", "Reading cart for user {UserId}"],
-        ]}, {"stream": {"service_name": "paymentservice", "severity": "INFO"}, "values": [
-            ["1793164800000000002", "Transaction processed: visa ending 0454 amount USD28.98"],
-        ]}]}}}
+        raw = {"response": {"data": {"result": [
+            {"stream": {"service_name": "cartservice", "severity": "INFO"}, "values": [
+                ["1793164800000000000", "GetCartAsync called with userId=abc\nChecking CartService Health"],
+                ["1793164800000000001", "Reading cart for user {UserId}"]]},
+            {"stream": {"service_name": "paymentservice", "severity": "INFO"}, "values": [
+                ["1793164800000000002", "Transaction processed: visa ending 0454 amount USD28.98"]]}
+        ]}}}
         original = copy.deepcopy(raw)
         visible, audit = common_logs_with_audit(raw, "A")
-        self.assertEqual([row["body"] for row in visible], ["Reading cart for user {UserId}"])
-        self.assertEqual(audit["categories"]["HEALTH_CHECK"], 1)
-        self.assertEqual(audit["categories"]["REDUNDANT_SUCCESS_EVENT"], 1)
-        self.assertEqual(canonical_log_classification({"service": "cartservice", "severity": "INFO",
-            "body": "GetCartAsync called with userId=abc\nChecking CartService Health", "fault_type": "anything"})["category"], "HEALTH_CHECK")
+        self.assertEqual(visible, [])
+        self.assertEqual(audit["categories"]["RAW_AUDIT_ONLY"], 3)
+        self.assertFalse(canonical_log_classification({"service":"cartservice", "severity":"INFO",
+            "body":"Checking CartService Health"})["model_visible"])
         self.assertEqual(raw, original)
 
-    def test_canonical_log_classifier_covers_application_runtime_lifecycle_and_unknown(self):
+    def test_shared_event_classifier_requires_contract_marker_and_diagnostic_severity(self):
         from .contract import canonical_log_classification
         cases = [
-            ({"service": "paymentservice", "severity": "ERROR", "body": "Charge failed"}, "APPLICATION_ERROR", True),
-            ({"service": "paymentservice", "severity": "WARN", "body": "Retrying charge"}, "APPLICATION_WARNING", True),
-            ({"service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"}, "APPLICATION_DIAGNOSTIC", True),
-            ({"service": "frontend", "severity": "WARN", "body": "DeprecationWarning: legacy API"}, "RUNTIME_NOISE", False),
-            ({"service": "redis-cart", "severity": "INFO", "body": "1:M User requested shutdown"}, "LIFECYCLE_NOISE", False),
-            ({"service": "cartservice", "severity": None, "body": "unclassified output"}, "UNKNOWN", False),
+            ({"service":"paymentservice", "severity":"ERROR", "event_name":"payment_charge_failed", "observation_event":True}, "APPLICATION_ERROR", True),
+            ({"service":"paymentservice", "severity":"WARN", "event_name":"application_warning", "observation_event":True}, "APPLICATION_WARNING", True),
+            ({"service":"paymentservice", "severity":"INFO", "event_name":"application_error", "observation_event":True}, "RAW_AUDIT_ONLY", False),
+            ({"service":"paymentservice", "severity":"ERROR", "event_name":"payment_charge_failed"}, "RAW_AUDIT_ONLY", False),
+            ({"service":"paymentservice", "severity":"ERROR", "body":"charge failed"}, "RAW_AUDIT_ONLY", False),
         ]
         for log, category, visible in cases:
             with self.subTest(log=log):
@@ -471,22 +472,13 @@ class DatasetBuilderTests(unittest.TestCase):
                 self.assertEqual(classified["category"], category)
                 self.assertEqual(classified["model_visible"], visible)
 
-    def test_canonical_log_classifier_normalizes_dynamic_values_and_is_scenario_agnostic(self):
+    def test_shared_event_classification_ignores_fault_and_scenario_metadata(self):
         from .contract import canonical_log_classification
-        first = {"service": "paymentservice", "severity": "INFO", "body": "PaymentService#Charge invoked with request 123"}
-        second = {"service": "paymentservice", "severity": "INFO", "body": "PaymentService#Charge invoked with request 987", "scenario": "B"}
-        self.assertEqual(canonical_log_classification(first)["category"], "APPLICATION_DIAGNOSTIC")
-        self.assertEqual(canonical_log_classification(first)["event_class"], canonical_log_classification(second)["event_class"])
-
-    def test_log_classification_does_not_read_ground_truth_or_scenario(self):
-        from .contract import canonical_log_classification
-        event = {"service": "cartservice", "severity": "INFO", "body": "Reading cart for user {UserId}"}
-        left = canonical_log_classification({**event, "fault_type": "datastore_unavailable",
-                                             "fault_location": "redis-cart", "scenario": "A"})
-        right = canonical_log_classification({**event, "fault_type": "application_exception",
-                                              "fault_location": "paymentservice", "scenario": "B"})
+        event = {"service":"cartservice", "severity":"ERROR", "event_name":"datastore_operation_failed", "observation_event":True}
+        left = canonical_log_classification({**event, "fault_type":"datastore_unavailable", "scenario":"A"})
+        right = canonical_log_classification({**event, "fault_type":"application_exception", "scenario":"B"})
         self.assertEqual(left, right)
-        self.assertEqual(left["category"], "APPLICATION_DIAGNOSTIC")
+        self.assertEqual(left["category"], "APPLICATION_ERROR")
 
     def test_jaeger_process_ids_are_scoped_to_each_search_payload(self):
         from .contract import common_traces

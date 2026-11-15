@@ -160,7 +160,8 @@ func (t *conventionalTelemetry) UnaryClientInterceptor() grpc.UnaryClientInterce
 			t.finish(parent.traceID, spanID, parent.spanID, method, "CLIENT", statusCode, start, duration)
 		}
 		if err != nil {
-			log.WithContext(ctx).WithField("event_name", "downstream_call_failed").
+			log.WithContext(ctx).WithField("observation_event", true).
+				WithField("event_name", "downstream_call_failed").
 				WithField("operation", method).
 				WithField("target_service", targetService(method)).
 				WithField("status_code", statusCode).

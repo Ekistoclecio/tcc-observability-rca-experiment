@@ -1,24 +1,136 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "contract_name": "Shared Observation Contract",
   "metrics": [
-    {"concept": "request_count", "dimensions": ["service", "operation", "kind", "outcome", "target"], "observation": "one operation completion"},
-    {"concept": "request_duration", "unit": "s", "dimensions": ["service", "operation", "kind", "outcome", "target"], "observation": "same start/end boundary as request_count"},
-    {"concept": "cpu_utilization", "unit": "cores", "source": "same cAdvisor container CPU series used by both pipelines"}
+    {
+      "concept": "request_count",
+      "dimensions": [
+        "service",
+        "operation",
+        "kind",
+        "outcome",
+        "target"
+      ],
+      "observation": "one operation completion"
+    },
+    {
+      "concept": "request_duration",
+      "unit": "s",
+      "dimensions": [
+        "service",
+        "operation",
+        "kind",
+        "outcome",
+        "target"
+      ],
+      "observation": "same start/end boundary as request_count"
+    },
+    {
+      "concept": "cpu_utilization",
+      "unit": "cores",
+      "source": "same cAdvisor container CPU series used by both pipelines"
+    }
   ],
   "observation_points": [
-    {"concept": "REQUEST", "events": ["request_started", "request_completed"], "completion_fields": ["service", "operation", "duration", "outcome"]},
-    {"concept": "DOWNSTREAM_CALL", "events": ["downstream_started", "downstream_completed"], "completion_fields": ["source_service", "target_service", "operation", "duration", "outcome"]},
-    {"concept": "DATASTORE_OPERATION", "events": ["datastore_started", "datastore_completed"], "completion_fields": ["service", "datastore", "operation", "duration", "outcome"]},
-    {"concept": "APPLICATION_EVENT", "events": ["application_error", "application_warning", "downstream_call_failed", "datastore_operation_failed"], "fields": ["service", "event_name", "severity", "operation", "error_type", "error_message"]}
+    {
+      "concept": "REQUEST",
+      "events": [
+        "request_started",
+        "request_completed"
+      ],
+      "completion_fields": [
+        "service",
+        "operation",
+        "duration",
+        "outcome"
+      ]
+    },
+    {
+      "concept": "DOWNSTREAM_CALL",
+      "events": [
+        "downstream_started",
+        "downstream_completed"
+      ],
+      "completion_fields": [
+        "source_service",
+        "target_service",
+        "operation",
+        "duration",
+        "outcome"
+      ]
+    },
+    {
+      "concept": "DATASTORE_OPERATION",
+      "events": [
+        "datastore_started",
+        "datastore_completed"
+      ],
+      "completion_fields": [
+        "service",
+        "datastore",
+        "operation",
+        "duration",
+        "outcome"
+      ]
+    },
+    {
+      "concept": "APPLICATION_EVENT",
+      "events": [
+        "application_error",
+        "application_warning",
+        "downstream_call_failed",
+        "datastore_operation_failed"
+      ],
+      "fields": [
+        "service",
+        "event_name",
+        "severity",
+        "operation",
+        "error_type",
+        "error_message"
+      ]
+    }
   ],
-  "span_kinds": ["SERVER", "CLIENT", "DATASTORE"],
-  "required_span_fields": ["service", "operation", "kind", "start", "duration", "outcome", "target"],
+  "span_kinds": [
+    "SERVER",
+    "CLIENT",
+    "DATASTORE"
+  ],
+  "required_span_fields": [
+    "service",
+    "operation",
+    "kind",
+    "start",
+    "duration",
+    "outcome",
+    "target"
+  ],
   "treatment_differences": {
-    "scenario_a": ["conventional Prometheus metrics", "traditional application logs", "custom trace IDs", "x-tcc-trace-id/x-tcc-span-id propagation", "limited explicit cross-signal correlation"],
-    "scenario_b": ["OpenTelemetry metrics/logs/traces", "W3C Trace Context", "native trace_id/span_id log correlation when active", "OTel semantic conventions"]
+    "scenario_a": [
+      "conventional Prometheus metrics",
+      "traditional application logs",
+      "custom trace IDs",
+      "x-tcc-trace-id/x-tcc-span-id propagation",
+      "limited explicit cross-signal correlation"
+    ],
+    "scenario_b": [
+      "OpenTelemetry metrics/logs/traces",
+      "W3C Trace Context",
+      "native trace_id/span_id log correlation when active",
+      "OTel semantic conventions"
+    ]
   },
-  "forbidden_observation_inputs": ["Ground Truth", "fault type", "fault location", "fault target", "F1", "F2", "F3", "F4", "F5"],
+  "forbidden_observation_inputs": [
+    "Ground Truth",
+    "fault type",
+    "fault location",
+    "fault target",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
   "events_must_be_fault_independent": true,
   "shared_measurement_rule": "Compute semantic duration and outcome once at the application observation point. Pass the same observation object to enabled adapters; each adapter retains its own identifiers and native representation.",
   "raw_policy": "Preserve native adapter output in RAW. Only the Common RCA View applies the semantic contract and removes explicitly audit-only instrumentation noise.",
@@ -27,5 +139,193 @@
     "CORRELATION_ONLY": "Maintains native context propagation or IDs without creating a second model-visible logical operation.",
     "RAW_AUDIT_ONLY": "Retained in RAW but excluded from common diagnostic evidence.",
     "UNNECESSARY": "Disabled when it duplicates a manually shared observation or exports unrelated runtime diagnostics."
+  },
+  "shared_application_event": {
+    "required_fields": [
+      "observation_event",
+      "event_name",
+      "service",
+      "severity",
+      "operation",
+      "outcome"
+    ],
+    "optional_fields": [
+      "error_type",
+      "error_message",
+      "target"
+    ],
+    "identity_fields": [
+      "service",
+      "severity",
+      "event_name",
+      "operation",
+      "outcome",
+      "error_type"
+    ],
+    "message_is_identity": false,
+    "marker_model_visible": false,
+    "allowed_event_names": [
+      "application_error",
+      "application_warning",
+      "downstream_operation_failed",
+      "downstream_call_failed",
+      "datastore_operation_failed",
+      "payment_charge_failed"
+    ]
+  },
+  "model_visible_source_policy": {
+    "logs": "explicit shared application events only; unmarked stdout is RAW_AUDIT_ONLY",
+    "metrics": "approved shared semantic concepts only; native automatic metrics are RAW_AUDIT_ONLY",
+    "traces": "approved logical SERVER/CLIENT/DATASTORE observation boundaries only",
+    "zero_delta_cumulative_observation": "omit when baseline is valid and delta is exactly zero",
+    "missing_baseline": "retain as unknown; never coerce to zero"
+  },
+  "service_coverage": {
+    "frontend": {
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    },
+    "checkoutservice": {
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "status": "partial"
+    },
+    "cartservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": true,
+      "application_events": true,
+      "shared_metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "status": "partial"
+    },
+    "productcatalogservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    },
+    "currencyservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "status": "implemented"
+    },
+    "paymentservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": true,
+      "shared_metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "status": "implemented"
+    },
+    "shippingservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    },
+    "emailservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    },
+    "recommendationservice": {
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    },
+    "adservice": {
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "shared_metric_adapters": [
+        "conventional"
+      ],
+      "status": "partial"
+    }
+  },
+  "coverage_status": "partial",
+  "fault_observation_coverage": {
+    "cpu_saturation": {
+      "required": [
+        "cpu_utilization",
+        "request_duration",
+        "request_count/outcome"
+      ],
+      "source_status": "partial",
+      "reason": "CPU comes from shared cAdvisor source; request observations are not yet paired for every service."
+    },
+    "network_latency": {
+      "required": [
+        "CLIENT checkoutservice→paymentservice duration/outcome"
+      ],
+      "source_status": "implemented_for_checkoutservice_only",
+      "reason": "Checkout client observation is shared; service-wide paired observation coverage remains partial."
+    },
+    "service_unavailable": {
+      "required": [
+        "CLIENT checkoutservice→paymentservice ERROR"
+      ],
+      "source_status": "implemented_for_checkoutservice_only",
+      "reason": "Checkout client observation is shared; event and metrics must be confirmed from both adapters."
+    },
+    "application_exception": {
+      "required": [
+        "SERVER paymentservice/Charge ERROR",
+        "payment_charge_failed"
+      ],
+      "source_status": "partial",
+      "reason": "Payment source defines the event, but historical artifacts lack explicit shared markers and current dual-adapter emission has not been smoke-validated."
+    },
+    "datastore_unavailable": {
+      "required": [
+        "DATASTORE cartservice→redis-cart ERROR",
+        "datastore_operation_failed"
+      ],
+      "source_status": "partial",
+      "reason": "Cart shared event adapter was changed; paired source observations and current run remain unvalidated."
+    }
   }
 }

@@ -128,7 +128,8 @@ def deterministic_sample(dataset: dict[str, Any], log_cap: int = 80) -> dict[str
     # This is deterministic and never enriches one scenario from the other.
     linked_selected: dict[str, dict[str, Any]] = {}
     for row in dataset.get("logs", []):
-        if row.get("trace_id") and str(row["trace_id"]) in selected_trace_ids:
+        if (canonical_log_classification(row)["model_visible"] and row.get("trace_id")
+                and str(row["trace_id"]) in selected_trace_ids):
             key = str(row.get("evidence_id", json.dumps(row, sort_keys=True)))
             selected_logs[key] = row
             linked_selected[key] = row

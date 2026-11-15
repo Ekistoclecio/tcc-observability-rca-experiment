@@ -1,69 +1,15 @@
 # Shared Observation Contract
 
-Both telemetry scenarios must originate from the same semantic application observations. Each application observation is measured once, then passed to the conventional and OpenTelemetry adapters. The adapters may encode the observation differently and keep independent identifiers and propagation context.
+The experiment intends to hold diagnostic facts constant while varying telemetry representation, context propagation, and cross-signal correlation. Both variants should receive one logical observation from the application boundary; conventional and OpenTelemetry adapters then encode it independently.
 
-```text
-application boundary
-       │
-       ├── one duration and outcome
-       ├── conventional adapter: Prometheus, stdout, custom trace context
-       └── OTel adapter: OTel metrics/logs/traces, W3C context
-```
+## Model-visible source policy
 
-## Observation points
+The Common RCA View includes logs only when they are explicitly marked as a Shared Application Event and have an allowlisted `event_name` plus diagnostic severity. Arbitrary stdout, application informational logs, framework/runtime logs, and unmarked errors stay in RAW and are `RAW_AUDIT_ONLY`. Event identity is `service`, canonical severity, `event_name`, `operation`, `outcome`, and `error_type`; rendered message and correlation IDs are not identity fields. The internal `observation_event` marker is removed before model-visible serialization.
 
-`REQUEST` records request start and completion. Completion contains service, operation, duration, and outcome.
+Metrics are restricted to approved shared semantic concepts. Automatic OTel runtime/library metrics remain RAW-only. A cumulative counter or histogram count with a valid baseline and zero delta is omitted; a missing baseline remains unknown and is never changed to zero. Gauges are not subject to zero-delta omission.
 
-`DOWNSTREAM_CALL` records a client operation with source service, target service, operation, duration, and outcome.
+Logical traces preserve SERVER, CLIENT, and DATASTORE boundaries. B may retain OTel/W3C correlation fields; A does not receive synthetic OTel identifiers.
 
-`DATASTORE_OPERATION` records a datastore operation with service, datastore, operation, duration, and outcome.
+## Current static coverage
 
-`APPLICATION_EVENT` records application errors and warnings plus failed downstream and datastore operations. An error at a covered operation is emitted by the same completion observation to whichever adapter is active. Application messages do not mention the fault harness or fault class.
-
-The machine-readable contract is [observation-contract.json](/home/ekistoclecio/dev/microservices-demo/config/experiment/observation-contract.json).
-
-## Metric and span adapters
-
-The semantic measurement is computed once. `request_count` and `request_duration` use service, operation, kind, outcome, and target where applicable. F1 CPU uses the same cAdvisor container CPU measurements in both collection pipelines.
-
-The same logical boundaries produce `SERVER`, `CLIENT`, and `DATASTORE` spans. A retains custom trace/span identifiers and `x-tcc-trace-id`/`x-tcc-span-id` propagation. B retains OTel IDs, W3C propagation, semantic conventions, and native log-to-span correlation. IDs are never shared across scenarios.
-
-## Automatic instrumentation
-
-Each automatic instrument is classified as `REQUIRED_BY_SHARED_CONTRACT`, `CORRELATION_ONLY`, `RAW_AUDIT_ONLY`, or `UNNECESSARY`. A second automatic span or metric for an already represented operation is disabled or excluded from the Common RCA View. Runtime, SDK, exporter, and framework output remains available in RAW when it is naturally produced.
-
-## Fault independence
-
-Observation code does not inspect Ground Truth, the fault class, location, target, or IDs such as F1–F5. It responds only to real operation completion, status, duration, and application errors. Observation code must not change application responses, retry behavior, or fault behavior.
-
-## Validation
-
-Before running faults, adapter tests verify that one semantic completion is offered to both adapters with the same duration and outcome, while each adapter keeps independent propagation. A shared-observation parity validator compares operation keys and application event classes without comparing trace IDs. Only after static tests pass should F4/F5 be used to check exception and datastore paths physically.
-
-## Fault coverage map
-
-| Fault | Required evidence from shared observations |
-|---|---|
-| F1 CPU saturation | `cpu_utilization`, request duration, request count/outcome |
-| F2 network latency | checkout-to-payment client operation duration/outcome |
-| F3 service unavailable | checkout-to-payment client operation error |
-| F4 application exception | payment `Charge` server error and `payment_charge_failed` application event |
-| F5 datastore unavailable | cart-to-Redis datastore operation error |
-
-This contract defines application facts; the F1–F5 mapping is only a validation checklist and is never supplied to application instrumentation.
-
-## Runtime adoption status
-
-The contract is implemented incrementally and must not be treated as fully adopted until every runtime listed in [auto-instrumentation-inventory.json](/home/ekistoclecio/dev/microservices-demo/config/experiment/auto-instrumentation-inventory.json) reports shared completion observations. The current code shares the RPC measurement adapter in Node.js `paymentservice`/`currencyservice`, Go `checkoutservice`, and .NET `cartservice`; it also shares Redis datastore measurement completion in CartService. Payment application failures, checkout downstream failures, and Cart Redis failures are emitted from their operation paths to the scenario-specific adapters.
-
-Go `frontend`, `productcatalogservice`, and `shippingservice`, Python services, and Java `adservice` currently retain separate conventional and OpenTelemetry framework handlers. They observe the same RPC lifecycle, but do not yet pass one immutable semantic completion object to both metric adapters. This is an explicit implementation gap. Do not claim system-wide end-to-end “by construction” parity until this gap is closed and the relevant language suites pass.
-
-## Implemented operation adapters
-
-For Node.js RPC handlers, the conventional wrapper owns the start/end boundary and constructs one completion observation with service, method, kind, gRPC status, semantic outcome, and duration. It records the conventional metric when enabled and passes the same frozen observation to the OTel metric adapter. OTel gRPC instrumentation remains responsible for native B trace context and spans; the custom wrapper does not create A identifiers in B.
-
-For CartService RPCs, one interceptor computes duration and outcome, records the OTel metric, and passes the same duration/outcome into the conventional span adapter when enabled. For RedisCartStore, one elapsed duration and failure outcome feed the OTel meter and conventional client span; an application error log is emitted from that same failed operation path.
-
-For checkoutservice client/server RPCs, the conventional interceptor measures the completion once even when the conventional exporter is disabled. It sends the same duration/status to the OTel semantic metric adapter and the conventional metric/span adapter when enabled. A failed client call emits one structured `downstream_call_failed` event from the shared completion point, using the current RPC context so B retains native correlation while A remains independent.
-
-PaymentService `Charge` emits `payment_charge_failed` at the real application exception boundary. Both adapters receive the same event object; A writes a conventional structured log without trace/span identifiers, while B emits an OTel log that may inherit the active native OTel context. The injected exception message is neutral and does not mention the test harness.
+See [shared observation coverage audit](../../audit/observability-contract/shared-observation-coverage.md) and the machine-readable `service_coverage` in `config/experiment/observation-contract.json`. Several services remain partial, so no new physical validation should run until paired source observations are implemented and tested for all relevant services.

@@ -93,6 +93,7 @@ function createOTelTelemetry(defaultServiceName) {
       severityText,
       severityNumber,
       attributes: {
+        'observation.event': true,
         'event.name': event.eventName,
         'service.name': serviceName,
         'rpc.method': event.operation,
