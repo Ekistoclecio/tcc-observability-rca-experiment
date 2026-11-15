@@ -35,4 +35,6 @@ artifacts/rca-inputs/
 artifacts/integration-validation/
 artifacts/experiment-validation/
 audit/results/
+audit/final-validation/
+teste/
 .venv-tcc-workload/
