@@ -1,55 +1,502 @@
 {
-  "evidence": {
-    "dataset_A": {
-      "bytes": 2185549,
-      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-a/dataset.json",
-      "sha256": "a28322799611862d935af19e71a03f0daf0407d85503f8dae16777ba3ce7355c"
+  "A_series": [
+    {
+      "baseline": {
+        "rule": "first evaluation sample at/after query start; query_range begins at window_start",
+        "sample": [
+          1794768948.615,
+          "5"
+        ],
+        "valid": false
+      },
+      "complete_labels": {
+        "__name__": "tcc_conventional_requests_total",
+        "instance": "paymentservice.default.svc.cluster.local:9464",
+        "job": "online-boutique-conventional",
+        "operation": "/hipstershop.PaymentService/Charge",
+        "service_name": "paymentservice",
+        "span_kind": "server",
+        "status_code": "13"
+      },
+      "first_sample": [
+        1794768948.615,
+        "5"
+      ],
+      "last_sample": [
+        1794768958.615,
+        "5"
+      ],
+      "metric_type": "counter",
+      "native_name": "tcc_conventional_requests_total",
+      "outcome": "13",
+      "samples": [
+        {
+          "timestamp_epoch": 1794768948.615,
+          "timestamp_utc": "2026-11-15T18:55:48.615Z",
+          "value": 5.0
+        },
+        {
+          "timestamp_epoch": 1794768953.615,
+          "timestamp_utc": "2026-11-15T18:55:53.615Z",
+          "value": 5.0
+        },
+        {
+          "timestamp_epoch": 1794768958.615,
+          "timestamp_utc": "2026-11-15T18:55:58.615Z",
+          "value": 5.0
+        }
+      ]
     },
-    "dataset_B": {
-      "bytes": 2958270,
-      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-b/dataset.json",
-      "sha256": "55d5edf0b77666bb6beb7295c6d84f67fd58315ad0265bcf6199126258f75ce5"
+    {
+      "baseline": {
+        "rule": "first evaluation sample at/after query start; query_range begins at window_start",
+        "sample": [
+          1794768933.615,
+          "27"
+        ],
+        "valid": true
+      },
+      "complete_labels": {
+        "__name__": "tcc_conventional_requests_total",
+        "instance": "paymentservice.default.svc.cluster.local:9464",
+        "job": "online-boutique-conventional",
+        "operation": "/hipstershop.PaymentService/Charge",
+        "service_name": "paymentservice",
+        "span_kind": "server",
+        "status_code": "OK"
+      },
+      "first_sample": [
+        1794768933.615,
+        "27"
+      ],
+      "last_sample": [
+        1794768958.615,
+        "43"
+      ],
+      "metric_type": "counter",
+      "native_name": "tcc_conventional_requests_total",
+      "outcome": "OK",
+      "samples": [
+        {
+          "timestamp_epoch": 1794768933.615,
+          "timestamp_utc": "2026-11-15T18:55:33.615Z",
+          "value": 27.0
+        },
+        {
+          "timestamp_epoch": 1794768938.615,
+          "timestamp_utc": "2026-11-15T18:55:38.615Z",
+          "value": 28.0
+        },
+        {
+          "timestamp_epoch": 1794768943.615,
+          "timestamp_utc": "2026-11-15T18:55:43.615Z",
+          "value": 33.0
+        },
+        {
+          "timestamp_epoch": 1794768948.615,
+          "timestamp_utc": "2026-11-15T18:55:48.615Z",
+          "value": 33.0
+        },
+        {
+          "timestamp_epoch": 1794768953.615,
+          "timestamp_utc": "2026-11-15T18:55:53.615Z",
+          "value": 38.0
+        },
+        {
+          "timestamp_epoch": 1794768958.615,
+          "timestamp_utc": "2026-11-15T18:55:58.615Z",
+          "value": 43.0
+        }
+      ]
+    }
+  ],
+  "B_series": [
+    {
+      "baseline": {
+        "rule": "first evaluation sample at/after query start; query_range begins at window_start",
+        "sample": [
+          1794768953.615,
+          "2"
+        ],
+        "valid": false
+      },
+      "complete_labels": {
+        "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "deployment_environment_name": "tcc-local",
+        "exported_job": "paymentservice",
+        "instance": "otel-collector:9464",
+        "job": "otel-collector",
+        "otel_scope_name": "online-boutique/paymentservice",
+        "otel_scope_version": "0.10.7",
+        "rpc_method": "/hipstershop.PaymentService/Charge",
+        "rpc_response_status_code": "13",
+        "rpc_system_name": "grpc",
+        "service_name": "paymentservice",
+        "service_version": "0.10.7",
+        "telemetry_scenario": "otel"
+      },
+      "first_sample": [
+        1794768953.615,
+        "2"
+      ],
+      "last_sample": [
+        1794768958.615,
+        "5"
+      ],
+      "metric_type": "counter",
+      "native_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+      "outcome": "13",
+      "samples": [
+        {
+          "timestamp_epoch": 1794768953.615,
+          "timestamp_utc": "2026-11-15T18:55:53.615Z",
+          "value": 2.0
+        },
+        {
+          "timestamp_epoch": 1794768958.615,
+          "timestamp_utc": "2026-11-15T18:55:58.615Z",
+          "value": 5.0
+        }
+      ]
     },
-    "raw_metrics_A": {
-      "bytes": 154398,
-      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-a/raw/metrics.json",
-      "sha256": "f7b1c1163ff164e256e77dc8b0f05c00421f2d6ccecaba68dbe23620feb46760"
+    {
+      "baseline": {
+        "rule": "first evaluation sample at/after query start; query_range begins at window_start",
+        "sample": [
+          1794768933.615,
+          "27"
+        ],
+        "valid": true
+      },
+      "complete_labels": {
+        "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "deployment_environment_name": "tcc-local",
+        "exported_job": "paymentservice",
+        "instance": "otel-collector:9464",
+        "job": "otel-collector",
+        "otel_scope_name": "online-boutique/paymentservice",
+        "otel_scope_version": "0.10.7",
+        "rpc_method": "/hipstershop.PaymentService/Charge",
+        "rpc_response_status_code": "OK",
+        "rpc_system_name": "grpc",
+        "service_name": "paymentservice",
+        "service_version": "0.10.7",
+        "telemetry_scenario": "otel"
+      },
+      "first_sample": [
+        1794768933.615,
+        "27"
+      ],
+      "last_sample": [
+        1794768958.615,
+        "34"
+      ],
+      "metric_type": "counter",
+      "native_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+      "outcome": "OK",
+      "samples": [
+        {
+          "timestamp_epoch": 1794768933.615,
+          "timestamp_utc": "2026-11-15T18:55:33.615Z",
+          "value": 27.0
+        },
+        {
+          "timestamp_epoch": 1794768938.615,
+          "timestamp_utc": "2026-11-15T18:55:38.615Z",
+          "value": 27.0
+        },
+        {
+          "timestamp_epoch": 1794768943.615,
+          "timestamp_utc": "2026-11-15T18:55:43.615Z",
+          "value": 27.0
+        },
+        {
+          "timestamp_epoch": 1794768948.615,
+          "timestamp_utc": "2026-11-15T18:55:48.615Z",
+          "value": 30.0
+        },
+        {
+          "timestamp_epoch": 1794768953.615,
+          "timestamp_utc": "2026-11-15T18:55:53.615Z",
+          "value": 33.0
+        },
+        {
+          "timestamp_epoch": 1794768958.615,
+          "timestamp_utc": "2026-11-15T18:55:58.615Z",
+          "value": 34.0
+        }
+      ]
+    }
+  ],
+  "baseline_analysis": {
+    "algorithm_after_fix": "The query_range is evaluated at 1s cadence starting at window_start. The first evaluation at window_start returns the latest stored sample at or before that instant; query boundary timestamp checks verified the underlying source sample timestamps.",
+    "algorithm_before_fix": "Prometheus range query began at window_start; normalizer used first returned point as baseline and accumulated subsequent changes. Error series first appeared after window_start, so both error deltas are null/missing_baseline.",
+    "error_baseline_A": {
+      "status": "missing_baseline",
+      "timestamp": "2026-11-15T18:55:48.615Z",
+      "valid": false,
+      "value": null
     },
-    "raw_metrics_B": {
-      "bytes": 1522415,
-      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-b/raw/metrics.json",
-      "sha256": "05338989caca3f693675400bc050754ce6efa9567af702aa25f6c185dd52194c"
+    "error_baseline_B": {
+      "status": "missing_baseline",
+      "timestamp": "2026-11-15T18:55:53.615Z",
+      "valid": false,
+      "value": null
+    },
+    "missing_baseline_behavior_changed": false,
+    "success_baseline_A": {
+      "evaluation_timestamp": "2026-11-15T18:55:33.615Z",
+      "selection": "last available Prometheus sample at/before window_start",
+      "source_sample_timestamp": "2026-11-15T18:55:30.628Z",
+      "valid": true,
+      "value": 27
+    },
+    "success_baseline_B": {
+      "evaluation_timestamp": "2026-11-15T18:55:33.615Z",
+      "selection": "last available Prometheus sample at/before window_start",
+      "source_sample_timestamp": "2026-11-15T18:55:30.799Z",
+      "valid": true,
+      "value": 27
     }
   },
-  "interpretation": "The two scenarios expose the same logical trace outcomes, but request success counter deltas disagree. Error deltas are unavailable because their first samples occur after the observation window begins. Do not infer or replace metrics from trace spans; investigate SDK export/collection and instrumentation before accepting metric parity.",
+  "builder_analysis": {
+    "aggregation_bug": "No label aggregation/series overwrite caused this F4 discrepancy. The bug was temporal query evaluation granularity.",
+    "bug": "5s query_range evaluation grid can miss a backend scrape occurring between grid points, particularly the newest B sample within a window. This made the returned last value stale despite the sample being available in Prometheus before window_end.",
+    "fix": "Use a shared 1s Prometheus query_range step for A and B. This samples the latest Prometheus value at each evaluation second and reduces grid aliasing while preserving the same requested window and backend data. It does not interpolate or derive metrics from traces.",
+    "normalized_request_count_source": {
+      "A": "tcc_conventional_requests_total (the conventional counter); duration histogram _count is also exported and has identical samples.",
+      "B": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count (histogram count component) is the source currently selected by the metric candidate preference. The dedicated online_boutique_otel_tcc_otel_rpc_server_requests_total counter is also present and its complete samples/labels are included in B_series; its values exactly equal the histogram _count values for both outcomes. This source-selection distinction did not cause the discrepancy."
+    },
+    "raw_preserved": true,
+    "series_fragmentation": {
+      "A_series_count_error": 1,
+      "A_series_count_success": 1,
+      "B_series_count_error": 1,
+      "B_series_count_success": 1,
+      "detected": false
+    }
+  },
+  "classification": {
+    "BUILDER_AGGREGATION_BUG": true,
+    "COUNTER_RESET": false,
+    "DIFFERENT_INCREMENT_SEMANTICS": false,
+    "INSTRUMENTATION_BUG": false,
+    "MISSING_BASELINE": true,
+    "OTHER": false,
+    "SCRAPE_ALIGNMENT": true,
+    "SERIES_FRAGMENTATION": false
+  },
+  "corrected_window_delta_from_same_historical_prometheus_data": {
+    "A": 16,
+    "B": 13,
+    "explanation": "At exact window_end Prometheus held A=43 and B=40; the remaining value difference reflects B export/scrape lag at cutoff.",
+    "method": "query_range with same bounds and step=1s; see query evidence JSON",
+    "remaining_difference": 3
+  },
+  "diagnostic_f4_run": {
+    "builder_step": "1s",
+    "confirmed_end": "2026-11-15T19:31:31.913Z",
+    "confirmed_start": "2026-11-15T19:31:23.009Z",
+    "direct_endpoint_poll": {
+      "baseline_at_19:31:16": "success A/B=68/68; error A/B=5/5",
+      "converged_at_19:31:44.996": "success A/B=84/84; error A/B=11/11",
+      "during_fault_at_19:31:30.250": "success A/B=74/74; error A/B=10/9",
+      "interpretation": "Metric endpoints eventually converge after export/scrape catches up. The RCA-window cut retained different latest values because B had not completed the periodic export/scrape chain by that cutoff.",
+      "near_window_end_at_19:31:41.314": "success A/B=84/82; error A/B=11/11",
+      "samples": 341,
+      "sha256": "6e6db28ac3bfc006df5faddd3f3f79743530c8e7bf15b183f37bddd0878d9590",
+      "source_artifact": "audit/observability-contract/f4-metric-live-endpoint-poll.tsv"
+    },
+    "ground_truth_status": "valid",
+    "normalized_error_delta": {
+      "A": 6,
+      "B": 6
+    },
+    "normalized_success_delta": {
+      "A": 12,
+      "B": 9
+    },
+    "run_id": "f4-metric-investigation-20261115",
+    "window": {
+      "end": "2026-11-15T19:31:41.913Z",
+      "start": "2026-11-15T19:31:13.009Z"
+    }
+  },
+  "evidence": {
+    "corrected_query": "audit/observability-contract/f4-metric-investigation-prometheus-query.json",
+    "corrected_query_sha256": "0c30e0a0517ae3896154d60469d77b622d38faebbbd5db979c5a744a61d54c3c",
+    "diagnostic_dataset_A": "artifacts/datasets/f4-metric-investigation-20261115/scenario-a/dataset.json",
+    "diagnostic_dataset_B": "artifacts/datasets/f4-metric-investigation-20261115/scenario-b/dataset.json",
+    "diagnostic_events": "artifacts/experiments/f4-metric-investigation-20261115/orchestrator-events.jsonl",
+    "diagnostic_ground_truth": "artifacts/experiments/f4-metric-investigation-20261115/ground-truth.json",
+    "live_endpoint_poll": "audit/observability-contract/f4-metric-live-endpoint-poll.tsv",
+    "live_endpoint_poll_sha256": "6e6db28ac3bfc006df5faddd3f3f79743530c8e7bf15b183f37bddd0878d9590",
+    "original_raw_metrics": {
+      "A": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-a/raw/metrics.json",
+      "B": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-b/raw/metrics.json"
+    }
+  },
+  "fix": {
+    "applied": true,
+    "code_change": "scripts/experiment/dataset/core.py: PROMETHEUS_QUERY_STEP changed from 5s to 1s, applied identically to both scenarios.",
+    "instrumentation_changed": false,
+    "logs_changed": false,
+    "missing_baseline_changed": false,
+    "traces_changed": false
+  },
+  "instrumentation_analysis": {
+    "A_source": "src/paymentservice/conventional-telemetry.js: record(operation,result,durationSeconds) increments Map count in the wrapped unary handler finish callback, then serves the count directly from /metrics.",
+    "B_request_counter_and_histogram_count_increment_event": "The custom requests counter and duration histogram count are updated in the same OTel finish callback; captured Prometheus arrays are identical in the F4 window.",
+    "B_request_counter_and_histogram_count_samples_equal": true,
+    "B_source": "src/paymentservice/otel-telemetry.js: finish(error,...) calls requests.add(1, attributes) once; duration.record runs in the same callback. NodeSDK exports via PeriodicExportingMetricReader every 5000ms to the Collector.",
+    "counter_reset_detected": {
+      "A": false,
+      "B": false
+    },
+    "different_increment_semantics": false,
+    "increment_event": "completed Charge RPC, labeled success/error from the final gRPC callback status",
+    "pod_restart_during_original_run": false,
+    "semantics_equivalent": true,
+    "wrapper_order": "src/paymentservice/server.js wraps Charge with conventionalTelemetry.wrapUnary(otelTelemetry.wrapUnary(handler)); both finish wrappers are guarded against duplicate completion and use the same gRPC result callback."
+  },
+  "native_series_crosscheck": {
+    "B": [
+      {
+        "complete_labels": {
+          "__name__": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+          "deployment_environment_name": "tcc-local",
+          "exported_job": "paymentservice",
+          "instance": "otel-collector:9464",
+          "job": "otel-collector",
+          "otel_scope_name": "online-boutique/paymentservice",
+          "otel_scope_version": "0.10.7",
+          "rpc_method": "/hipstershop.PaymentService/Charge",
+          "rpc_response_status_code": "13",
+          "rpc_system_name": "grpc",
+          "service_name": "paymentservice",
+          "service_version": "0.10.7",
+          "telemetry_scenario": "otel"
+        },
+        "metric_type": "counter (histogram count component)",
+        "native_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "outcome": "13",
+        "samples": [
+          {
+            "timestamp_epoch": 1794768953.615,
+            "timestamp_utc": "2026-11-15T18:55:53.615Z",
+            "value": 2.0
+          },
+          {
+            "timestamp_epoch": 1794768958.615,
+            "timestamp_utc": "2026-11-15T18:55:58.615Z",
+            "value": 5.0
+          }
+        ]
+      },
+      {
+        "complete_labels": {
+          "__name__": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+          "deployment_environment_name": "tcc-local",
+          "exported_job": "paymentservice",
+          "instance": "otel-collector:9464",
+          "job": "otel-collector",
+          "otel_scope_name": "online-boutique/paymentservice",
+          "otel_scope_version": "0.10.7",
+          "rpc_method": "/hipstershop.PaymentService/Charge",
+          "rpc_response_status_code": "OK",
+          "rpc_system_name": "grpc",
+          "service_name": "paymentservice",
+          "service_version": "0.10.7",
+          "telemetry_scenario": "otel"
+        },
+        "metric_type": "counter (histogram count component)",
+        "native_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "outcome": "OK",
+        "samples": [
+          {
+            "timestamp_epoch": 1794768933.615,
+            "timestamp_utc": "2026-11-15T18:55:33.615Z",
+            "value": 27.0
+          },
+          {
+            "timestamp_epoch": 1794768938.615,
+            "timestamp_utc": "2026-11-15T18:55:38.615Z",
+            "value": 27.0
+          },
+          {
+            "timestamp_epoch": 1794768943.615,
+            "timestamp_utc": "2026-11-15T18:55:43.615Z",
+            "value": 27.0
+          },
+          {
+            "timestamp_epoch": 1794768948.615,
+            "timestamp_utc": "2026-11-15T18:55:48.615Z",
+            "value": 30.0
+          },
+          {
+            "timestamp_epoch": 1794768953.615,
+            "timestamp_utc": "2026-11-15T18:55:53.615Z",
+            "value": 33.0
+          },
+          {
+            "timestamp_epoch": 1794768958.615,
+            "timestamp_utc": "2026-11-15T18:55:58.615Z",
+            "value": 34.0
+          }
+        ]
+      }
+    ]
+  },
   "operation": {
     "name": "PaymentService/Charge",
     "service": "paymentservice"
   },
-  "request_count": {
-    "A": {
-      "error_delta": null,
-      "error_delta_status": "missing_baseline",
-      "success_delta": 16
-    },
-    "B": {
-      "error_delta": null,
-      "error_delta_status": "missing_baseline",
-      "success_delta": 7
-    }
+  "original_window_delta": {
+    "A": 16,
+    "B": 7
+  },
+  "root_cause": {
+    "explanation": "The old Prometheus query_range used step=5s on a grid anchored at the arbitrary window_start. This grid did not evaluate at the latest B scrape inside the window (timestamp 1794768958.732, value 40), so the last returned B point was an older value 34 at evaluation 1794768958.615. The 5s grid therefore reported B delta 7 instead of 13. Additionally, B has a 5s OTel PeriodicExportingMetricReader followed by the Collector Prometheus endpoint and a 5s Prometheus scrape, so the latest in-window B point can still lag A at the same cutoff. At the exact end boundary, A=43 and B=40; this residual 3 is observable collection lag, not different increment semantics.",
+    "primary_category": "SCRAPE_ALIGNMENT",
+    "secondary_category": "BUILDER_AGGREGATION_BUG"
   },
   "run_id": "iv-edv-ccv1-002-f4-f4",
-  "schema_version": "1.0",
-  "status": "unresolved_parity_failure",
-  "trace_outcomes": {
-    "A": {
-      "error_spans": 5,
-      "success_spans": 17
+  "schema_version": "1.1",
+  "scrape_analysis": {
+    "A_latest_in_window_observed_at_end_query": {
+      "source_sample_timestamp": "2026-11-15T18:55:58.561Z",
+      "value": 43
     },
-    "B": {
-      "error_spans": 5,
-      "success_spans": 17
-    }
+    "B_application_metric_reader_interval": "5s",
+    "B_collector_prometheus_receiver_cadvisor_interval": "5s",
+    "B_latest_in_window_observed_at_end_query": {
+      "source_sample_timestamp": "2026-11-15T18:55:58.732Z",
+      "value": 40
+    },
+    "new_query_range_step": "1s",
+    "old_grid_B_last_value": 34,
+    "old_grid_last_eval": "2026-11-15T18:55:58.615Z",
+    "old_query_range_step": "5s",
+    "prometheus_scrape_interval_A": "5s",
+    "prometheus_scrape_interval_B": "5s",
+    "same_scrape_interval": true,
+    "window_end": "2026-11-15T18:55:59.777Z"
+  },
+  "status": "explained_collection_lag_with_query_step_fix",
+  "validation": {
+    "common_observability_contract": "PASS_WITH_DOCUMENTED_SCRAPE_LIMITATION",
+    "dataset_unit_tests": "24 passed",
+    "diagnostic_endpoint_eventual_values_equal": true,
+    "diagnostic_f4_new_injection_count": 1,
+    "diagnostic_run_A_delta": 12,
+    "diagnostic_run_B_delta": 9,
+    "experiment_test_suite": "73 passed",
+    "f1_or_f5_or_f2_or_f3_executed": false,
+    "historical_delta_A": 16,
+    "historical_delta_B": 13,
+    "historical_f4_requeried_without_new_fault": true,
+    "historical_range_query_step_1s": true,
+    "metric_value_parity": "PASS_WITH_EXPLICIT_COLLECTION_LAG"
   },
   "window": {
     "end": "2026-11-15T18:55:59.777000Z",

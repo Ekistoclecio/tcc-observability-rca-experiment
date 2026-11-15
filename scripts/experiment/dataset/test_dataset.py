@@ -64,6 +64,24 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertNotIn("datastore_unavailable", encoded)
         self.assertNotIn("fault", encoded)
 
+    def test_prometheus_evaluation_step_captures_window_edges_for_both_scenarios(self):
+        window = window_from_ground_truth(_ground_truth("paymentservice", "x"), 10, 10)
+        plan = build_query_plan(window)
+        self.assertEqual(plan["A"][0]["params"]["step"], "1s")
+        self.assertEqual(plan["B"][0]["params"]["step"], "1s")
+        self.assertEqual(plan["A"][0]["params"]["start"], plan["B"][0]["params"]["start"])
+        self.assertEqual(plan["A"][0]["params"]["end"], plan["B"][0]["params"]["end"])
+
+    def test_counter_delta_includes_latest_sample_evaluated_at_window_end(self):
+        from .contract import common_metrics
+        window = {"start": "1970-01-01T00:01:40Z", "end": "1970-01-01T00:01:59Z"}
+        series = {"metric": {"__name__": "tcc_conventional_requests_total", "service_name": "paymentservice",
+                             "operation": "/hipstershop.PaymentService/Charge", "span_kind": "server", "status_code": "OK"},
+                  "values": [[100, "27"], [118, "34"], [119, "40"]]}
+        result = common_metrics({"response": {"data": {"result": [series]}}}, "A", window)[0]
+        self.assertEqual(result["value"], 13)
+        self.assertEqual(result["delta_status"], "valid")
+
     def test_window_epoch_conversion_is_exact(self):
         window = window_from_ground_truth(_ground_truth("paymentservice", "x"), 10, 10)
         self.assertEqual(epoch_microseconds(window.start) * 1000, epoch_nanoseconds(window.start))

@@ -17,6 +17,7 @@ SUT_SERVICES = (
     "paymentservice", "shippingservice", "emailservice", "recommendationservice", "adservice", "redis-cart",
 )
 SCENARIOS = ("A", "B")
+PROMETHEUS_QUERY_STEP = "1s"
 RAW_SIGNALS = ("metrics", "logs", "traces")
 RUN_ID_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,50}\Z")
 
@@ -123,7 +124,7 @@ def build_query_plan(window: Window) -> dict[str, list[dict[str, Any]]]:
                 "backend": "prometheus", "scenario": scenario,
                 "method": "GET", "path": "/api/v1/query_range",
                 "params": {"query": prometheus_selector, "start": start_s,
-                           "end": end_s, "step": "5s"},
+                           "end": end_s, "step": PROMETHEUS_QUERY_STEP},
             },
             {
                 "backend": "loki", "scenario": scenario,

@@ -1,0 +1,708 @@
+{
+  "boundary_instant_queries": {
+    "end_epoch": "1794768959.777",
+    "scenarios": {
+      "A": {
+        "end": {
+          "source_sample_timestamp": {
+            "http_status": 200,
+            "params": {
+              "query": "timestamp(tcc_conventional_requests_total{service_name=\"paymentservice\",operation=\"/hipstershop.PaymentService/Charge\",status_code=\"OK\"})",
+              "time": "1794768959.777"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "instance": "paymentservice.default.svc.cluster.local:9464",
+                      "job": "online-boutique-conventional",
+                      "operation": "/hipstershop.PaymentService/Charge",
+                      "service_name": "paymentservice",
+                      "span_kind": "server",
+                      "status_code": "OK"
+                    },
+                    "value": [
+                      1794768959.777,
+                      "1794768958.561"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          },
+          "value": {
+            "http_status": 200,
+            "params": {
+              "query": "tcc_conventional_requests_total{service_name=\"paymentservice\",operation=\"/hipstershop.PaymentService/Charge\",status_code=\"OK\"}",
+              "time": "1794768959.777"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "__name__": "tcc_conventional_requests_total",
+                      "instance": "paymentservice.default.svc.cluster.local:9464",
+                      "job": "online-boutique-conventional",
+                      "operation": "/hipstershop.PaymentService/Charge",
+                      "service_name": "paymentservice",
+                      "span_kind": "server",
+                      "status_code": "OK"
+                    },
+                    "value": [
+                      1794768959.777,
+                      "43"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          }
+        },
+        "start": {
+          "source_sample_timestamp": {
+            "http_status": 200,
+            "params": {
+              "query": "timestamp(tcc_conventional_requests_total{service_name=\"paymentservice\",operation=\"/hipstershop.PaymentService/Charge\",status_code=\"OK\"})",
+              "time": "1794768933.615"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "instance": "paymentservice.default.svc.cluster.local:9464",
+                      "job": "online-boutique-conventional",
+                      "operation": "/hipstershop.PaymentService/Charge",
+                      "service_name": "paymentservice",
+                      "span_kind": "server",
+                      "status_code": "OK"
+                    },
+                    "value": [
+                      1794768933.615,
+                      "1794768930.628"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          },
+          "value": {
+            "http_status": 200,
+            "params": {
+              "query": "tcc_conventional_requests_total{service_name=\"paymentservice\",operation=\"/hipstershop.PaymentService/Charge\",status_code=\"OK\"}",
+              "time": "1794768933.615"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "__name__": "tcc_conventional_requests_total",
+                      "instance": "paymentservice.default.svc.cluster.local:9464",
+                      "job": "online-boutique-conventional",
+                      "operation": "/hipstershop.PaymentService/Charge",
+                      "service_name": "paymentservice",
+                      "span_kind": "server",
+                      "status_code": "OK"
+                    },
+                    "value": [
+                      1794768933.615,
+                      "27"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          }
+        }
+      },
+      "B": {
+        "end": {
+          "source_sample_timestamp": {
+            "http_status": 200,
+            "params": {
+              "query": "timestamp(online_boutique_otel_tcc_otel_rpc_server_requests_total{service_name=\"paymentservice\",rpc_method=\"/hipstershop.PaymentService/Charge\",rpc_response_status_code=\"OK\"})",
+              "time": "1794768959.777"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "deployment_environment_name": "tcc-local",
+                      "exported_job": "paymentservice",
+                      "instance": "otel-collector:9464",
+                      "job": "otel-collector",
+                      "otel_scope_name": "online-boutique/paymentservice",
+                      "otel_scope_version": "0.10.7",
+                      "rpc_method": "/hipstershop.PaymentService/Charge",
+                      "rpc_response_status_code": "OK",
+                      "rpc_system_name": "grpc",
+                      "service_name": "paymentservice",
+                      "service_version": "0.10.7",
+                      "telemetry_scenario": "otel"
+                    },
+                    "value": [
+                      1794768959.777,
+                      "1794768958.732"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          },
+          "value": {
+            "http_status": 200,
+            "params": {
+              "query": "online_boutique_otel_tcc_otel_rpc_server_requests_total{service_name=\"paymentservice\",rpc_method=\"/hipstershop.PaymentService/Charge\",rpc_response_status_code=\"OK\"}",
+              "time": "1794768959.777"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+                      "deployment_environment_name": "tcc-local",
+                      "exported_job": "paymentservice",
+                      "instance": "otel-collector:9464",
+                      "job": "otel-collector",
+                      "otel_scope_name": "online-boutique/paymentservice",
+                      "otel_scope_version": "0.10.7",
+                      "rpc_method": "/hipstershop.PaymentService/Charge",
+                      "rpc_response_status_code": "OK",
+                      "rpc_system_name": "grpc",
+                      "service_name": "paymentservice",
+                      "service_version": "0.10.7",
+                      "telemetry_scenario": "otel"
+                    },
+                    "value": [
+                      1794768959.777,
+                      "40"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          }
+        },
+        "start": {
+          "source_sample_timestamp": {
+            "http_status": 200,
+            "params": {
+              "query": "timestamp(online_boutique_otel_tcc_otel_rpc_server_requests_total{service_name=\"paymentservice\",rpc_method=\"/hipstershop.PaymentService/Charge\",rpc_response_status_code=\"OK\"})",
+              "time": "1794768933.615"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "deployment_environment_name": "tcc-local",
+                      "exported_job": "paymentservice",
+                      "instance": "otel-collector:9464",
+                      "job": "otel-collector",
+                      "otel_scope_name": "online-boutique/paymentservice",
+                      "otel_scope_version": "0.10.7",
+                      "rpc_method": "/hipstershop.PaymentService/Charge",
+                      "rpc_response_status_code": "OK",
+                      "rpc_system_name": "grpc",
+                      "service_name": "paymentservice",
+                      "service_version": "0.10.7",
+                      "telemetry_scenario": "otel"
+                    },
+                    "value": [
+                      1794768933.615,
+                      "1794768930.799"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          },
+          "value": {
+            "http_status": 200,
+            "params": {
+              "query": "online_boutique_otel_tcc_otel_rpc_server_requests_total{service_name=\"paymentservice\",rpc_method=\"/hipstershop.PaymentService/Charge\",rpc_response_status_code=\"OK\"}",
+              "time": "1794768933.615"
+            },
+            "path": "/api/v1/query",
+            "response": {
+              "data": {
+                "result": [
+                  {
+                    "metric": {
+                      "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+                      "deployment_environment_name": "tcc-local",
+                      "exported_job": "paymentservice",
+                      "instance": "otel-collector:9464",
+                      "job": "otel-collector",
+                      "otel_scope_name": "online-boutique/paymentservice",
+                      "otel_scope_version": "0.10.7",
+                      "rpc_method": "/hipstershop.PaymentService/Charge",
+                      "rpc_response_status_code": "OK",
+                      "rpc_system_name": "grpc",
+                      "service_name": "paymentservice",
+                      "service_version": "0.10.7",
+                      "telemetry_scenario": "otel"
+                    },
+                    "value": [
+                      1794768933.615,
+                      "27"
+                    ]
+                  }
+                ],
+                "resultType": "vector"
+              },
+              "status": "success"
+            }
+          }
+        }
+      }
+    },
+    "start_epoch": "1794768933.615"
+  },
+  "captured_at": "2026-11-15T19:42:44.719097+00:00",
+  "range_evaluation_step": "1s",
+  "scenarios": {
+    "A": {
+      "backend": "Prometheus A",
+      "http_status": 200,
+      "params": {
+        "end": "1794768959.777000",
+        "query": "tcc_conventional_requests_total{service_name=\"paymentservice\",operation=\"/hipstershop.PaymentService/Charge\"}",
+        "start": "1794768933.615000",
+        "step": "1s"
+      },
+      "path": "/api/v1/query_range",
+      "response": {
+        "data": {
+          "result": [
+            {
+              "metric": {
+                "__name__": "tcc_conventional_requests_total",
+                "instance": "paymentservice.default.svc.cluster.local:9464",
+                "job": "online-boutique-conventional",
+                "operation": "/hipstershop.PaymentService/Charge",
+                "service_name": "paymentservice",
+                "span_kind": "server",
+                "status_code": "13"
+              },
+              "values": [
+                [
+                  1794768948.615,
+                  "5"
+                ],
+                [
+                  1794768949.615,
+                  "5"
+                ],
+                [
+                  1794768950.615,
+                  "5"
+                ],
+                [
+                  1794768951.615,
+                  "5"
+                ],
+                [
+                  1794768952.615,
+                  "5"
+                ],
+                [
+                  1794768953.615,
+                  "5"
+                ],
+                [
+                  1794768954.615,
+                  "5"
+                ],
+                [
+                  1794768955.615,
+                  "5"
+                ],
+                [
+                  1794768956.615,
+                  "5"
+                ],
+                [
+                  1794768957.615,
+                  "5"
+                ],
+                [
+                  1794768958.615,
+                  "5"
+                ],
+                [
+                  1794768959.615,
+                  "5"
+                ]
+              ]
+            },
+            {
+              "metric": {
+                "__name__": "tcc_conventional_requests_total",
+                "instance": "paymentservice.default.svc.cluster.local:9464",
+                "job": "online-boutique-conventional",
+                "operation": "/hipstershop.PaymentService/Charge",
+                "service_name": "paymentservice",
+                "span_kind": "server",
+                "status_code": "OK"
+              },
+              "values": [
+                [
+                  1794768933.615,
+                  "27"
+                ],
+                [
+                  1794768934.615,
+                  "27"
+                ],
+                [
+                  1794768935.615,
+                  "27"
+                ],
+                [
+                  1794768936.615,
+                  "28"
+                ],
+                [
+                  1794768937.615,
+                  "28"
+                ],
+                [
+                  1794768938.615,
+                  "28"
+                ],
+                [
+                  1794768939.615,
+                  "28"
+                ],
+                [
+                  1794768940.615,
+                  "28"
+                ],
+                [
+                  1794768941.615,
+                  "28"
+                ],
+                [
+                  1794768942.615,
+                  "28"
+                ],
+                [
+                  1794768943.615,
+                  "33"
+                ],
+                [
+                  1794768944.615,
+                  "33"
+                ],
+                [
+                  1794768945.615,
+                  "33"
+                ],
+                [
+                  1794768946.615,
+                  "33"
+                ],
+                [
+                  1794768947.615,
+                  "33"
+                ],
+                [
+                  1794768948.615,
+                  "33"
+                ],
+                [
+                  1794768949.615,
+                  "33"
+                ],
+                [
+                  1794768950.615,
+                  "33"
+                ],
+                [
+                  1794768951.615,
+                  "33"
+                ],
+                [
+                  1794768952.615,
+                  "33"
+                ],
+                [
+                  1794768953.615,
+                  "38"
+                ],
+                [
+                  1794768954.615,
+                  "38"
+                ],
+                [
+                  1794768955.615,
+                  "38"
+                ],
+                [
+                  1794768956.615,
+                  "38"
+                ],
+                [
+                  1794768957.615,
+                  "38"
+                ],
+                [
+                  1794768958.615,
+                  "43"
+                ],
+                [
+                  1794768959.615,
+                  "43"
+                ]
+              ]
+            }
+          ],
+          "resultType": "matrix"
+        },
+        "status": "success"
+      }
+    },
+    "B": {
+      "backend": "Prometheus B",
+      "http_status": 200,
+      "params": {
+        "end": "1794768959.777000",
+        "query": "online_boutique_otel_tcc_otel_rpc_server_requests_total{service_name=\"paymentservice\",rpc_method=\"/hipstershop.PaymentService/Charge\"}",
+        "start": "1794768933.615000",
+        "step": "1s"
+      },
+      "path": "/api/v1/query_range",
+      "response": {
+        "data": {
+          "result": [
+            {
+              "metric": {
+                "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+                "deployment_environment_name": "tcc-local",
+                "exported_job": "paymentservice",
+                "instance": "otel-collector:9464",
+                "job": "otel-collector",
+                "otel_scope_name": "online-boutique/paymentservice",
+                "otel_scope_version": "0.10.7",
+                "rpc_method": "/hipstershop.PaymentService/Charge",
+                "rpc_response_status_code": "13",
+                "rpc_system_name": "grpc",
+                "service_name": "paymentservice",
+                "service_version": "0.10.7",
+                "telemetry_scenario": "otel"
+              },
+              "values": [
+                [
+                  1794768949.615,
+                  "2"
+                ],
+                [
+                  1794768950.615,
+                  "2"
+                ],
+                [
+                  1794768951.615,
+                  "2"
+                ],
+                [
+                  1794768952.615,
+                  "2"
+                ],
+                [
+                  1794768953.615,
+                  "2"
+                ],
+                [
+                  1794768954.615,
+                  "5"
+                ],
+                [
+                  1794768955.615,
+                  "5"
+                ],
+                [
+                  1794768956.615,
+                  "5"
+                ],
+                [
+                  1794768957.615,
+                  "5"
+                ],
+                [
+                  1794768958.615,
+                  "5"
+                ],
+                [
+                  1794768959.615,
+                  "5"
+                ]
+              ]
+            },
+            {
+              "metric": {
+                "__name__": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+                "deployment_environment_name": "tcc-local",
+                "exported_job": "paymentservice",
+                "instance": "otel-collector:9464",
+                "job": "otel-collector",
+                "otel_scope_name": "online-boutique/paymentservice",
+                "otel_scope_version": "0.10.7",
+                "rpc_method": "/hipstershop.PaymentService/Charge",
+                "rpc_response_status_code": "OK",
+                "rpc_system_name": "grpc",
+                "service_name": "paymentservice",
+                "service_version": "0.10.7",
+                "telemetry_scenario": "otel"
+              },
+              "values": [
+                [
+                  1794768933.615,
+                  "27"
+                ],
+                [
+                  1794768934.615,
+                  "27"
+                ],
+                [
+                  1794768935.615,
+                  "27"
+                ],
+                [
+                  1794768936.615,
+                  "27"
+                ],
+                [
+                  1794768937.615,
+                  "27"
+                ],
+                [
+                  1794768938.615,
+                  "27"
+                ],
+                [
+                  1794768939.615,
+                  "27"
+                ],
+                [
+                  1794768940.615,
+                  "27"
+                ],
+                [
+                  1794768941.615,
+                  "27"
+                ],
+                [
+                  1794768942.615,
+                  "27"
+                ],
+                [
+                  1794768943.615,
+                  "27"
+                ],
+                [
+                  1794768944.615,
+                  "30"
+                ],
+                [
+                  1794768945.615,
+                  "30"
+                ],
+                [
+                  1794768946.615,
+                  "30"
+                ],
+                [
+                  1794768947.615,
+                  "30"
+                ],
+                [
+                  1794768948.615,
+                  "30"
+                ],
+                [
+                  1794768949.615,
+                  "33"
+                ],
+                [
+                  1794768950.615,
+                  "33"
+                ],
+                [
+                  1794768951.615,
+                  "33"
+                ],
+                [
+                  1794768952.615,
+                  "33"
+                ],
+                [
+                  1794768953.615,
+                  "33"
+                ],
+                [
+                  1794768954.615,
+                  "34"
+                ],
+                [
+                  1794768955.615,
+                  "34"
+                ],
+                [
+                  1794768956.615,
+                  "34"
+                ],
+                [
+                  1794768957.615,
+                  "34"
+                ],
+                [
+                  1794768958.615,
+                  "34"
+                ],
+                [
+                  1794768959.615,
+                  "40"
+                ]
+              ]
+            }
+          ],
+          "resultType": "matrix"
+        },
+        "status": "success"
+      }
+    }
+  },
+  "schema_version": "1.0",
+  "source_run_id": "iv-edv-ccv1-002-f4-f4",
+  "window": {
+    "end": "2026-11-15T18:55:59.777000Z",
+    "start": "2026-11-15T18:55:33.615000Z"
+  }
+}
