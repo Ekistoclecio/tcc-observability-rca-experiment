@@ -1,0 +1,294 @@
+{
+  "A_only_log_classes": [
+    [
+      "paymentservice",
+      "ERROR",
+      "APPLICATION_ERROR",
+      "",
+      "controlled application fault in paymentservice.charge"
+    ]
+  ],
+  "B_only_log_classes": [],
+  "application_error_logs": {
+    "A": 12,
+    "B": 6
+  },
+  "classification": {
+    "A": {
+      "categories": {
+        "APPLICATION_DIAGNOSTIC": 1773,
+        "APPLICATION_ERROR": 12,
+        "HEALTH_CHECK": 5,
+        "LIFECYCLE_NOISE": 6,
+        "REDUNDANT_SUCCESS_EVENT": 16,
+        "RUNTIME_NOISE": 66,
+        "UNKNOWN": 92
+      },
+      "excluded_samples": {
+        "HEALTH_CHECK": [
+          {
+            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
+            "reason": "health_or_probe_event",
+            "service": "cartservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
+            "reason": "health_or_probe_event",
+            "service": "cartservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
+            "reason": "health_or_probe_event",
+            "service": "cartservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "GetCartAsync called with userId={UserId}\nChecking CartService Health",
+            "reason": "health_or_probe_event",
+            "service": "cartservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "EmptyCartAsync called with userId={UserId}\nChecking CartService Health\nChecking CartService Health",
+            "reason": "health_or_probe_event",
+            "service": "cartservice",
+            "severity": "INFO"
+          }
+        ],
+        "LIFECYCLE_NOISE": [
+          {
+            "body": "1:M 15 Nov 2026 21:22:08.992 * 100 changes in 300 seconds. Saving...",
+            "reason": "process_or_datastore_lifecycle",
+            "service": "redis-cart",
+            "severity": null
+          },
+          {
+            "body": "1:M 15 Nov 2026 21:22:09.002 * Background saving started by pid 22",
+            "reason": "process_or_datastore_lifecycle",
+            "service": "redis-cart",
+            "severity": null
+          },
+          {
+            "body": "22:C 15 Nov 2026 21:22:09.171 * BGSAVE done, 17 keys saved, 0 keys skipped, 1386 bytes written.",
+            "reason": "process_or_datastore_lifecycle",
+            "service": "redis-cart",
+            "severity": null
+          },
+          {
+            "body": "22:C 15 Nov 2026 21:22:09.180 * DB saved on disk",
+            "reason": "process_or_datastore_lifecycle",
+            "service": "redis-cart",
+            "severity": null
+          },
+          {
+            "body": "22:C 15 Nov 2026 21:22:09.181 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB",
+            "reason": "process_or_datastore_lifecycle",
+            "service": "redis-cart",
+            "severity": null
+          }
+        ],
+        "REDUNDANT_SUCCESS_EVENT": [
+          {
+            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
+            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+            "service": "paymentservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
+            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+            "service": "paymentservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
+            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+            "service": "paymentservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
+            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+            "service": "paymentservice",
+            "severity": "INFO"
+          },
+          {
+            "body": "Transaction processed: visa ending 0454     Amount: USD28.980000000",
+            "reason": "successful_transaction_already_represented_by_request_metrics_and_trace_outcome",
+            "service": "paymentservice",
+            "severity": "INFO"
+          }
+        ],
+        "RUNTIME_NOISE": [
+          {
+            "body": "env platform is either empty or invalid",
+            "reason": "runtime_or_platform_message",
+            "service": "frontend",
+            "severity": null
+          },
+          {
+            "body": "env platform is either empty or invalid",
+            "reason": "runtime_or_platform_message",
+            "service": "frontend",
+            "severity": null
+          },
+          {
+            "body": "env platform is either empty or invalid",
+            "reason": "runtime_or_platform_message",
+            "service": "frontend",
+            "severity": null
+          },
+          {
+            "body": "env platform is either empty or invalid",
+            "reason": "runtime_or_platform_message",
+            "service": "frontend",
+            "severity": null
+          },
+          {
+            "body": "env platform is either empty or invalid",
+            "reason": "runtime_or_platform_message",
+            "service": "frontend",
+            "severity": null
+          }
+        ],
+        "UNKNOWN": [
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "view user cart",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          }
+        ]
+      },
+      "model_visible_records": 1785,
+      "raw_candidate_records": 1970
+    },
+    "B": {
+      "categories": {
+        "APPLICATION_DIAGNOSTIC": 1824,
+        "APPLICATION_ERROR": 6,
+        "UNKNOWN": 62
+      },
+      "excluded_samples": {
+        "UNKNOWN": [
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "view user cart",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "view user cart",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          },
+          {
+            "body": "ENV_PLATFORM is: local",
+            "reason": "no_explicit_application_signal_or_recognized_diagnostic_pattern",
+            "service": "frontend",
+            "severity": "DEBUG"
+          }
+        ]
+      },
+      "model_visible_records": 1830,
+      "raw_candidate_records": 1892
+    }
+  },
+  "error_messages": {
+    "A": [
+      "controlled application fault in PaymentService.Charge",
+      "failed to charge card: could not charge the card: rpc error: code = Internal desc = controlled application fault in PaymentService.Charge"
+    ],
+    "B": [
+      "failed to charge card: could not charge the card: rpc error: code = Internal desc = controlled application fault in PaymentService.Charge"
+    ]
+  },
+  "error_spans": {
+    "A": 30,
+    "B": 30
+  },
+  "fault_reexecuted": false,
+  "ground_truth_valid": true,
+  "gt_validation": {
+    "actual_location": {
+      "component": "paymentservice",
+      "kind": "operation",
+      "operation": "Charge"
+    },
+    "checks": {
+      "confirmed_end_after_start": true,
+      "confirmed_times_present": true,
+      "expected_location_matches": true,
+      "fault_class_matches": true,
+      "injection_confirmed": true,
+      "recovery_confirmed": true,
+      "run_id_matches": true,
+      "schema_valid": true,
+      "status_valid": true
+    },
+    "expected_location": {
+      "component": "paymentservice",
+      "kind": "operation",
+      "operation": "Charge"
+    },
+    "passed": true,
+    "timing": {
+      "confirmed_end": "2026-11-15T21:22:20.143Z",
+      "confirmed_start": "2026-11-15T21:22:13.546Z",
+      "recovery_requested_at": "2026-11-15T21:22:18.546Z",
+      "requested_at": "2026-11-15T21:22:12.175Z",
+      "scheduled_end": "2026-11-15T21:22:17.175Z",
+      "scheduled_start": "2026-11-15T21:22:12.175Z"
+    }
+  },
+  "passed": false,
+  "provenance": {
+    "A": true,
+    "B": true
+  },
+  "raw_unchanged": true,
+  "run_id": "iv-edv-view-smoke1-001-f4-f4",
+  "stack_frame_logs_in_request": 0,
+  "unexpected_additions": 0,
+  "unexpected_mutations": 0,
+  "unexpected_removals": 0
+}

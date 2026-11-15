@@ -1,0 +1,57 @@
+{
+  "contract_version": "1.0",
+  "included_categories": [
+    {
+      "category": "APPLICATION_ERROR",
+      "model_visible": true,
+      "description": "SUT application event with explicit ERROR or FATAL severity. Error messages remain available through canonical error.message."
+    },
+    {
+      "category": "APPLICATION_WARNING",
+      "model_visible": true,
+      "description": "SUT application warning with explicit WARN severity, excluding recognized runtime and lifecycle noise."
+    },
+    {
+      "category": "APPLICATION_DIAGNOSTIC",
+      "model_visible": true,
+      "description": "Recognized SUT operation/request event from the fixed, fault-independent application event patterns in contract.py."
+    }
+  ],
+  "excluded_categories": [
+    {
+      "category": "REDUNDANT_SUCCESS_EVENT",
+      "model_visible": false,
+      "description": "Explicit successful transaction-completion event already represented by request metrics and canonical trace outcome. This is a narrow event-class rule, not a blanket success-log filter.",
+      "patterns": ["^\\s*transaction processed\\b"]
+    },
+    {
+      "category": "HEALTH_CHECK",
+      "model_visible": false,
+      "description": "Explicit health check/probe or checking a named service health event.",
+      "patterns": ["health check", "health probe", "checking <service> [service] health", "health endpoint"]
+    },
+    {
+      "category": "RUNTIME_NOISE",
+      "model_visible": false,
+      "description": "Known language runtime, framework, SDK, or platform diagnostic noise."
+    },
+    {
+      "category": "LIFECYCLE_NOISE",
+      "model_visible": false,
+      "description": "Known process/container/datastore startup, shutdown, persistence, and lifecycle output."
+    },
+    {
+      "category": "UNKNOWN",
+      "model_visible": false,
+      "description": "No explicit application severity or recognized application diagnostic pattern; retained in RAW and excluded by default."
+    }
+  ],
+  "principles": {
+    "fault_independent": true,
+    "ground_truth_independent": true,
+    "scenario_independent_classifier": true,
+    "raw_unchanged": true,
+    "correlation_fields_are_not_event_identity": true,
+    "unknown_visible_by_default": false
+  }
+}

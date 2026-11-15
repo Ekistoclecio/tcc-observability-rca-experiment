@@ -1,0 +1,97 @@
+{
+  "F4": {
+    "A_only_classes": [
+      [
+        "paymentservice",
+        "ERROR",
+        "APPLICATION_ERROR",
+        "",
+        "controlled application fault in paymentservice.charge"
+      ]
+    ],
+    "B_only_classes": [],
+    "canonical_span_error_counts": {
+      "A": 30,
+      "B": 30
+    },
+    "categories": {
+      "A": {
+        "APPLICATION_DIAGNOSTIC": 1773,
+        "APPLICATION_ERROR": 12,
+        "HEALTH_CHECK": 5,
+        "LIFECYCLE_NOISE": 6,
+        "REDUNDANT_SUCCESS_EVENT": 16,
+        "RUNTIME_NOISE": 66,
+        "UNKNOWN": 92
+      },
+      "B": {
+        "APPLICATION_DIAGNOSTIC": 1824,
+        "APPLICATION_ERROR": 6,
+        "UNKNOWN": 62
+      }
+    },
+    "error_logs_A": 12,
+    "error_logs_B": 6,
+    "error_message_parity": false,
+    "ground_truth_valid": true,
+    "provenance": {
+      "A": true,
+      "B": true
+    },
+    "raw_unchanged": true,
+    "run_id": "iv-edv-view-smoke1-001-f4-f4",
+    "stack_frame_logs_in_request": 0,
+    "status": "FAIL"
+  },
+  "F4_F5_smoke": "FAIL",
+  "F5": {
+    "A_only_classes": [],
+    "B_only_classes": [],
+    "categories": {
+      "A": {
+        "APPLICATION_DIAGNOSTIC": 1354,
+        "APPLICATION_ERROR": 7,
+        "HEALTH_CHECK": 6,
+        "LIFECYCLE_NOISE": 72,
+        "REDUNDANT_SUCCESS_EVENT": 15,
+        "RUNTIME_NOISE": 18,
+        "UNKNOWN": 55
+      },
+      "B": {
+        "APPLICATION_DIAGNOSTIC": 1392,
+        "APPLICATION_ERROR": 7,
+        "UNKNOWN": 55
+      }
+    },
+    "ground_truth_valid": true,
+    "provenance": {
+      "A": true,
+      "B": true
+    },
+    "raw_unchanged": true,
+    "run_id": "iv-edv-pv-f5-01-001-f5-f5",
+    "status": "PASS",
+    "visible_counts": {
+      "A": {
+        "logs": 1361,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      },
+      "B": {
+        "logs": 1399,
+        "metrics": 117,
+        "spans": 2045,
+        "traces": 85
+      }
+    }
+  },
+  "final_F1_F5_battery": "NOT RUN",
+  "no_fault_reexecuted": true,
+  "scope": "canonical log classifier and existing F4/F5 artifact revalidation only",
+  "stop_reason": "Reprocessing existing F4 under the new shared classifier exposed one A-only APPLICATION_ERROR event class from paymentservice. It was retained, not hidden to force parity. The current Common RCA View therefore does not satisfy F4 canonical application-log parity.",
+  "tests": {
+    "failed": 0,
+    "passed": 87
+  }
+}
