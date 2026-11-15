@@ -1,0 +1,141 @@
+{
+  "fault_runs": [
+    {
+      "directory": "001_cpu_saturation_r01",
+      "fault_type": "cpu_saturation",
+      "scenarios": {
+        "A": {
+          "bytes": 4278018,
+          "logs": 2163,
+          "metrics": 1026,
+          "spans": 2738,
+          "traces": 111
+        },
+        "B": {
+          "bytes": 15886284,
+          "logs": 1896,
+          "metrics": 9552,
+          "spans": 2833,
+          "traces": 164
+        }
+      }
+    },
+    {
+      "directory": "002_network_latency_r01",
+      "fault_type": "network_latency",
+      "scenarios": {
+        "A": {
+          "bytes": 4436351,
+          "logs": 2255,
+          "metrics": 1026,
+          "spans": 2854,
+          "traces": 116
+        },
+        "B": {
+          "bytes": 16241030,
+          "logs": 1982,
+          "metrics": 9552,
+          "spans": 2959,
+          "traces": 175
+        }
+      }
+    },
+    {
+      "directory": "003_service_unavailable_r01",
+      "fault_type": "service_unavailable",
+      "scenarios": {
+        "A": {
+          "bytes": 4579574,
+          "logs": 2183,
+          "metrics": 1515,
+          "spans": 2749,
+          "traces": 126
+        },
+        "B": {
+          "bytes": 20783716,
+          "logs": 1920,
+          "metrics": 14328,
+          "spans": 2887,
+          "traces": 220
+        }
+      }
+    },
+    {
+      "directory": "004_application_exception_r01",
+      "fault_type": "application_exception",
+      "scenarios": {
+        "A": {
+          "bytes": 4322921,
+          "logs": 2225,
+          "metrics": 1017,
+          "spans": 2716,
+          "traces": 116
+        },
+        "B": {
+          "bytes": 15990763,
+          "logs": 1892,
+          "metrics": 9552,
+          "spans": 2823,
+          "traces": 177
+        }
+      }
+    },
+    {
+      "directory": "005_datastore_unavailable_r01",
+      "fault_type": "datastore_unavailable",
+      "scenarios": {
+        "A": {
+          "bytes": 3904916,
+          "logs": 1944,
+          "metrics": 1197,
+          "spans": 2289,
+          "traces": 99
+        },
+        "B": {
+          "bytes": 16489518,
+          "logs": 1607,
+          "metrics": 11144,
+          "spans": 2395,
+          "traces": 168
+        }
+      }
+    }
+  ],
+  "scenarios": {
+    "A": {
+      "logs": {
+        "bytes": 6641307,
+        "records": 12448
+      },
+      "metrics": {
+        "bytes": 1998561,
+        "records": 22980
+      },
+      "traces": {
+        "bytes": 18926822,
+        "records": {
+          "spans": 15205,
+          "traces": 731
+        }
+      }
+    },
+    "B": {
+      "logs": {
+        "bytes": 28716690,
+        "records": 10710
+      },
+      "metrics": {
+        "bytes": 18577903,
+        "records": 214920
+      },
+      "traces": {
+        "bytes": 47245797,
+        "records": {
+          "spans": 16916,
+          "traces": 2192
+        }
+      }
+    }
+  },
+  "source": "existing audit/results snapshot before Common Observability Contract v1 smoke"
+}

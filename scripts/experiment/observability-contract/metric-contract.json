@@ -1,0 +1,28 @@
+{
+  "contract_version": "1.0",
+  "concepts": {
+    "request_count": {
+      "dimensions": ["service", "operation", "kind", "target", "outcome"],
+      "sources": {
+        "A": ["tcc_conventional_requests_total", "tcc_conventional_request_duration_seconds_count"],
+        "B": ["OTel rpc.*.duration count", "OTel http.server.request.duration count", "tcc.otel RPC/HTTP counters", "cart.redis.operations"]
+      },
+      "temporal_semantics": "counter delta across samples in the observation window; missing baseline remains null"
+    },
+    "request_duration": {
+      "dimensions": ["service", "operation", "kind", "target", "outcome"],
+      "sources": {
+        "A": ["tcc_conventional_request_duration_seconds_sum", "tcc_conventional_request_duration_seconds_count"],
+        "B": ["OTel RPC/HTTP duration histograms", "cart.redis.operation.duration"]
+      },
+      "representation": "sum delta / count delta in seconds; cumulative histogram buckets are not exported to RCA view"
+    },
+    "cpu_utilization": {
+      "source": "Kubernetes cAdvisor container_cpu_usage_seconds_total, scraped independently by both Prometheus backends",
+      "unit": "cpu_cores",
+      "representation": ["first", "min", "max", "avg", "last"]
+    }
+  },
+  "allowed_dimensions": ["service", "operation", "kind", "target", "outcome"],
+  "excluded": ["trace_id", "span_id", "request_id", "user_id", "session_id", "SDK/resource/exporter/runtime labels", "histogram buckets"]
+}

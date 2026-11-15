@@ -1,0 +1,1407 @@
+{
+  "A": {
+    "logical_contract_concepts": [
+      "adservice|AdService/GetAds|server|None",
+      "cartservice|CartService/AddItem|server|None",
+      "cartservice|CartService/EmptyCart|server|None",
+      "cartservice|CartService/GetCart|server|None",
+      "cartservice|redis get/set|datastore|redis-cart",
+      "cartservice|redis get|datastore|redis-cart",
+      "cartservice|redis set|datastore|redis-cart",
+      "checkoutservice|CartService/EmptyCart|client|cartservice",
+      "checkoutservice|CartService/GetCart|client|cartservice",
+      "checkoutservice|CheckoutService/PlaceOrder|server|None",
+      "checkoutservice|CurrencyService/Convert|client|currencyservice",
+      "checkoutservice|EmailService/SendOrderConfirmation|client|emailservice",
+      "checkoutservice|PaymentService/Charge|client|paymentservice",
+      "checkoutservice|ProductCatalogService/GetProduct|client|productcatalogservice",
+      "checkoutservice|ShippingService/GetQuote|client|shippingservice",
+      "checkoutservice|ShippingService/ShipOrder|client|shippingservice",
+      "currencyservice|CurrencyService/Convert|server|None",
+      "currencyservice|CurrencyService/GetSupportedCurrencies|server|None",
+      "emailservice|EmailService/SendOrderConfirmation|server|None",
+      "frontend|/|server|None",
+      "frontend|AdService/GetAds|client|adservice",
+      "frontend|CartService/AddItem|client|cartservice",
+      "frontend|CartService/GetCart|client|cartservice",
+      "frontend|CheckoutService/PlaceOrder|client|checkoutservice",
+      "frontend|CurrencyService/Convert|client|currencyservice",
+      "frontend|CurrencyService/GetSupportedCurrencies|client|currencyservice",
+      "frontend|GET /cart|server|None",
+      "frontend|GET /product/:id|server|None",
+      "frontend|POST /cart/checkout|server|None",
+      "frontend|POST /cart|server|None",
+      "frontend|ProductCatalogService/GetProduct|client|productcatalogservice",
+      "frontend|ProductCatalogService/ListProducts|client|productcatalogservice",
+      "frontend|RecommendationService/ListRecommendations|client|recommendationservice",
+      "frontend|ShippingService/GetQuote|client|shippingservice",
+      "paymentservice|PaymentService/Charge|server|None",
+      "productcatalogservice|ProductCatalogService/GetProduct|server|None",
+      "productcatalogservice|ProductCatalogService/ListProducts|server|None",
+      "recommendationservice|ProductCatalogService/ListProducts|client|productcatalogservice",
+      "recommendationservice|RecommendationService/ListRecommendations|server|None",
+      "shippingservice|ShippingService/GetQuote|server|None",
+      "shippingservice|ShippingService/ShipOrder|server|None"
+    ],
+    "services": [
+      "adservice",
+      "cartservice",
+      "checkoutservice",
+      "currencyservice",
+      "emailservice",
+      "frontend",
+      "paymentservice",
+      "productcatalogservice",
+      "recommendationservice",
+      "shippingservice"
+    ],
+    "span_concepts": [
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 147,
+        "service": "adservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.AdService/GetAds"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CartService/AddItem"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CartService/EmptyCart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 287,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis GET/SET"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 287,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis GET"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis SET"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CartService/EmptyCart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CheckoutService/PlaceOrder"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 136,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.EmailService/SendOrderConfirmation"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.PaymentService/Charge"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ShippingService/ShipOrder"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 1051,
+        "service": "currencyservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 282,
+        "service": "currencyservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.CurrencyService/GetSupportedCurrencies"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "emailservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.EmailService/SendOrderConfirmation"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 147,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.AdService/GetAds"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CartService/AddItem"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 219,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CheckoutService/PlaceOrder"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 915,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 282,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.CurrencyService/GetSupportedCurrencies"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 1200,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 82,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 199,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.RecommendationService/ListRecommendations"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "GET /_healthz"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "GET /cart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "GET /product/OLJCESPC7Z"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "GET /"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "POST /cart/checkout"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "POST /cart"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 68,
+        "service": "paymentservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.PaymentService/Charge"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 1268,
+        "service": "productcatalogservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 281,
+        "service": "productcatalogservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 199,
+        "service": "recommendationservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 199,
+        "service": "recommendationservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.RecommendationService/ListRecommendations"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 136,
+        "service": "shippingservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "result",
+          "span.kind",
+          "telemetry.scenario"
+        ],
+        "instrumentation_scope": [],
+        "parented_spans": 63,
+        "service": "shippingservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.ShippingService/ShipOrder"
+      }
+    ],
+    "spans": 8919,
+    "traces": 413
+  },
+  "B": {
+    "logical_contract_concepts": [
+      "adservice|AdService/GetAds|server|None",
+      "cartservice|CartService/AddItem|server|None",
+      "cartservice|CartService/EmptyCart|server|None",
+      "cartservice|CartService/GetCart|server|None",
+      "cartservice|redis get/set|datastore|redis-cart",
+      "cartservice|redis get|datastore|redis-cart",
+      "cartservice|redis set|datastore|redis-cart",
+      "checkoutservice|CartService/EmptyCart|client|cartservice",
+      "checkoutservice|CartService/GetCart|client|cartservice",
+      "checkoutservice|CheckoutService/PlaceOrder|server|None",
+      "checkoutservice|CurrencyService/Convert|client|currencyservice",
+      "checkoutservice|EmailService/SendOrderConfirmation|client|emailservice",
+      "checkoutservice|PaymentService/Charge|client|paymentservice",
+      "checkoutservice|ProductCatalogService/GetProduct|client|productcatalogservice",
+      "checkoutservice|ShippingService/GetQuote|client|shippingservice",
+      "checkoutservice|ShippingService/ShipOrder|client|shippingservice",
+      "currencyservice|CurrencyService/Convert|server|None",
+      "currencyservice|CurrencyService/GetSupportedCurrencies|server|None",
+      "emailservice|EmailService/SendOrderConfirmation|server|None",
+      "frontend|/|server|None",
+      "frontend|AdService/GetAds|client|adservice",
+      "frontend|CartService/AddItem|client|cartservice",
+      "frontend|CartService/GetCart|client|cartservice",
+      "frontend|CheckoutService/PlaceOrder|client|checkoutservice",
+      "frontend|CurrencyService/Convert|client|currencyservice",
+      "frontend|CurrencyService/GetSupportedCurrencies|client|currencyservice",
+      "frontend|GET /cart|server|None",
+      "frontend|GET /product/:id|server|None",
+      "frontend|POST /cart/checkout|server|None",
+      "frontend|POST /cart|server|None",
+      "frontend|ProductCatalogService/GetProduct|client|productcatalogservice",
+      "frontend|ProductCatalogService/ListProducts|client|productcatalogservice",
+      "frontend|RecommendationService/ListRecommendations|client|recommendationservice",
+      "frontend|ShippingService/GetQuote|client|shippingservice",
+      "paymentservice|PaymentService/Charge|server|None",
+      "productcatalogservice|ProductCatalogService/GetProduct|server|None",
+      "productcatalogservice|ProductCatalogService/ListProducts|server|None",
+      "recommendationservice|ProductCatalogService/ListProducts|client|productcatalogservice",
+      "recommendationservice|RecommendationService/ListRecommendations|server|None",
+      "shippingservice|ShippingService/GetQuote|server|None",
+      "shippingservice|ShippingService/ShipOrder|server|None"
+    ],
+    "services": [
+      "adservice",
+      "cartservice",
+      "checkoutservice",
+      "currencyservice",
+      "emailservice",
+      "frontend",
+      "paymentservice",
+      "productcatalogservice",
+      "recommendationservice",
+      "shippingservice"
+    ],
+    "span_concepts": [
+      {
+        "attribute_keys": [
+          "network.peer.address",
+          "network.peer.port",
+          "network.type",
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "thread.id",
+          "thread.name"
+        ],
+        "instrumentation_scope": [
+          "io.opentelemetry.grpc-1.6"
+        ],
+        "parented_spans": 147,
+        "service": "adservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.AdService/GetAds"
+      },
+      {
+        "attribute_keys": [
+          "grpc.method",
+          "grpc.status_code",
+          "http.request.method",
+          "http.response.status_code",
+          "http.route",
+          "network.protocol.version",
+          "otel.scope.name",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "url.path",
+          "url.scheme",
+          "user_agent.original"
+        ],
+        "instrumentation_scope": [
+          "Microsoft.AspNetCore"
+        ],
+        "parented_spans": 68,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "POST /hipstershop.CartService/AddItem"
+      },
+      {
+        "attribute_keys": [
+          "grpc.method",
+          "grpc.status_code",
+          "http.request.method",
+          "http.response.status_code",
+          "http.route",
+          "network.protocol.version",
+          "otel.scope.name",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "url.path",
+          "url.scheme",
+          "user_agent.original"
+        ],
+        "instrumentation_scope": [
+          "Microsoft.AspNetCore"
+        ],
+        "parented_spans": 63,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "POST /hipstershop.CartService/EmptyCart"
+      },
+      {
+        "attribute_keys": [
+          "grpc.method",
+          "grpc.status_code",
+          "http.request.method",
+          "http.response.status_code",
+          "http.route",
+          "network.protocol.version",
+          "otel.scope.name",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "url.path",
+          "url.scheme",
+          "user_agent.original"
+        ],
+        "instrumentation_scope": [
+          "Microsoft.AspNetCore"
+        ],
+        "parented_spans": 287,
+        "service": "cartservice",
+        "span_kind": "server",
+        "span_name": "POST /hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "db.operation.name",
+          "db.system.name",
+          "otel.scope.name",
+          "otel.scope.version",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "OnlineBoutique.CartService"
+        ],
+        "parented_spans": 68,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis GET/SET"
+      },
+      {
+        "attribute_keys": [
+          "db.operation.name",
+          "db.system.name",
+          "error",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "OnlineBoutique.CartService"
+        ],
+        "parented_spans": 287,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis GET"
+      },
+      {
+        "attribute_keys": [
+          "db.operation.name",
+          "db.system.name",
+          "otel.scope.name",
+          "otel.scope.version",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "OnlineBoutique.CartService"
+        ],
+        "parented_spans": 63,
+        "service": "cartservice",
+        "span_kind": "client",
+        "span_name": "redis SET"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.CartService/EmptyCart"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "error",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.CheckoutService/PlaceOrder"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 136,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.EmailService/SendOrderConfirmation"
+      },
+      {
+        "attribute_keys": [
+          "error",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.PaymentService/Charge"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 63,
+        "service": "checkoutservice",
+        "span_kind": "client",
+        "span_name": "hipstershop.ShippingService/ShipOrder"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "@opentelemetry/instrumentation-grpc"
+        ],
+        "parented_spans": 1051,
+        "service": "currencyservice",
+        "span_kind": "server",
+        "span_name": "grpc.hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "@opentelemetry/instrumentation-grpc"
+        ],
+        "parented_spans": 282,
+        "service": "currencyservice",
+        "span_kind": "server",
+        "span_name": "grpc.hipstershop.CurrencyService/GetSupportedCurrencies"
+      },
+      {
+        "attribute_keys": [
+          "net.peer.ip",
+          "net.peer.port",
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "rpc.user_agent",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "opentelemetry.instrumentation.grpc"
+        ],
+        "parented_spans": 63,
+        "service": "emailservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.EmailService/SendOrderConfirmation"
+      },
+      {
+        "attribute_keys": [
+          "client.address",
+          "error",
+          "http.request.method",
+          "http.response.body.size",
+          "http.response.status_code",
+          "network.peer.address",
+          "network.peer.port",
+          "network.protocol.version",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "url.path",
+          "url.scheme",
+          "user_agent.original"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+        ],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "GET"
+      },
+      {
+        "attribute_keys": [
+          "client.address",
+          "error",
+          "http.request.body.size",
+          "http.request.method",
+          "http.response.body.size",
+          "http.response.status_code",
+          "network.peer.address",
+          "network.peer.port",
+          "network.protocol.version",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "server.address",
+          "server.port",
+          "span.kind",
+          "url.path",
+          "url.scheme",
+          "user_agent.original"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+        ],
+        "parented_spans": 0,
+        "service": "frontend",
+        "span_kind": "server",
+        "span_name": "POST"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 147,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.AdService/GetAds"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.CartService/AddItem"
+      },
+      {
+        "attribute_keys": [
+          "error",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 219,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.CartService/GetCart"
+      },
+      {
+        "attribute_keys": [
+          "error",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.CheckoutService/PlaceOrder"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 915,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.CurrencyService/Convert"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 282,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.CurrencyService/GetSupportedCurrencies"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 1200,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 82,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 199,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.RecommendationService/ListRecommendations"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 68,
+        "service": "frontend",
+        "span_kind": "client",
+        "span_name": "hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "error",
+          "grpc.error_message",
+          "grpc.error_name",
+          "otel.scope.name",
+          "otel.scope.version",
+          "otel.status_code",
+          "otel.status_description",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "@opentelemetry/instrumentation-grpc"
+        ],
+        "parented_spans": 68,
+        "service": "paymentservice",
+        "span_kind": "server",
+        "span_name": "grpc.hipstershop.PaymentService/Charge"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 1268,
+        "service": "productcatalogservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.ProductCatalogService/GetProduct"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 281,
+        "service": "productcatalogservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "opentelemetry.instrumentation.grpc"
+        ],
+        "parented_spans": 199,
+        "service": "recommendationservice",
+        "span_kind": "client",
+        "span_name": "/hipstershop.ProductCatalogService/ListProducts"
+      },
+      {
+        "attribute_keys": [
+          "net.peer.ip",
+          "net.peer.port",
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.grpc.status_code",
+          "rpc.method",
+          "rpc.service",
+          "rpc.system",
+          "rpc.user_agent",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "opentelemetry.instrumentation.grpc"
+        ],
+        "parented_spans": 199,
+        "service": "recommendationservice",
+        "span_kind": "server",
+        "span_name": "/hipstershop.RecommendationService/ListRecommendations"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 136,
+        "service": "shippingservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.ShippingService/GetQuote"
+      },
+      {
+        "attribute_keys": [
+          "otel.scope.name",
+          "otel.scope.version",
+          "rpc.method",
+          "rpc.response.status_code",
+          "rpc.system.name",
+          "server.address",
+          "server.port",
+          "span.kind"
+        ],
+        "instrumentation_scope": [
+          "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+        ],
+        "parented_spans": 63,
+        "service": "shippingservice",
+        "span_kind": "server",
+        "span_name": "hipstershop.ShippingService/ShipOrder"
+      }
+    ],
+    "spans": 8861,
+    "traces": 355
+  }
+}

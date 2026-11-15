@@ -1,0 +1,7 @@
+{
+  "contract_version": "1.0",
+  "common_fields": ["timestamp", "service", "severity", "body", "application attributes"],
+  "allowed_treatment_difference": ["B preserves native trace_id and span_id when an active span exists; A does not gain trace/span correlation"],
+  "excluded_noise": ["telemetry SDK/resource identity", "process/runtime/host/container identity", "instrumentation/exporter metadata", "stacktrace fields"],
+  "policy": "retain all SUT application log records; do not filter by severity, error status, ground truth, or other scenario data"
+}

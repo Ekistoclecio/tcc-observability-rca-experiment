@@ -1,0 +1,413 @@
+{
+  "A": {
+    "records": 12448,
+    "records_with_span_id": 0,
+    "records_with_trace_id": 0,
+    "services": [
+      {
+        "body_formats": {
+          "json": 255
+        },
+        "field_names": {
+          "endOfBatch": 255,
+          "instant": 255,
+          "level": 255,
+          "loggerFqcn": 255,
+          "loggerName": 255,
+          "message": 255,
+          "thread": 255,
+          "threadId": 255,
+          "threadPriority": 255,
+          "time": 255
+        },
+        "logger_sources": {
+          "hipstershop.AdService": 255
+        },
+        "records": 255,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "adservice",
+        "severity_values": {
+          "INFO": 255
+        }
+      },
+      {
+        "body_formats": {
+          "text": 3005
+        },
+        "field_names": {},
+        "logger_sources": {},
+        "records": 3005,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "cartservice",
+        "severity_values": {
+          "body-dependent": 3005
+        }
+      },
+      {
+        "body_formats": {
+          "json": 317
+        },
+        "field_names": {
+          "message": 317,
+          "severity": 317,
+          "timestamp": 317
+        },
+        "logger_sources": {},
+        "records": 317,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "checkoutservice",
+        "severity_values": {
+          "info": 317
+        }
+      },
+      {
+        "body_formats": {
+          "json": 2304
+        },
+        "field_names": {
+          "hostname": 2304,
+          "message": 2304,
+          "name": 2304,
+          "pid": 2304,
+          "severity": 2304,
+          "time": 2304
+        },
+        "logger_sources": {
+          "currencyservice-server": 2304
+        },
+        "records": 2304,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "currencyservice",
+        "severity_values": {
+          "info": 2304
+        }
+      },
+      {
+        "body_formats": {
+          "json": 100
+        },
+        "field_names": {
+          "message": 100,
+          "name": 100,
+          "severity": 100,
+          "timestamp": 100
+        },
+        "logger_sources": {
+          "emailservice-server": 100
+        },
+        "records": 100,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "emailservice",
+        "severity_values": {
+          "INFO": 100
+        }
+      },
+      {
+        "body_formats": {
+          "json": 2333,
+          "text": 138
+        },
+        "field_names": {
+          "currency": 260,
+          "error": 22,
+          "http.req.id": 2333,
+          "http.req.method": 2333,
+          "http.req.path": 2333,
+          "http.resp.bytes": 731,
+          "http.resp.status": 731,
+          "http.resp.took_ms": 731,
+          "id": 118,
+          "message": 2333,
+          "order": 100,
+          "product": 117,
+          "quantity": 117,
+          "session": 2333,
+          "severity": 2333,
+          "timestamp": 2333
+        },
+        "logger_sources": {},
+        "records": 2471,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "frontend",
+        "severity_values": {
+          "body-dependent": 138,
+          "debug": 2069,
+          "error": 22,
+          "info": 242
+        }
+      },
+      {
+        "body_formats": {
+          "json": 209,
+          "text": 80
+        },
+        "field_names": {
+          "hostname": 209,
+          "message": 209,
+          "name": 209,
+          "pid": 209,
+          "severity": 209,
+          "time": 209
+        },
+        "logger_sources": {
+          "paymentservice-charge": 100,
+          "paymentservice-server": 109
+        },
+        "records": 289,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "paymentservice",
+        "severity_values": {
+          "body-dependent": 80,
+          "info": 209
+        }
+      },
+      {
+        "body_formats": {
+          "json": 2615
+        },
+        "field_names": {
+          "message": 2615,
+          "severity": 2615,
+          "timestamp": 2615
+        },
+        "logger_sources": {},
+        "records": 2615,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "productcatalogservice",
+        "severity_values": {
+          "info": 2615
+        }
+      },
+      {
+        "body_formats": {
+          "json": 334
+        },
+        "field_names": {
+          "message": 334,
+          "name": 334,
+          "severity": 334,
+          "timestamp": 334
+        },
+        "logger_sources": {
+          "recommendationservice-server": 334
+        },
+        "records": 334,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "recommendationservice",
+        "severity_values": {
+          "INFO": 334
+        }
+      },
+      {
+        "body_formats": {
+          "text": 90
+        },
+        "field_names": {},
+        "logger_sources": {},
+        "records": 90,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "redis-cart",
+        "severity_values": {
+          "body-dependent": 90
+        }
+      },
+      {
+        "body_formats": {
+          "json": 668
+        },
+        "field_names": {
+          "message": 668,
+          "severity": 668,
+          "timestamp": 668
+        },
+        "logger_sources": {},
+        "records": 668,
+        "records_with_span_id": 0,
+        "records_with_trace_id": 0,
+        "service": "shippingservice",
+        "severity_values": {
+          "info": 668
+        }
+      }
+    ]
+  },
+  "B": {
+    "records": 10710,
+    "records_with_span_id": 10710,
+    "records_with_trace_id": 10710,
+    "services": [
+      {
+        "body_formats": {
+          "text": 510
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 510
+        },
+        "records": 510,
+        "records_with_span_id": 510,
+        "records_with_trace_id": 510,
+        "service": "adservice",
+        "severity_values": {
+          "body-dependent": 510
+        }
+      },
+      {
+        "body_formats": {
+          "text": 1427
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 1427
+        },
+        "records": 1427,
+        "records_with_span_id": 1427,
+        "records_with_trace_id": 1427,
+        "service": "cartservice",
+        "severity_values": {
+          "body-dependent": 1427
+        }
+      },
+      {
+        "body_formats": {
+          "text": 317
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 317
+        },
+        "records": 317,
+        "records_with_span_id": 317,
+        "records_with_trace_id": 317,
+        "service": "checkoutservice",
+        "severity_values": {
+          "body-dependent": 317
+        }
+      },
+      {
+        "body_formats": {
+          "text": 2301
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 2301,
+          "scope_version": 2301
+        },
+        "records": 2301,
+        "records_with_span_id": 2301,
+        "records_with_trace_id": 2301,
+        "service": "currencyservice",
+        "severity_values": {
+          "info": 2301
+        }
+      },
+      {
+        "body_formats": {
+          "text": 100
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 100
+        },
+        "records": 100,
+        "records_with_span_id": 100,
+        "records_with_trace_id": 100,
+        "service": "emailservice",
+        "severity_values": {
+          "body-dependent": 100
+        }
+      },
+      {
+        "body_formats": {
+          "text": 2333
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 2333
+        },
+        "records": 2333,
+        "records_with_span_id": 2333,
+        "records_with_trace_id": 2333,
+        "service": "frontend",
+        "severity_values": {
+          "body-dependent": 2333
+        }
+      },
+      {
+        "body_formats": {
+          "text": 105
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 105,
+          "scope_version": 105
+        },
+        "records": 105,
+        "records_with_span_id": 105,
+        "records_with_trace_id": 105,
+        "service": "paymentservice",
+        "severity_values": {
+          "body-dependent": 105
+        }
+      },
+      {
+        "body_formats": {
+          "text": 2615
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 2615
+        },
+        "records": 2615,
+        "records_with_span_id": 2615,
+        "records_with_trace_id": 2615,
+        "service": "productcatalogservice",
+        "severity_values": {
+          "body-dependent": 2615
+        }
+      },
+      {
+        "body_formats": {
+          "text": 334
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 334
+        },
+        "records": 334,
+        "records_with_span_id": 334,
+        "records_with_trace_id": 334,
+        "service": "recommendationservice",
+        "severity_values": {
+          "body-dependent": 334
+        }
+      },
+      {
+        "body_formats": {
+          "text": 668
+        },
+        "field_names": {},
+        "logger_sources": {
+          "scope_name": 668
+        },
+        "records": 668,
+        "records_with_span_id": 668,
+        "records_with_trace_id": 668,
+        "service": "shippingservice",
+        "severity_values": {
+          "body-dependent": 668
+        }
+      }
+    ]
+  }
+}

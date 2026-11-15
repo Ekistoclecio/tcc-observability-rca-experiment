@@ -1,0 +1,2774 @@
+{
+  "A": {
+    "metric_names": [
+      "container_cpu_usage_seconds_total",
+      "tcc_conventional_request_duration_seconds_count",
+      "tcc_conventional_request_duration_seconds_sum",
+      "tcc_conventional_requests_total"
+    ],
+    "native_metric_series": [
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 66,
+        "series": 2,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 384,
+        "series": 8,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 384,
+        "series": 8,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 384,
+        "series": 8,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 631,
+        "series": 11,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 631,
+        "series": 11,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 631,
+        "series": 11,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 106,
+        "series": 2,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 1141,
+        "series": 22,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 1141,
+        "series": 22,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 1141,
+        "series": 22,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 67,
+        "series": 3,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 65,
+        "series": 2,
+        "service": "redis-cart",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "pod",
+          "service_name"
+        ],
+        "metric_name": "container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "tcc-sut-cadvisor"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_request_duration_seconds_sum",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      },
+      {
+        "label_keys": [
+          "instance",
+          "job",
+          "operation",
+          "service_name",
+          "span_kind",
+          "status_code"
+        ],
+        "metric_name": "tcc_conventional_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": null,
+          "scrape_job": "online-boutique-conventional"
+        }
+      }
+    ],
+    "samples": 9574,
+    "series": 178
+  },
+  "B": {
+    "metric_names": [
+      "online_boutique_otel_cart_redis_operation_duration_seconds_bucket",
+      "online_boutique_otel_cart_redis_operation_duration_seconds_count",
+      "online_boutique_otel_cart_redis_operation_duration_seconds_sum",
+      "online_boutique_otel_cart_redis_operations_total",
+      "online_boutique_otel_container_cpu_usage_seconds_total",
+      "online_boutique_otel_http_server_request_duration_seconds_bucket",
+      "online_boutique_otel_http_server_request_duration_seconds_count",
+      "online_boutique_otel_http_server_request_duration_seconds_sum",
+      "online_boutique_otel_rpc_client_call_duration_seconds_bucket",
+      "online_boutique_otel_rpc_client_call_duration_seconds_count",
+      "online_boutique_otel_rpc_client_call_duration_seconds_sum",
+      "online_boutique_otel_rpc_server_call_duration_seconds_bucket",
+      "online_boutique_otel_rpc_server_call_duration_seconds_count",
+      "online_boutique_otel_rpc_server_call_duration_seconds_sum",
+      "online_boutique_otel_rpc_server_duration_milliseconds_bucket",
+      "online_boutique_otel_rpc_server_duration_milliseconds_count",
+      "online_boutique_otel_rpc_server_duration_milliseconds_sum",
+      "online_boutique_otel_tcc_otel_http_server_duration_seconds_bucket",
+      "online_boutique_otel_tcc_otel_http_server_duration_seconds_count",
+      "online_boutique_otel_tcc_otel_http_server_duration_seconds_sum",
+      "online_boutique_otel_tcc_otel_http_server_requests_total",
+      "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_bucket",
+      "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_count",
+      "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_sum",
+      "online_boutique_otel_tcc_otel_rpc_client_requests_total",
+      "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+      "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+      "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+      "online_boutique_otel_tcc_otel_rpc_server_requests_total"
+    ],
+    "native_metric_series": [
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "le",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 945,
+        "series": 15,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.java-http-server",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.java-http-server",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.java-http-server",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "network_type",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_grpc_status_code",
+          "rpc_method",
+          "rpc_service",
+          "rpc_system",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_duration_milliseconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 4032,
+        "series": 64,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.grpc-1.6",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "network_type",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_grpc_status_code",
+          "rpc_method",
+          "rpc_service",
+          "rpc_system",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_duration_milliseconds_count",
+        "metric_type": "counter_component",
+        "samples": 252,
+        "series": 4,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.grpc-1.6",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "network_type",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_grpc_status_code",
+          "rpc_method",
+          "rpc_service",
+          "rpc_system",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_duration_milliseconds_sum",
+        "metric_type": "counter_component",
+        "samples": 252,
+        "series": 4,
+        "service": "adservice",
+        "source": {
+          "instrumentation_scope": "io.opentelemetry.grpc-1.6",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "db_operation_name",
+          "db_system_name",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "outcome",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_cart_redis_operation_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 3056,
+        "series": 64,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "db_operation_name",
+          "db_system_name",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "outcome",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_cart_redis_operation_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "db_operation_name",
+          "db_system_name",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "outcome",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_cart_redis_operation_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "db_operation_name",
+          "db_system_name",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "outcome",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_cart_redis_operations_total",
+        "metric_type": "counter",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 72,
+        "series": 2,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "le",
+          "network_protocol_version",
+          "otel_scope_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 3915,
+        "series": 75,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "Microsoft.AspNetCore.Hosting",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "network_protocol_version",
+          "otel_scope_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 261,
+        "series": 5,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "Microsoft.AspNetCore.Hosting",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "network_protocol_version",
+          "otel_scope_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 261,
+        "series": 5,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "Microsoft.AspNetCore.Hosting",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 3056,
+        "series": 64,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "metric_type": "counter",
+        "samples": 191,
+        "series": 4,
+        "service": "cartservice",
+        "source": {
+          "instrumentation_scope": "OnlineBoutique.CartService",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 8025,
+        "series": 135,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 535,
+        "series": 9,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 535,
+        "series": 9,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 2355,
+        "series": 45,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 157,
+        "series": 3,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 157,
+        "series": 3,
+        "service": "checkoutservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 2016,
+        "series": 32,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/currencyservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/currencyservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/currencyservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "metric_type": "counter",
+        "samples": 126,
+        "series": 2,
+        "service": "currencyservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/currencyservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 119,
+        "series": 3,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 1008,
+        "series": 16,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/emailservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/emailservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/emailservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "emailservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/emailservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 70,
+        "series": 2,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "instance",
+          "job",
+          "le",
+          "network_protocol_name",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_version",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 4380,
+        "series": 105,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "instance",
+          "job",
+          "network_protocol_name",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_version",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 292,
+        "series": 7,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "instance",
+          "job",
+          "network_protocol_name",
+          "network_protocol_version",
+          "otel_scope_name",
+          "otel_scope_version",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario",
+          "url_scheme"
+        ],
+        "metric_name": "online_boutique_otel_http_server_request_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 292,
+        "series": 7,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 10890,
+        "series": 195,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 726,
+        "series": 13,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "error_type",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "server_address",
+          "server_port",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_client_call_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 726,
+        "series": 13,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_http_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 5584,
+        "series": 128,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "online-boutique/frontend",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_http_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 349,
+        "series": 8,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "online-boutique/frontend",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_http_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 349,
+        "series": 8,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "online-boutique/frontend",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "http_request_method",
+          "http_response_status_code",
+          "http_route",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_http_server_requests_total",
+        "metric_type": "counter",
+        "samples": 349,
+        "series": 8,
+        "service": "frontend",
+        "source": {
+          "instrumentation_scope": "online-boutique/frontend",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 1504,
+        "series": 32,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/paymentservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/paymentservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/paymentservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "metric_type": "counter",
+        "samples": 94,
+        "series": 2,
+        "service": "paymentservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/paymentservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 2835,
+        "series": 45,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 189,
+        "series": 3,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 189,
+        "series": 3,
+        "service": "productcatalogservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 83,
+        "series": 3,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 1008,
+        "series": 16,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_client_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_client_requests_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 1008,
+        "series": 16,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_tcc_otel_rpc_server_requests_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "recommendationservice",
+        "source": {
+          "instrumentation_scope": "online-boutique/recommendationservice",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 64,
+        "series": 2,
+        "service": "redis-cart",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "container",
+          "cpu",
+          "deployment_environment_name",
+          "exported_instance",
+          "exported_job",
+          "id",
+          "image",
+          "instance",
+          "job",
+          "name",
+          "namespace",
+          "otel_scope_name",
+          "otel_scope_version",
+          "pod",
+          "service_name",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_container_cpu_usage_seconds_total",
+        "metric_type": "counter",
+        "samples": 63,
+        "series": 1,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "le",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_bucket",
+        "metric_type": "histogram_bucket",
+        "samples": 2835,
+        "series": 45,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_count",
+        "metric_type": "counter_component",
+        "samples": 189,
+        "series": 3,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      },
+      {
+        "label_keys": [
+          "deployment_environment_name",
+          "exported_job",
+          "instance",
+          "job",
+          "otel_scope_name",
+          "otel_scope_schema_url",
+          "otel_scope_version",
+          "rpc_method",
+          "rpc_response_status_code",
+          "rpc_system_name",
+          "service_name",
+          "service_version",
+          "telemetry_scenario"
+        ],
+        "metric_name": "online_boutique_otel_rpc_server_call_duration_seconds_sum",
+        "metric_type": "counter_component",
+        "samples": 189,
+        "series": 3,
+        "service": "shippingservice",
+        "source": {
+          "instrumentation_scope": "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc",
+          "scrape_job": "otel-collector"
+        }
+      }
+    ],
+    "samples": 67986,
+    "series": 1275
+  }
+}
