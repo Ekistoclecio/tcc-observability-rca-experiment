@@ -1,0 +1,58 @@
+{
+  "evidence": {
+    "dataset_A": {
+      "bytes": 2185549,
+      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-a/dataset.json",
+      "sha256": "a28322799611862d935af19e71a03f0daf0407d85503f8dae16777ba3ce7355c"
+    },
+    "dataset_B": {
+      "bytes": 2958270,
+      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-b/dataset.json",
+      "sha256": "55d5edf0b77666bb6beb7295c6d84f67fd58315ad0265bcf6199126258f75ce5"
+    },
+    "raw_metrics_A": {
+      "bytes": 154398,
+      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-a/raw/metrics.json",
+      "sha256": "f7b1c1163ff164e256e77dc8b0f05c00421f2d6ccecaba68dbe23620feb46760"
+    },
+    "raw_metrics_B": {
+      "bytes": 1522415,
+      "path": "artifacts/datasets/iv-edv-ccv1-002-f4-f4/scenario-b/raw/metrics.json",
+      "sha256": "05338989caca3f693675400bc050754ce6efa9567af702aa25f6c185dd52194c"
+    }
+  },
+  "interpretation": "The two scenarios expose the same logical trace outcomes, but request success counter deltas disagree. Error deltas are unavailable because their first samples occur after the observation window begins. Do not infer or replace metrics from trace spans; investigate SDK export/collection and instrumentation before accepting metric parity.",
+  "operation": {
+    "name": "PaymentService/Charge",
+    "service": "paymentservice"
+  },
+  "request_count": {
+    "A": {
+      "error_delta": null,
+      "error_delta_status": "missing_baseline",
+      "success_delta": 16
+    },
+    "B": {
+      "error_delta": null,
+      "error_delta_status": "missing_baseline",
+      "success_delta": 7
+    }
+  },
+  "run_id": "iv-edv-ccv1-002-f4-f4",
+  "schema_version": "1.0",
+  "status": "unresolved_parity_failure",
+  "trace_outcomes": {
+    "A": {
+      "error_spans": 5,
+      "success_spans": 17
+    },
+    "B": {
+      "error_spans": 5,
+      "success_spans": 17
+    }
+  },
+  "window": {
+    "end": "2026-11-15T18:55:59.777000Z",
+    "start": "2026-11-15T18:55:33.615000Z"
+  }
+}

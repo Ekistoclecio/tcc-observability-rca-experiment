@@ -62,3 +62,9 @@ Este defeito explica a divergência aparente `emailservice|ProductCatalogService
 ## Anomalia de valores métricos F4 — paridade não aceita
 
 Na run F4, os dois datasets de traces contêm os mesmos resultados `paymentservice / Charge`: 17 spans de sucesso e 5 spans com falha. Os request counters não concordam: A apresenta delta de sucesso 16 e B delta de sucesso 7. A série de erros aparece depois do início da janela RCA e não possui baseline válido em nenhum backend; após a correção conservadora do baseline, ambos os deltas de erro são `null` com `delta_status=missing_baseline` (os RAWs mantêm os valores cumulativos). Isto evidencia uma discrepância de instrumentação/exportação/coleta ainda não explicada. Não será mascarada derivando métricas dos spans. Igualdade de conceitos não basta para comprovar paridade semântica dos valores; a avaliação atual é **FAIL / não pronto para validação integral F1–F5** até a discrepância de sucesso ser diagnosticada e resolvida.
+
+Os hashes e os paths concretos que sustentam a discrepância estão em `f4-metric-value-anomaly.json`.
+
+## Ajuste local do ambiente
+
+Antes das smokes, o `emailservice` encerrava com código 137 no limite local de memória `128Mi`. O overlay experimental local elevou o limite para `256Mi` (request mantido em `128Mi`) para manter os 11 serviços Ready durante a validação. Esse ajuste de recurso não altera a lógica ou a instrumentação dos sinais; está versionado separadamente e deve ser mantido como parte da configuração local usada para reproduzir esta validação.
