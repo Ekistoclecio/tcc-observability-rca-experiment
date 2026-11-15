@@ -150,26 +150,34 @@ numbers must not be used to infer that telemetry scenario A or B is superior. Hu
 review remains explicit and is never marked complete by automation. This workflow ends
 at the canonical A/B requests and performs no model calls or RCA scoring.
 
-## Experiment data package validation
+## Latest experiment results
 
-To run a fresh non-scientific F1–F5 battery and package the three core data sets in a
-separate, self-contained root:
+Run a new battery from the host/WSL. This clears only `audit/results/`, then runs each
+selected fault with a fresh run ID. The standard battery runs F1–F5 once each:
 
 ```bash
-scripts/experiment/run-experiment-data-validation.sh \
-  --validation-id experiment-data-smoke-003 --all
+scripts/experiment/run-experiment-results.sh \
+  --validation-id my-results-001 --all
 ```
 
-The command reuses the integration validator one fault at a time. Immediately after
-each run it captures full-run RAW telemetry for A and B, using actual `warmup_started`
-and `workload_finished` events and expanding the window if needed to contain the RCA
-window. It then packages the original Ground Truth, the existing Phase 5 RCA-window
-datasets, and the Phase 6 Canonical RCA requests under
-`artifacts/experiment-validation/<validation-id>/<F1..F5>/`. Operational evidence stays
-separate under `audit/`. It refuses to overwrite a package root or any artifacts for
-the derived run IDs. `--dry-run` prints the plan; `--fault f4` runs one fault.
+The global `datasetA/` and `datasetB/` RAW files are captured directly from Prometheus,
+Loki and Jaeger after the final fault, all against the same `experiment_start` to
+`experiment_end` interval. Loki and Jaeger queries use bounded temporal segments which
+are merged and deduplicated; the global files are not assembled from per-fault
+captures. Each numbered fault folder contains the two Phase 5 normalized RCA-window
+datasets and the byte-preserved Ground Truth from that same run. The Phase 6 RCA Inputs
+remain in their existing per-run artifact directories.
 
-The package README distinguishes `01-telemetry` (what was observed), `02-ground-truth`
-(what happened), `03-rca-input` (what the model adapter would receive), and `audit`
-(engineering evidence). This workflow executes no AI and is not part of the official
+To run a single fault or repeat a class, pass `--fault` multiple times in execution
+order. For example, `--fault f1 --fault f1 --fault f2` produces
+`001_cpu_saturation_r01`, `002_cpu_saturation_r02`, and
+`003_network_latency_r01`. `--dry-run` prints the sequence and artifact sources without
+clearing the previous results or starting a run. Pre/post RCA buffers can be set with
+`--pre-buffer` and `--post-buffer`.
+
+Use a new, unused validation ID for each battery. The runner fails before cleanup if
+Kubernetes is not Ready or generated run IDs already exist. The cleanup guard accepts
+only the exact repository path `<repo>/audit/results` and refuses symlinks or paths
+outside it. Runtime results are ignored by Git. This is
+engineering validation only: no AI is called and the output is not an official
 scientific campaign.
