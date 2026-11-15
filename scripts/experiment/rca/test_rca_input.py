@@ -44,11 +44,11 @@ class RCAInputTests(unittest.TestCase):
             source = dataset(scenario)
             request = build_request(source)
             validate_request(request)
-            self.assertEqual(request["telemetry"], {key: source[key] for key in ("metrics", "logs", "traces")})
             self.assertEqual(len(request["telemetry"]["metrics"]), len(source["metrics"]))
             self.assertEqual(len(request["telemetry"]["logs"]), len(source["logs"]))
             self.assertEqual(len(request["telemetry"]["traces"]), len(source["traces"]))
             self.assertEqual(request["telemetry"]["traces"][0]["spans"], source["traces"][0]["spans"])
+            self.assertNotIn("native_name", json.dumps(request["telemetry"]))
 
     def test_output_schema_requires_exactly_three_hypotheses_and_validation_checks_order_and_uniqueness(self):
         schema = json.loads(OUTPUT_SCHEMA_PATH.read_text())
@@ -138,8 +138,9 @@ class RCAInputTests(unittest.TestCase):
                 self.assertTrue(manifest["content_policy_checks"]["run_id_absent_from_request"])
                 self.assertTrue(manifest["content_policy_checks"]["ground_truth_and_control_plane_not_loaded"])
                 self.assertEqual(manifest["model_visible_sanitization"], {
-                    "policy": "remove_explicit_experimental_treatment_markers",
-                    "removed_fields": {"telemetry.scenario": 1, "telemetry_scenario": 1},
+                    "policy": "remove_explicit_experimental_treatment_markers_and_noncanonical_metadata",
+                    "removed_fields": {"common_view_metadata:native_name": 1,
+                                       "telemetry.scenario": 1, "telemetry_scenario": 1},
                 })
                 self.assertEqual(json.loads((root / "artifacts" / "datasets" / RUN_ID / f"scenario-{suffix}" / "dataset.json").read_text()), source_data_by_suffix[suffix])
                 self.assertNotIn("telemetry_scenario", json.dumps(request))
@@ -166,7 +167,7 @@ class RCAInputTests(unittest.TestCase):
         self.assertNotIn(b"scenario-a", render_preview(request))
         self.assertNotIn(b"scenario-b", render_preview(request))
 
-    def test_explicit_treatment_markers_are_removed_without_losing_evidence_or_native_metadata(self):
+    def test_model_view_removes_experimental_and_native_metadata_without_mutating_dataset(self):
         source = dataset("B")
         source["metrics"][0]["labels"]["telemetry_scenario"] = "otel"
         source["logs"][0]["labels"]["telemetry_scenario"] = "otel"
@@ -191,12 +192,16 @@ class RCAInputTests(unittest.TestCase):
         self.assertEqual(request["telemetry"]["metrics"][0]["evidence_id"], source["metrics"][0]["evidence_id"])
         self.assertEqual(request["telemetry"]["logs"][0]["evidence_id"], source["logs"][0]["evidence_id"])
         self.assertEqual(request["telemetry"]["traces"][0]["spans"][0]["evidence_id"], source["traces"][0]["spans"][0]["evidence_id"])
-        self.assertEqual(request["telemetry"]["logs"][0]["attributes"]["telemetry.sdk.name"], "opentelemetry")
-        self.assertEqual(request["telemetry"]["logs"][0]["attributes"]["telemetry.sdk.version"], "1.2.3")
-        self.assertEqual(request["telemetry"]["traces"][0]["spans"][0]["attributes"]["otel.scope.name"], "io.opentelemetry.grpc")
-        self.assertEqual(markers["key:telemetry.sdk.name"], 1)
-        self.assertEqual(markers["key:otel.scope.name"], 1)
+        self.assertNotIn("telemetry.sdk.name", encoded)
+        self.assertNotIn("telemetry.sdk.version", encoded)
+        self.assertNotIn("otel.scope.name", encoded)
+        self.assertNotIn("native_name", encoded)
+        self.assertEqual(source, source_before)
+        self.assertEqual(markers, {})
         self.assertEqual(removed_fields["Telemetry-Scenario"], 1)
+        self.assertEqual(removed_fields["common_view_metadata:telemetry.sdk.name"], 1)
+        self.assertEqual(removed_fields["common_view_metadata:telemetry.sdk.version"], 1)
+        self.assertEqual(removed_fields["common_view_metadata:otel.scope.name"], 1)
 
 
 if __name__ == "__main__":

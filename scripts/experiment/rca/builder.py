@@ -71,23 +71,73 @@ def _is_experimental_treatment_marker(key: Any) -> bool:
     return "".join(char.lower() for char in str(key) if char.isalnum()) == "telemetryscenario"
 
 
-def _sanitize_telemetry(source: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
-    """Copy telemetry and remove only explicit experimental scenario marker fields."""
-    telemetry = deepcopy({signal: source[signal] for signal in ("metrics", "logs", "traces")})
-    removed = {"telemetry_scenario": 0, "telemetry.scenario": 0}
+_MODEL_METADATA_KEYS = {
+    "native_name", "native_names", "scope_name", "scope_version", "instrumentation_scope",
+    "instrumentation_scope_version", "otel_scope_name", "otel_scope_version", "os_description", "os_type",
+    "os_version", "telemetry_distro_name", "telemetry_distro_version", "code_file_path",
+    "code_function_name", "code_line_number", "exception_type", "exception_message", "exception_stacktrace",
+    "exception_stack_trace", "stacktrace", "container_id", "pod_uid", "exporter_name", "collector_name",
+}
+_MODEL_METADATA_PREFIXES = (
+    "telemetry_sdk_", "telemetry.sdk.", "instrumentation_scope.", "instrumentation.scope.",
+    "process_", "process.", "runtime_", "runtime.", "container_", "container.", "exporter_", "exporter.",
+    "collector_", "collector.",
+)
 
-    def visit(value: Any) -> None:
+
+def _sanitize_telemetry(source: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+    """Create the model-visible common view without mutating the source dataset."""
+    telemetry = deepcopy({signal: source[signal] for signal in ("metrics", "logs", "traces")})
+    removed: dict[str, int] = {"telemetry_scenario": 0, "telemetry.scenario": 0}
+
+    def remove_count(category: str, key: str) -> None:
+        field = f"{category}:{key}"
+        removed[field] = removed.get(field, 0) + 1
+
+    def model_metadata_key(key: Any) -> bool:
+        normalized = str(key).casefold()
+        compact = "".join(char for char in normalized if char.isalnum())
+        normalized_underscore = normalized.replace(".", "_").replace("-", "_")
+        return (compact in {"nativename", "nativenames", "scopename", "scopeversion", "instrumentationscope",
+                            "instrumentationscopeversion", "osdescription", "ostype", "osversion",
+                            "telemetrydistroname", "telemetrydistroversion", "codefilepath", "codefunctionname",
+                            "codelinenumber", "exceptiontype", "exceptionmessage", "exceptionstacktrace",
+                            "containerid", "poduid", "exportername", "collectorname"}
+                or normalized.startswith(_MODEL_METADATA_PREFIXES)
+                or normalized_underscore in _MODEL_METADATA_KEYS)
+
+    def visit(value: Any, in_span: bool = False) -> None:
         if isinstance(value, dict):
+            is_span = in_span or ("span_id" in value and "operation" in value and "service" in value)
             for key in list(value):
                 if _is_experimental_treatment_marker(key):
                     spelling = str(key)
                     removed[spelling] = removed.get(spelling, 0) + 1
                     del value[key]
+                elif model_metadata_key(key):
+                    remove_count("common_view_metadata", str(key))
+                    del value[key]
+                elif is_span and key == "events":
+                    if value[key]:
+                        remove_count("span_events", str(key))
+                    del value[key]
+                elif is_span and key == "attributes" and isinstance(value[key], dict):
+                    # Common fields (including status, peer/target and hierarchy) are
+                    # already represented at the span level. Native tag bags are not.
+                    for attr in list(value[key]):
+                        if _is_experimental_treatment_marker(attr):
+                            spelling = str(attr)
+                            removed[spelling] = removed.get(spelling, 0) + 1
+                            del value[key][attr]
+                        elif attr not in {"error.message"}:
+                            category = "common_view_metadata" if model_metadata_key(attr) else "span_attributes"
+                            remove_count(category, str(attr))
+                            del value[key][attr]
                 else:
-                    visit(value[key])
+                    visit(value[key], is_span)
         elif isinstance(value, list):
             for child in value:
-                visit(child)
+                visit(child, in_span)
 
     visit(telemetry)
     return telemetry, dict(sorted(removed.items()))
@@ -256,7 +306,7 @@ def generate_one(dataset_path: Path, output_path: Path, run_id: str, scenario: s
         },
         "native_telemetry_provenance_markers": _source_provenance_markers(request),
         "model_visible_sanitization": {
-            "policy": "remove_explicit_experimental_treatment_markers",
+            "policy": "remove_explicit_experimental_treatment_markers_and_noncanonical_metadata",
             "removed_fields": removed_treatment_markers,
         },
         **_request_counts(request),
