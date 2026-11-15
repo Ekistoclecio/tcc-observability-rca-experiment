@@ -1,0 +1,678 @@
+{
+  "schema_version": "1.0",
+  "validation_id": "so-115b",
+  "validation_commit": "4248b042d92b86503a77490190ead62c9eda1f6b",
+  "status": "FAIL",
+  "static_suite": {
+    "python_experimental": 103,
+    "node_payment_currency": 10,
+    "python_services": 4,
+    "go_checkout": "PASS (go test -vet=off ./...)",
+    "dotnet_cart": "3/3 PASS"
+  },
+  "faults": {
+    "F4": {
+      "run_id": "iv-edv-so-115b-001-f4-f4",
+      "ground_truth": {
+        "status": "valid",
+        "fault": {
+          "class": "F4",
+          "location": {
+            "component": "paymentservice",
+            "kind": "operation",
+            "operation": "Charge"
+          },
+          "mechanism": {
+            "name": "paymentservice file control hook"
+          },
+          "parameters": {
+            "mode": "controlled_exception"
+          },
+          "type": "application_exception"
+        },
+        "injection_recovery": "PASS",
+        "sha256": "89ee504fc784f5b787fe13eb9177e2907de50a44e5b97f3c4f955376469b2ae6"
+      },
+      "injection": {
+        "checked_at": "2026-11-15T23:20:40.508Z",
+        "checks": {
+          "charge_error_observed": true,
+          "flag_present_all_pods": true,
+          "same_pods_and_restart_counts": true,
+          "service_still_ready": true
+        },
+        "evidence": [
+          "artifacts/integration-validation/edv-so-115b-001-f4/f4/audit/injection/deployment.json",
+          "artifacts/integration-validation/edv-so-115b-001-f4/f4/audit/injection/pods.json",
+          "artifacts/integration-validation/edv-so-115b-001-f4/f4/audit/injection/endpoints.json"
+        ],
+        "fault": "F4",
+        "observed": {
+          "confirmation_event": {
+            "event": "fault_confirmed",
+            "evidence": {
+              "flags_present_by_pod": {
+                "paymentservice-66566d54b9-whf27": true
+              }
+            },
+            "monotonic_seconds": 15159.701198866,
+            "run_id": "iv-edv-so-115b-001-f4-f4",
+            "source": "orchestrator",
+            "timestamp": "2026-11-15T23:20:20.212Z"
+          },
+          "desired_replicas": 1,
+          "fault_effect_observed_in_workload": true,
+          "flags_by_pod": {
+            "paymentservice-66566d54b9-whf27": "present"
+          },
+          "pod_uid_restart_before": {
+            "paymentservice-66566d54b9-whf27": [
+              "601cf0c9-6566-432d-aa8b-d24fedddedf6",
+              0
+            ]
+          },
+          "pod_uid_restart_during": {
+            "paymentservice-66566d54b9-whf27": [
+              "601cf0c9-6566-432d-aa8b-d24fedddedf6",
+              0
+            ]
+          },
+          "ready_replicas": 1
+        },
+        "passed": true
+      },
+      "recovery": {
+        "all_sut_deployments_ready": true,
+        "f4_flag_absent": true,
+        "passed": true,
+        "residual_chaos": {
+          "networkchaos": 0,
+          "stresschaos": 0
+        },
+        "snapshot": "artifacts/integration-validation/edv-so-115b-001-f4/f4/audit/cleanup/snapshot-summary.json"
+      },
+      "dataset_package_validation": true,
+      "dataset_provenance_checks": {
+        "A_copied_dataset_matches_original_manifest": true,
+        "A_dataset_hash_matches_request_manifest": true,
+        "A_dataset_request_counts_match": true,
+        "A_explicit_treatment_markers_absent": true,
+        "A_full_raw_present": true,
+        "A_full_window_contains_workload_and_rca": true,
+        "A_logs_hash_valid": true,
+        "A_logs_query_window_matches": true,
+        "A_metrics_hash_valid": true,
+        "A_metrics_query_window_matches": true,
+        "A_rca_window_matches_dataset": true,
+        "A_request_hash_matches_manifest": true,
+        "A_run_id_absent_from_request": true,
+        "A_traces_hash_valid": true,
+        "A_traces_query_window_matches": true,
+        "B_copied_dataset_matches_original_manifest": true,
+        "B_dataset_hash_matches_request_manifest": true,
+        "B_dataset_request_counts_match": true,
+        "B_explicit_treatment_markers_absent": true,
+        "B_full_raw_present": true,
+        "B_full_window_contains_workload_and_rca": true,
+        "B_logs_hash_valid": true,
+        "B_logs_query_window_matches": true,
+        "B_metrics_hash_valid": true,
+        "B_metrics_query_window_matches": true,
+        "B_rca_window_matches_dataset": true,
+        "B_request_hash_matches_manifest": true,
+        "B_run_id_absent_from_request": true,
+        "B_traces_hash_valid": true,
+        "B_traces_query_window_matches": true,
+        "ground_truth_absent_from_rca_input_tree": true,
+        "ground_truth_valid": true,
+        "same_full_run_window_ab": true,
+        "same_rca_window_ab": true
+      },
+      "scenarios": {
+        "A": {
+          "dataset_sha256": "bc07c2803d46ea9cbb04ed483db174b170e92746238b5cd17485463cc5d1289d",
+          "dataset_bytes": 1917222,
+          "metrics": 113,
+          "logs": 1754,
+          "traces": 110,
+          "spans": 2656,
+          "logs_with_trace_id": 0,
+          "logs_with_span_id": 0,
+          "span_outcomes": {
+            "SUCCESS": 2626,
+            "ERROR": 30
+          }
+        },
+        "B": {
+          "dataset_sha256": "079c45b914d4522bf8a363ad29517c2b639b70642b138e2d237be042e10a3118",
+          "dataset_bytes": 2012805,
+          "metrics": 117,
+          "logs": 1802,
+          "traces": 110,
+          "spans": 2656,
+          "logs_with_trace_id": 1802,
+          "logs_with_span_id": 1802,
+          "span_outcomes": {
+            "SUCCESS": 2626,
+            "ERROR": 30
+          }
+        }
+      },
+      "requests": {
+        "A": {
+          "sha256": "c65a5682fc3415703f5de1ce5cd87ffc141717f5643f6b0ef4f63be64363f16d",
+          "bytes": 1954590
+        },
+        "B": {
+          "sha256": "732ce1c6c2384355f246e85b7c0bbb5caa277448b481afc74d627deda284e312",
+          "bytes": 2052051
+        }
+      },
+      "metric_semantic_key_diff": {
+        "A_only": [],
+        "B_only": [
+          {
+            "key": [
+              "request_count",
+              "cartservice",
+              "CartService/GetCart",
+              "server",
+              null,
+              "error"
+            ],
+            "count": 1,
+            "records": [
+              {
+                "concept": "request_count",
+                "counter_reset": false,
+                "delta_status": "valid",
+                "kind": "server",
+                "labels": {},
+                "operation": "CartService/GetCart",
+                "outcome": "error",
+                "service": "cartservice",
+                "target": null,
+                "timestamp": "2026-11-15T23:20:35.211000Z",
+                "unit": "{request}",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "key": [
+              "request_duration",
+              "cartservice",
+              "CartService/GetCart",
+              "server",
+              null,
+              "error"
+            ],
+            "count": 1,
+            "records": [
+              {
+                "concept": "request_duration",
+                "count_delta": 0.0,
+                "counter_reset": false,
+                "delta_status": "valid",
+                "kind": "server",
+                "labels": {},
+                "operation": "CartService/GetCart",
+                "outcome": "error",
+                "service": "cartservice",
+                "sum_delta_seconds": 0.0,
+                "target": null,
+                "timestamp": "2026-11-15T23:20:35.211000Z",
+                "unit": "s",
+                "value": null
+              }
+            ]
+          },
+          {
+            "key": [
+              "request_count",
+              "cartservice",
+              "redis GET",
+              "datastore",
+              "redis-cart",
+              "error"
+            ],
+            "count": 1,
+            "records": [
+              {
+                "concept": "request_count",
+                "counter_reset": false,
+                "delta_status": "valid",
+                "kind": "datastore",
+                "labels": {},
+                "operation": "redis GET",
+                "outcome": "error",
+                "service": "cartservice",
+                "target": "redis-cart",
+                "timestamp": "2026-11-15T23:20:35.211000Z",
+                "unit": "{request}",
+                "value": 0.0
+              }
+            ]
+          },
+          {
+            "key": [
+              "request_duration",
+              "cartservice",
+              "redis GET",
+              "datastore",
+              "redis-cart",
+              "error"
+            ],
+            "count": 1,
+            "records": [
+              {
+                "concept": "request_duration",
+                "count_delta": 0.0,
+                "counter_reset": false,
+                "delta_status": "valid",
+                "kind": "datastore",
+                "labels": {},
+                "operation": "redis GET",
+                "outcome": "error",
+                "service": "cartservice",
+                "sum_delta_seconds": 0.0,
+                "target": "redis-cart",
+                "timestamp": "2026-11-15T23:20:35.211000Z",
+                "unit": "s",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "canonical_log_event_diff": {
+        "A_only": [],
+        "B_only": [
+          {
+            "event": [
+              "adservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "received ad request (context_words=[])"
+            ],
+            "count": 22
+          },
+          {
+            "event": [
+              "cartservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "getcartasync called with userid={userid}"
+            ],
+            "count": 2
+          },
+          {
+            "event": [
+              "adservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "received ad request (context_words=[accessories])"
+            ],
+            "count": 22
+          },
+          {
+            "event": [
+              "cartservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "emptycartasync called with userid={userid}"
+            ],
+            "count": 2
+          }
+        ]
+      },
+      "logical_span_diff": {
+        "A_only": [],
+        "B_only": []
+      },
+      "shared_application_event": {
+        "A": {
+          "event": "payment_charge_failed",
+          "count": 6,
+          "samples": [
+            {
+              "service": "paymentservice",
+              "severity": "ERROR",
+              "body": "Payment charge failed",
+              "attributes": {
+                "error.message": "Payment charge failed",
+                "event_name": "payment_charge_failed",
+                "operation": "PaymentService/Charge"
+              },
+              "correlated": false
+            },
+            {
+              "service": "paymentservice",
+              "severity": "ERROR",
+              "body": "Payment charge failed",
+              "attributes": {
+                "error.message": "Payment charge failed",
+                "event_name": "payment_charge_failed",
+                "operation": "PaymentService/Charge"
+              },
+              "correlated": false
+            }
+          ]
+        },
+        "B": {
+          "event": "payment_charge_failed",
+          "count": 6,
+          "samples": [
+            {
+              "service": "paymentservice",
+              "severity": "ERROR",
+              "body": "Payment charge failed",
+              "attributes": {
+                "error.message": "Payment charge failed",
+                "event_name": "payment_charge_failed",
+                "rpc_method": "PaymentService/Charge",
+                "service_name_extracted": "paymentservice"
+              },
+              "correlated": true
+            },
+            {
+              "service": "paymentservice",
+              "severity": "ERROR",
+              "body": "Payment charge failed",
+              "attributes": {
+                "error.message": "Payment charge failed",
+                "event_name": "payment_charge_failed",
+                "rpc_method": "PaymentService/Charge",
+                "service_name_extracted": "paymentservice"
+              },
+              "correlated": true
+            }
+          ]
+        }
+      },
+      "parity": {
+        "metric_keys_equal": false,
+        "canonical_logs_equal": false,
+        "logical_spans_equal": true
+      },
+      "failure_classification": [
+        "OBSERVATION_POINT_MISMATCH"
+      ],
+      "notes": []
+    },
+    "F5": {
+      "run_id": "iv-edv-so-115b-002-f5-f5",
+      "ground_truth": {
+        "status": "valid",
+        "fault": {
+          "class": "F5",
+          "location": {
+            "component": "redis-cart",
+            "kind": "datastore"
+          },
+          "mechanism": {
+            "name": "Kubernetes scale-to-zero"
+          },
+          "parameters": {
+            "replicas_during_fault": 0
+          },
+          "type": "datastore_unavailable"
+        },
+        "injection_recovery": "PASS",
+        "sha256": "0d1907592eeb973a9cd2e3b46a08208efbf05c8680172ead2fb53b0421c8cb90"
+      },
+      "injection": {
+        "checked_at": "2026-11-15T23:22:50.737Z",
+        "checks": {
+          "endpoints_zero": true,
+          "ready_zero": true,
+          "scaled_to_zero": true
+        },
+        "evidence": [
+          "artifacts/integration-validation/edv-so-115b-002-f5/f5/audit/injection/deployment.json",
+          "artifacts/integration-validation/edv-so-115b-002-f5/f5/audit/injection/pods.json",
+          "artifacts/integration-validation/edv-so-115b-002-f5/f5/audit/injection/endpoints.json"
+        ],
+        "fault": "F5",
+        "observed": {
+          "confirmed_mechanism_evidence": {
+            "available_replicas": 0,
+            "desired_replicas": 0,
+            "name": "redis-cart",
+            "namespace": "default",
+            "ready": false,
+            "ready_replicas": 0,
+            "service_endpoints": 0,
+            "uid": "1cd54b8c-d8e3-4035-97ca-822acb5dc150"
+          },
+          "desired_replicas": 0,
+          "endpoint_addresses": 0,
+          "ready_replicas": 0
+        },
+        "passed": true
+      },
+      "recovery": {
+        "all_sut_deployments_ready": true,
+        "f4_flag_absent": true,
+        "passed": true,
+        "residual_chaos": {
+          "networkchaos": 0,
+          "stresschaos": 0
+        },
+        "snapshot": "artifacts/integration-validation/edv-so-115b-002-f5/f5/audit/cleanup/snapshot-summary.json"
+      },
+      "dataset_package_validation": true,
+      "dataset_provenance_checks": {
+        "A_copied_dataset_matches_original_manifest": true,
+        "A_dataset_hash_matches_request_manifest": true,
+        "A_dataset_request_counts_match": true,
+        "A_explicit_treatment_markers_absent": true,
+        "A_full_raw_present": true,
+        "A_full_window_contains_workload_and_rca": true,
+        "A_logs_hash_valid": true,
+        "A_logs_query_window_matches": true,
+        "A_metrics_hash_valid": true,
+        "A_metrics_query_window_matches": true,
+        "A_rca_window_matches_dataset": true,
+        "A_request_hash_matches_manifest": true,
+        "A_run_id_absent_from_request": true,
+        "A_traces_hash_valid": true,
+        "A_traces_query_window_matches": true,
+        "B_copied_dataset_matches_original_manifest": true,
+        "B_dataset_hash_matches_request_manifest": true,
+        "B_dataset_request_counts_match": true,
+        "B_explicit_treatment_markers_absent": true,
+        "B_full_raw_present": true,
+        "B_full_window_contains_workload_and_rca": true,
+        "B_logs_hash_valid": true,
+        "B_logs_query_window_matches": true,
+        "B_metrics_hash_valid": true,
+        "B_metrics_query_window_matches": true,
+        "B_rca_window_matches_dataset": true,
+        "B_request_hash_matches_manifest": true,
+        "B_run_id_absent_from_request": true,
+        "B_traces_hash_valid": true,
+        "B_traces_query_window_matches": true,
+        "ground_truth_absent_from_rca_input_tree": true,
+        "ground_truth_valid": true,
+        "same_full_run_window_ab": true,
+        "same_rca_window_ab": true
+      },
+      "scenarios": {
+        "A": {
+          "dataset_sha256": "5986cafe6e0169fa8b95a5a6a3b0c89ee5c0efcd8e35c7aae50b2ed4e0bf746c",
+          "dataset_bytes": 1686003,
+          "metrics": 117,
+          "logs": 1527,
+          "traces": 94,
+          "spans": 2329,
+          "logs_with_trace_id": 0,
+          "logs_with_span_id": 0,
+          "span_outcomes": {
+            "SUCCESS": 2313,
+            "ERROR": 16
+          }
+        },
+        "B": {
+          "dataset_sha256": "3d6716de63d2367c73f8490d9f29577ce7a12bad3ad9656b34a7d0c118087dbf",
+          "dataset_bytes": 1766391,
+          "metrics": 117,
+          "logs": 1568,
+          "traces": 94,
+          "spans": 2329,
+          "logs_with_trace_id": 1568,
+          "logs_with_span_id": 1568,
+          "span_outcomes": {
+            "SUCCESS": 2313,
+            "ERROR": 16
+          }
+        }
+      },
+      "requests": {
+        "A": {
+          "sha256": "d74098f2a6ef44b6b24cc80c8e09607bb35fd60639060ca6be44927005b94e7f",
+          "bytes": 1716436
+        },
+        "B": {
+          "sha256": "0b31714cedf4f93a5552aa118a89b02a0d0853b9f7a5842e9205b44d86cbdc5a",
+          "bytes": 1799182
+        }
+      },
+      "metric_semantic_key_diff": {
+        "A_only": [],
+        "B_only": []
+      },
+      "canonical_log_event_diff": {
+        "A_only": [
+          {
+            "event": [
+              "cartservice",
+              "ERROR",
+              "APPLICATION_ERROR",
+              "",
+              "datastore_operation_failed operation=get"
+            ],
+            "count": 4
+          }
+        ],
+        "B_only": [
+          {
+            "event": [
+              "cartservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "getcartasync called with userid={userid}"
+            ],
+            "count": 1
+          },
+          {
+            "event": [
+              "adservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "received ad request (context_words=[])"
+            ],
+            "count": 21
+          },
+          {
+            "event": [
+              "adservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "received ad request (context_words=[accessories])"
+            ],
+            "count": 17
+          },
+          {
+            "event": [
+              "cartservice",
+              "INFO",
+              "APPLICATION_DIAGNOSTIC",
+              "",
+              "emptycartasync called with userid={userid}"
+            ],
+            "count": 2
+          },
+          {
+            "event": [
+              "cartservice",
+              "ERROR",
+              "APPLICATION_ERROR",
+              "",
+              "datastore_operation_failed operation={operation}"
+            ],
+            "count": 4
+          }
+        ]
+      },
+      "logical_span_diff": {
+        "A_only": [],
+        "B_only": []
+      },
+      "shared_application_event": {
+        "A": {
+          "event": "datastore_operation_failed",
+          "count": 4,
+          "samples": [
+            {
+              "service": "cartservice",
+              "severity": "ERROR",
+              "body": "datastore_operation_failed operation=GET",
+              "attributes": {},
+              "correlated": false
+            },
+            {
+              "service": "cartservice",
+              "severity": "ERROR",
+              "body": "datastore_operation_failed operation=GET",
+              "attributes": {},
+              "correlated": false
+            }
+          ]
+        },
+        "B": {
+          "event": "datastore_operation_failed",
+          "count": 4,
+          "samples": [
+            {
+              "service": "cartservice",
+              "severity": "ERROR",
+              "body": "datastore_operation_failed operation={Operation}",
+              "attributes": {
+                "Operation": "GET"
+              },
+              "correlated": true
+            },
+            {
+              "service": "cartservice",
+              "severity": "ERROR",
+              "body": "datastore_operation_failed operation={Operation}",
+              "attributes": {
+                "Operation": "GET"
+              },
+              "correlated": true
+            }
+          ]
+        }
+      },
+      "parity": {
+        "metric_keys_equal": true,
+        "canonical_logs_equal": false,
+        "logical_spans_equal": true
+      },
+      "failure_classification": [
+        "OBSERVATION_POINT_MISMATCH"
+      ],
+      "notes": [
+        "The shared datastore error call is present 4x in both scenarios, but the current canonical log identity compares the rendered A body with the structured B template; A body has operation=GET while B body has a placeholder plus Operation=GET. This is a representation normalization issue, not evidence that the source event differs."
+      ]
+    }
+  }
+}
