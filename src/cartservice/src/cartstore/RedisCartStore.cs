@@ -43,9 +43,9 @@ namespace cartservice.cartstore
         {
             _logger.LogInformation("AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}", userId, productId, quantity);
 
+            var startedAt = Stopwatch.GetTimestamp();
             using var activity = StartRedisActivity("GET/SET");
             using var conventionalSpan = _conventionalTelemetry.StartClientSpan("redis GET/SET");
-            var startedAt = Stopwatch.GetTimestamp();
             try
             {
                 Hipstershop.Cart cart;
@@ -70,13 +70,11 @@ namespace cartservice.cartstore
                     }
                 }
                 await _cache.SetAsync(userId, cart.ToByteArray());
-                RecordRedisOperation("GET/SET", startedAt, false);
+                CompleteRedisObservation("GET/SET", startedAt, false, conventionalSpan, activity);
             }
             catch (Exception ex)
             {
-                conventionalSpan.SetError(ex);
-                RecordRedisOperation("GET/SET", startedAt, true);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                CompleteRedisObservation("GET/SET", startedAt, true, conventionalSpan, activity);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
@@ -85,20 +83,18 @@ namespace cartservice.cartstore
         {
             _logger.LogInformation("EmptyCartAsync called with userId={UserId}", userId);
 
+            var startedAt = Stopwatch.GetTimestamp();
             using var activity = StartRedisActivity("SET");
             using var conventionalSpan = _conventionalTelemetry.StartClientSpan("redis SET");
-            var startedAt = Stopwatch.GetTimestamp();
             try
             {
                 var cart = new Hipstershop.Cart();
                 await _cache.SetAsync(userId, cart.ToByteArray());
-                RecordRedisOperation("SET", startedAt, false);
+                CompleteRedisObservation("SET", startedAt, false, conventionalSpan, activity);
             }
             catch (Exception ex)
             {
-                conventionalSpan.SetError(ex);
-                RecordRedisOperation("SET", startedAt, true);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                CompleteRedisObservation("SET", startedAt, true, conventionalSpan, activity);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
@@ -107,9 +103,9 @@ namespace cartservice.cartstore
         {
             _logger.LogInformation("GetCartAsync called with userId={UserId}", userId);
 
+            var startedAt = Stopwatch.GetTimestamp();
             using var activity = StartRedisActivity("GET");
             using var conventionalSpan = _conventionalTelemetry.StartClientSpan("redis GET");
-            var startedAt = Stopwatch.GetTimestamp();
             try
             {
                 // Access the cart from the cache
@@ -117,19 +113,17 @@ namespace cartservice.cartstore
 
                 if (value != null)
                 {
-                    RecordRedisOperation("GET", startedAt, false);
+                    CompleteRedisObservation("GET", startedAt, false, conventionalSpan, activity);
                     return Hipstershop.Cart.Parser.ParseFrom(value);
                 }
 
                 // We decided to return empty cart in cases when user wasn't in the cache before
-                RecordRedisOperation("GET", startedAt, false);
+                CompleteRedisObservation("GET", startedAt, false, conventionalSpan, activity);
                 return new Hipstershop.Cart();
             }
             catch (Exception ex)
             {
-                conventionalSpan.SetError(ex);
-                RecordRedisOperation("GET", startedAt, true);
-                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                CompleteRedisObservation("GET", startedAt, true, conventionalSpan, activity);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
@@ -149,8 +143,19 @@ namespace cartservice.cartstore
             return activity;
         }
 
-        private static void RecordRedisOperation(string operation, long startedAt, bool failed)
+        private void CompleteRedisObservation(string operation, long startedAt, bool failed,
+            ConventionalClientSpan conventionalSpan, Activity activity)
         {
+            var elapsed = Stopwatch.GetElapsedTime(startedAt);
+            conventionalSpan.CompleteObservation(elapsed.TotalSeconds, failed);
+            if (failed)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error);
+                // The same application event is written in A and exported through
+                // the configured OTel logging provider in B; no exception/stack is attached.
+                _logger.LogError("datastore_operation_failed operation={Operation}", operation);
+            }
+
             var outcome = failed ? "error" : "success";
             var tags = new TagList
             {
@@ -163,7 +168,7 @@ namespace cartservice.cartstore
             {
                 CartTelemetry.RedisErrors.Add(1, tags);
             }
-            CartTelemetry.RedisDuration.Record(Stopwatch.GetElapsedTime(startedAt).TotalSeconds, tags);
+            CartTelemetry.RedisDuration.Record(elapsed.TotalSeconds, tags);
         }
 
         public bool Ping()

@@ -32,7 +32,10 @@ function createOTelTelemetry(defaultServiceName) {
   if (instance) return instance;
   const enabled = process.env.ENABLE_TRACING === '1';
   if (!enabled) {
-    instance = { wrapUnary: (_operation, handler) => handler };
+    instance = {
+      wrapUnary: (_operation, handler) => handler,
+      recordObservation: () => {}
+    };
     return instance;
   }
 
@@ -78,33 +81,20 @@ function createOTelTelemetry(defaultServiceName) {
     unit: 's'
   });
 
-  function wrapUnary(operation, handler) {
-    return function otelMetricHandler(call, callback) {
-      const startedAt = process.hrtime.bigint();
-      let completed = false;
-      function finish(error, response, trailer, flags) {
-        if (completed) return;
-        completed = true;
-        const status = error ? String(error.code || error.name || 'ERROR') : 'OK';
-        const attributes = {
-          'rpc.system.name': 'grpc',
-          'rpc.method': operation,
-          'rpc.response.status_code': status
-        };
-        requests.add(1, attributes);
-        if (error) errors.add(1, attributes);
-        duration.record(Number(process.hrtime.bigint() - startedAt) / 1e9, attributes);
-        callback(error, response, trailer, flags);
-      }
-      try {
-        handler(call, finish);
-      } catch (error) {
-        finish(error);
-      }
+  function recordObservation(observation) {
+    const attributes = {
+      'rpc.system.name': 'grpc',
+      'rpc.method': observation.operation,
+      'rpc.response.status_code': observation.statusCode,
+      kind: observation.kind,
+      outcome: observation.outcome
     };
+    requests.add(1, attributes);
+    if (observation.outcome === 'ERROR') errors.add(1, attributes);
+    duration.record(observation.durationSeconds, attributes);
   }
 
-  instance = { wrapUnary };
+  instance = { wrapUnary: (_operation, handler) => handler, recordObservation };
   return instance;
 }
 

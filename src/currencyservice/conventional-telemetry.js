@@ -13,6 +13,7 @@
 const { AsyncLocalStorage } = require('async_hooks');
 const crypto = require('crypto');
 const http = require('http');
+const { dispatchObservation } = require('./shared-observation');
 
 const TRACE_HEADER = 'x-tcc-trace-id';
 const SPAN_HEADER = 'x-tcc-span-id';
@@ -52,6 +53,11 @@ function createConventionalTelemetry(serviceName) {
     metrics.set(key, current);
   }
 
+  function recordObservation(observation) {
+    if (!enabled) return;
+    record(observation.operation, observation.statusCode, observation.durationSeconds);
+  }
+
   function renderMetrics() {
     const lines = [
       '# HELP tcc_conventional_requests_total Completed conventional requests and RPCs.',
@@ -82,8 +88,30 @@ function createConventionalTelemetry(serviceName) {
     request.end(body);
   }
 
-  function wrapUnary(operation, handler) {
-    if (!enabled) return handler;
+  function wrapUnary(operation, handler, observe = null) {
+    if (!enabled && !observe) return handler;
+    if (!enabled) {
+      return function sharedMeasurementHandler(call, callback) {
+        const startedAtMicros = Date.now() * 1000;
+        const startedAt = process.hrtime.bigint();
+        let completed = false;
+        function finish(error, response, trailer, flags) {
+          if (completed) return;
+          completed = true;
+          dispatchObservation({
+            service: serviceName,
+            operation,
+            kind: 'SERVER',
+            statusCode: error ? String(error.code || error.name || 'ERROR') : 'OK',
+            outcome: error ? 'ERROR' : 'SUCCESS',
+            durationSeconds: Number(process.hrtime.bigint() - startedAt) / 1e9,
+            startedAtMicros
+          }, [{ recordObservation: observe }]);
+          callback(error, response, trailer, flags);
+        }
+        try { handler(call, finish); } catch (error) { finish(error); }
+      };
+    }
     return function conventionalUnaryHandler(call, callback) {
       const incoming = extractContext(call.metadata);
       const traceId = incoming.traceId || newId(16);
@@ -97,7 +125,19 @@ function createConventionalTelemetry(serviceName) {
         completed = true;
         const durationMicros = Number((process.hrtime.bigint() - startedAt) / 1000n);
         const result = error ? String(error.code || error.name || 'ERROR') : 'OK';
-        record(operation, result, durationMicros / 1e6);
+        const observation = {
+          service: serviceName,
+          operation,
+          kind: 'SERVER',
+          statusCode: result,
+          outcome: error ? 'ERROR' : 'SUCCESS',
+          durationSeconds: durationMicros / 1e6,
+          startedAtMicros
+        };
+        dispatchObservation(observation, [
+          { recordObservation },
+          ...(observe ? [{ recordObservation: observe }] : [])
+        ]);
         const span = {
           traceId,
           id: spanId,
@@ -140,7 +180,7 @@ function createConventionalTelemetry(serviceName) {
     server.listen(port, '0.0.0.0');
   }
 
-  return { enabled, wrapUnary, renderMetrics, currentContext: () => storage.getStore() };
+  return { enabled, wrapUnary, recordObservation, renderMetrics, currentContext: () => storage.getStore() };
 }
 
 module.exports = { TRACE_HEADER, SPAN_HEADER, createConventionalTelemetry, extractContext };

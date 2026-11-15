@@ -11,7 +11,7 @@ function chargeExceptionActive(env = process.env, exists = fs.existsSync) {
 
 function throwControlledChargeException(env = process.env, exists = fs.existsSync) {
   if (!chargeExceptionActive(env, exists)) return;
-  const error = new Error('controlled application fault in PaymentService.Charge');
+  const error = new Error('Payment charge failed');
   error.code = 13; // gRPC INTERNAL
   throw error;
 }

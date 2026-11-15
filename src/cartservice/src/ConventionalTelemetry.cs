@@ -78,14 +78,16 @@ namespace cartservice
             return new ConventionalClientSpan(this, Current.TraceId, NewId(8), Current.SpanId, operation);
         }
 
-        internal void CompleteSpan(string traceId, string spanId, string parentId, string operation, string kind, string result, long startedAt)
+        internal void CompleteSpan(string traceId, string spanId, string parentId, string operation, string kind, string result, long startedAt, double? observedDurationSeconds = null)
         {
             if (!Enabled)
             {
                 return;
             }
 
-            var elapsed = Stopwatch.GetElapsedTime(startedAt);
+            var elapsed = observedDurationSeconds.HasValue
+                ? TimeSpan.FromSeconds(observedDurationSeconds.Value)
+                : Stopwatch.GetElapsedTime(startedAt);
             var key = string.Join("\u001f", operation, kind.ToLowerInvariant(), result);
             var metric = _metrics.GetOrAdd(key, _ => new ConventionalMetric());
             lock (metric.Sync)
@@ -183,6 +185,7 @@ namespace cartservice
         private readonly string _operation;
         private readonly long _startedAt;
         private string _result = "OK";
+        private double? _observedDurationSeconds;
 
         private ConventionalClientSpan() { }
 
@@ -198,7 +201,13 @@ namespace cartservice
 
         public void SetError(Exception exception) => _result = exception.GetType().Name;
 
-        public void Dispose() => _telemetry?.CompleteSpan(_traceId, _spanId, _parentId, _operation, "CLIENT", _result, _startedAt);
+        public void CompleteObservation(double durationSeconds, bool failed)
+        {
+            _observedDurationSeconds = durationSeconds;
+            _result = failed ? "ERROR" : "OK";
+        }
+
+        public void Dispose() => _telemetry?.CompleteSpan(_traceId, _spanId, _parentId, _operation, "CLIENT", _result, _startedAt, _observedDurationSeconds);
     }
 
     public sealed class ConventionalTelemetryInterceptor : Interceptor
@@ -212,17 +221,19 @@ namespace cartservice
             ServerCallContext context,
             UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            if (!_telemetry.Enabled || context.Method.Contains("grpc.health", StringComparison.Ordinal))
+            if (context.Method.Contains("grpc.health", StringComparison.Ordinal))
             {
                 return await continuation(request, context).ConfigureAwait(false);
             }
 
-            var traceId = context.RequestHeaders.GetValue(ConventionalTelemetry.TraceHeader) ?? ConventionalTelemetry.NewId(16);
-            var parentId = context.RequestHeaders.GetValue(ConventionalTelemetry.SpanHeader);
-            var spanId = ConventionalTelemetry.NewId(8);
+            var traceId = _telemetry.Enabled
+                ? context.RequestHeaders.GetValue(ConventionalTelemetry.TraceHeader) ?? ConventionalTelemetry.NewId(16)
+                : string.Empty;
+            var parentId = _telemetry.Enabled ? context.RequestHeaders.GetValue(ConventionalTelemetry.SpanHeader) : null;
+            var spanId = _telemetry.Enabled ? ConventionalTelemetry.NewId(8) : string.Empty;
             var startedAt = Stopwatch.GetTimestamp();
             var result = "OK";
-            using var scope = _telemetry.PushServerContext(traceId, spanId);
+            using var scope = _telemetry.Enabled ? _telemetry.PushServerContext(traceId, spanId) : null;
             try
             {
                 return await continuation(request, context).ConfigureAwait(false);
@@ -239,7 +250,9 @@ namespace cartservice
             }
             finally
             {
-                _telemetry.CompleteSpan(traceId, spanId, parentId, context.Method, "SERVER", result, startedAt);
+                var durationSeconds = Stopwatch.GetElapsedTime(startedAt).TotalSeconds;
+                CartTelemetry.RecordRpcObservation(context.Method, durationSeconds, result);
+                _telemetry.CompleteSpan(traceId, spanId, parentId, context.Method, "SERVER", result, startedAt, durationSeconds);
             }
         }
     }

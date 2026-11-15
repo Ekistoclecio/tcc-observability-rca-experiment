@@ -161,10 +161,12 @@ function main () {
   server.addService(shopProto.CurrencyService.service, {
     getSupportedCurrencies: conventionalTelemetry.wrapUnary(
       '/hipstershop.CurrencyService/GetSupportedCurrencies',
-      otelTelemetry.wrapUnary('/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies)),
+      getSupportedCurrencies,
+      otelTelemetry.recordObservation),
     convert: conventionalTelemetry.wrapUnary(
       '/hipstershop.CurrencyService/Convert',
-      otelTelemetry.wrapUnary('/hipstershop.CurrencyService/Convert', convert))
+      convert,
+      otelTelemetry.recordObservation)
   });
   server.addService(healthProto.Health.service, {check});
 

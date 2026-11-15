@@ -16,7 +16,7 @@ test('charge hook is inactive unless the experimental flag is enabled and file e
 test('enabled Charge hook returns a deterministic gRPC INTERNAL error', () => {
   assert.throws(
     () => throwControlledChargeException({ TCC_FAULT_INJECTION_ENABLED: 'true' }, () => true),
-    error => error.code === 13 && /PaymentService\.Charge/.test(error.message),
+    error => error.code === 13 && error.message === 'Payment charge failed' && !/controlled|injected|experiment|chaos|F[1-5]/i.test(error.message),
   );
 });
 

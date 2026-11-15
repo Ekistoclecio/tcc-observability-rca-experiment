@@ -15,9 +15,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Threading.Tasks;
-using Grpc.Core;
-using Grpc.Core.Interceptors;
 
 namespace cartservice
 {
@@ -52,52 +49,19 @@ namespace cartservice
             "tcc.otel.rpc.server.duration",
             unit: "s",
             description: "Application RPC request duration");
-    }
 
-    public sealed class OTelMetricsInterceptor : Interceptor
-    {
-        public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
-            TRequest request,
-            ServerCallContext context,
-            UnaryServerMethod<TRequest, TResponse> continuation)
+        internal static void RecordRpcObservation(string operation, double durationSeconds, string status)
         {
-            if (context.Method.Contains("grpc.health", StringComparison.Ordinal))
+            var tags = new TagList
             {
-                return await continuation(request, context).ConfigureAwait(false);
-            }
-
-            var startedAt = Stopwatch.GetTimestamp();
-            var status = "OK";
-            try
-            {
-                return await continuation(request, context).ConfigureAwait(false);
-            }
-            catch (RpcException exception)
-            {
-                status = exception.StatusCode.ToString();
-                throw;
-            }
-            catch
-            {
-                status = "UNKNOWN";
-                throw;
-            }
-            finally
-            {
-                var tags = new TagList
-                {
-                    { "rpc.system.name", "grpc" },
-                    { "rpc.method", context.Method },
-                    { "rpc.response.status_code", status }
-                };
-                CartTelemetry.RpcRequests.Add(1, tags);
-                if (status != "OK")
-                {
-                    CartTelemetry.RpcErrors.Add(1, tags);
-                }
-                CartTelemetry.RpcDuration.Record(
-                    Stopwatch.GetElapsedTime(startedAt).TotalSeconds, tags);
-            }
+                { "rpc.system.name", "grpc" },
+                { "rpc.method", operation },
+                { "rpc.response.status_code", status },
+                { "outcome", status == "OK" ? "SUCCESS" : "ERROR" }
+            };
+            RpcRequests.Add(1, tags);
+            if (status != "OK") RpcErrors.Add(1, tags);
+            RpcDuration.Record(durationSeconds, tags);
         }
     }
 }

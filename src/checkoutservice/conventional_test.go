@@ -75,6 +75,7 @@ func TestConventionalMetricsUseNoTraceIdentifiers(t *testing.T) {
 		"SERVER",
 		"OK",
 		fakeStartTime(),
+		time.Millisecond,
 	)
 
 	response := httptest.NewRecorder()
@@ -85,6 +86,18 @@ func TestConventionalMetricsUseNoTraceIdentifiers(t *testing.T) {
 	}
 	if strings.Contains(body, "0123456789abcdef") || strings.Contains(body, "trace_id") || strings.Contains(body, "span_id") {
 		t.Fatalf("metrics unexpectedly contain trace correlation: %s", body)
+	}
+}
+
+func TestTargetServiceUsesGRPCServiceName(t *testing.T) {
+	if got := targetService("/hipstershop.PaymentService/Charge"); got != "paymentservice" {
+		t.Fatalf("targetService() = %q, want paymentservice", got)
+	}
+	if got := targetService("/hipstershop.CartService/GetCart"); got != "cartservice" {
+		t.Fatalf("targetService() = %q, want cartservice", got)
+	}
+	if got := targetService("not-a-grpc-method"); got != "" {
+		t.Fatalf("targetService() malformed method = %q, want empty", got)
 	}
 }
 

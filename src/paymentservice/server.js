@@ -21,6 +21,7 @@ const charge = require('./charge');
 const logger = require('./logger')
 const { createConventionalTelemetry } = require('./conventional-telemetry');
 const { createOTelTelemetry } = require('./otel-telemetry');
+const { dispatchApplicationEvent } = require('./shared-observation');
 
 const conventionalTelemetry = createConventionalTelemetry('paymentservice');
 const otelTelemetry = createOTelTelemetry('paymentservice');
@@ -51,7 +52,17 @@ class HipsterShopServer {
       const response = charge(call.request);
       callback(null, response);
     } catch (err) {
-      console.warn(err);
+      // A single application failure observation is offered to both adapters.
+      // Each deployment enables only its own adapter; A never receives OTel IDs.
+      const event = {
+        eventName: 'payment_charge_failed',
+        severity: 'ERROR',
+        operation: 'PaymentService/Charge',
+        errorType: err.name || 'Error',
+        errorMessage: err.message,
+        message: 'Payment charge failed'
+      };
+      dispatchApplicationEvent(event, [conventionalTelemetry, otelTelemetry]);
       callback(err);
     }
   }
@@ -97,9 +108,8 @@ class HipsterShopServer {
       {
         charge: conventionalTelemetry.wrapUnary(
           '/hipstershop.PaymentService/Charge',
-          otelTelemetry.wrapUnary(
-            '/hipstershop.PaymentService/Charge',
-            HipsterShopServer.ChargeServiceHandler.bind(this))
+          HipsterShopServer.ChargeServiceHandler.bind(this),
+          otelTelemetry.recordObservation
         )
       }
     );

@@ -105,46 +105,84 @@ func randomHex(bytes int) string {
 
 func (t *conventionalTelemetry) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		if !t.enabled || excludedConventionalRPC(info.FullMethod) {
+		if excludedConventionalRPC(info.FullMethod) {
 			return handler(ctx, req)
 		}
-		traceID := ""
-		parentID := ""
-		if incoming, ok := metadata.FromIncomingContext(ctx); ok {
-			traceID = firstMetadataValue(incoming, conventionalTraceHeader)
-			parentID = firstMetadataValue(incoming, conventionalSpanHeader)
-		}
-		if traceID == "" {
-			traceID = randomHex(16)
-		}
-		spanID := randomHex(8)
-		requestContext := context.WithValue(ctx, conventionalContextKey{}, conventionalTraceContext{traceID: traceID, spanID: spanID})
 		start := time.Now()
+		requestContext := ctx
+		traceID, parentID, spanID := "", "", ""
+		if t.enabled {
+			if incoming, ok := metadata.FromIncomingContext(ctx); ok {
+				traceID = firstMetadataValue(incoming, conventionalTraceHeader)
+				parentID = firstMetadataValue(incoming, conventionalSpanHeader)
+			}
+			if traceID == "" {
+				traceID = randomHex(16)
+			}
+			spanID = randomHex(8)
+			requestContext = context.WithValue(ctx, conventionalContextKey{}, conventionalTraceContext{traceID: traceID, spanID: spanID})
+		}
 		response, err := handler(requestContext, req)
-		t.finish(traceID, spanID, parentID, info.FullMethod, "SERVER", status.Code(err).String(), start)
+		duration := time.Since(start)
+		statusCode := status.Code(err).String()
+		recordSharedRPCObservation(ctx, "SERVER", info.FullMethod, "", statusCode, duration)
+		if t.enabled {
+			t.finish(traceID, spanID, parentID, info.FullMethod, "SERVER", statusCode, start, duration)
+		}
 		return response, err
 	}
 }
 
 func (t *conventionalTelemetry) UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		if !t.enabled || excludedConventionalRPC(method) {
+		if excludedConventionalRPC(method) {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
-		parent, ok := ctx.Value(conventionalContextKey{}).(conventionalTraceContext)
-		if !ok {
-			parent = conventionalTraceContext{traceID: randomHex(16)}
+		outgoing := ctx
+		parent, spanID := conventionalTraceContext{}, ""
+		if t.enabled {
+			parent, _ = ctx.Value(conventionalContextKey{}).(conventionalTraceContext)
+			if parent.traceID == "" {
+				parent.traceID = randomHex(16)
+			}
+			spanID = randomHex(8)
+			outgoing = metadata.AppendToOutgoingContext(ctx,
+				conventionalTraceHeader, parent.traceID,
+				conventionalSpanHeader, spanID,
+			)
 		}
-		spanID := randomHex(8)
-		outgoing := metadata.AppendToOutgoingContext(ctx,
-			conventionalTraceHeader, parent.traceID,
-			conventionalSpanHeader, spanID,
-		)
 		start := time.Now()
 		err := invoker(outgoing, method, req, reply, cc, opts...)
-		t.finish(parent.traceID, spanID, parent.spanID, method, "CLIENT", status.Code(err).String(), start)
+		duration := time.Since(start)
+		statusCode := status.Code(err).String()
+		recordSharedRPCObservation(ctx, "CLIENT", method, targetService(method), statusCode, duration)
+		if t.enabled {
+			t.finish(parent.traceID, spanID, parent.spanID, method, "CLIENT", statusCode, start, duration)
+		}
+		if err != nil {
+			log.WithContext(ctx).WithField("event_name", "downstream_call_failed").
+				WithField("operation", method).
+				WithField("target_service", targetService(method)).
+				WithField("status_code", statusCode).
+				Error("downstream call failed")
+		}
 		return err
 	}
+}
+
+func targetService(method string) string {
+	parts := strings.Split(strings.Trim(method, "/"), "/")
+	if len(parts) != 2 {
+		return ""
+	}
+	service := parts[0]
+	if index := strings.LastIndexByte(service, '.'); index >= 0 {
+		service = service[index+1:]
+	}
+	if service == "" {
+		return ""
+	}
+	return strings.ToLower(service)
 }
 
 func excludedConventionalRPC(method string) bool {
@@ -160,8 +198,7 @@ func firstMetadataValue(values metadata.MD, key string) string {
 	return items[0]
 }
 
-func (t *conventionalTelemetry) finish(traceID, spanID, parentID, operation, kind, result string, start time.Time) {
-	duration := time.Since(start)
+func (t *conventionalTelemetry) finish(traceID, spanID, parentID, operation, kind, result string, start time.Time, duration time.Duration) {
 	key := conventionalMetricKey{operation: operation, kind: strings.ToLower(kind), status: result}
 	t.mu.Lock()
 	metric := t.metrics[key]
