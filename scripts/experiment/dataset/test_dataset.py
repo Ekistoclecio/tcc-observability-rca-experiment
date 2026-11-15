@@ -41,6 +41,40 @@ def _raw(scenario: str) -> dict:
 
 
 class DatasetBuilderTests(unittest.TestCase):
+    def test_canonical_span_outcome_maps_conventional_otel_grpc_and_http_statuses(self):
+        from .contract import canonical_span_outcome
+        cases = [
+            ({"attributes": {"result": "OK"}}, "SUCCESS"),
+            ({"attributes": {"result": "Internal"}}, "ERROR"),
+            ({"attributes": {"result": "Unavailable"}}, "ERROR"),
+            ({"attributes": {"result": "Unknown"}}, "ERROR"),
+            ({"attributes": {"otel.status_code": "OK"}}, "SUCCESS"),
+            ({"attributes": {"otel.status_code": "ERROR"}}, "ERROR"),
+            ({"attributes": {"grpc.status_code": 9}}, "ERROR"),
+            ({"attributes": {"rpc.grpc.status_code": "0"}}, "SUCCESS"),
+            ({"attributes": {"rpc.response.status_code": 13}}, "ERROR"),
+            ({"attributes": {"http.response.status_code": 302}}, "SUCCESS"),
+            ({"attributes": {"http.response.status_code": 503}}, "ERROR"),
+            ({"attributes": {"rpc.system": "grpc"}}, "SUCCESS"),
+            ({"status": None, "attributes": {}}, "UNKNOWN"),
+        ]
+        for span, expected in cases:
+            with self.subTest(span=span):
+                self.assertEqual(canonical_span_outcome(span), expected)
+
+    def test_common_trace_view_canonicalizes_status_and_drops_redundant_native_tags(self):
+        from .contract import common_traces
+        raw = {"search_results": [{"response": {"data": [{"traceID": "trace-status", "processes": {"p": {"serviceName": "cartservice"}},
+            "spans": [{"spanID": "s", "processID": "p", "operationName": "/hipstershop.CartService/GetCart",
+                "startTime": 1793164800000000, "duration": 1000, "references": [], "tags": [
+                    {"key": "span.kind", "value": "server"}, {"key": "grpc.status_code", "value": 9},
+                    {"key": "code.file.path", "value": "/src/cart.go"}, {"key": "telemetry.sdk.name", "value": "otel"}]}]}]}}]}
+        span = common_traces(raw)[0]["spans"][0]
+        self.assertEqual(span["status"], "ERROR")
+        self.assertEqual(span["attributes"], {})
+        self.assertEqual(span["events"], [])
+        self.assertEqual(raw["search_results"][0]["response"]["data"][0]["spans"][0]["tags"][-1]["value"], "otel")
+
     def test_ground_truth_blind_query_plan(self):
         gt_a = _ground_truth("paymentservice", "application_exception")
         gt_b = _ground_truth("redis-cart", "datastore_unavailable")
@@ -301,7 +335,7 @@ class DatasetBuilderTests(unittest.TestCase):
     def test_log_view_preserves_only_native_correlation_and_compacts_resources(self):
         from .contract import common_logs
         raw_a = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_scenario": "conventional", "filename": "/pod/x"}, "values": [["1793164800000000000", '{"severity":"ERROR","message":"Charge failed"}']]}]}}}
-        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
+        raw_b = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "INFO", "telemetry_sdk_name": "opentelemetry", "trace_id": "abc", "span_id": "def", "scope_name": "native-scope"}, "values": [["1793164800000000000", 'Charge failed']]}]}}}
         a = common_logs(raw_a, "A")[0]
         b = common_logs(raw_b, "B")[0]
         self.assertIsNone(a["trace_id"]); self.assertIsNone(a["span_id"])
@@ -314,7 +348,7 @@ class DatasetBuilderTests(unittest.TestCase):
         a_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice"}, "values": [[
             "1793164800000000000", json.dumps({"timestamp": "t", "pid": 1, "name": "cart", "level": "Information",
                 "message": "AddItemAsync called with userId=abc-123, productId=OLJCESPC7Z, quantity=1"})]]}]}}}
-        b_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "trace_id": "t1", "span_id": "s1"}, "values": [[
+        b_raw = {"response": {"data": {"result": [{"stream": {"service_name": "cartservice", "severity": "INFO", "trace_id": "t1", "span_id": "s1"}, "values": [[
             "1793164800000000000", "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}"]]}]}}}
         a_original = copy.deepcopy(a_raw)
         a = common_logs(a_raw, "A")[0]
@@ -325,6 +359,33 @@ class DatasetBuilderTests(unittest.TestCase):
         self.assertEqual(a["attributes"], {})
         self.assertEqual((b["trace_id"], b["span_id"]), ("t1", "s1"))
         self.assertEqual(a_raw, a_original)
+
+    def test_common_logs_exclude_unknown_severity_runtime_and_stack_noise(self):
+        from .contract import common_logs
+        raw = {"response": {"data": {"result": [{"stream": {"service_name": "paymentservice"}, "values": [
+            ["1793164800000000000", "env platform is either empty or invalid"],
+            ["1793164800000000001", "    at charge (/app/charge.js:4:2)"],
+            ["1793164800000000002", "Error: controlled failure in Charge"],
+            ["1793164800000000003", '{"severity":"ERROR","message":"request failed","exception_message":"charge unavailable","scope_name":"native"}'],
+        ]}]}}}
+        rows = common_logs(raw, "A")
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([row["severity"] for row in rows], ["ERROR", "ERROR"])
+        self.assertTrue(all("at charge" not in str(row) for row in rows))
+        self.assertEqual(rows[1]["attributes"]["error.message"], "charge unavailable")
+        self.assertNotIn("scope_name", str(rows))
+
+    def test_canonical_log_event_ignores_correlation_but_compares_normalized_error(self):
+        from .contract import canonical_log_event, common_logs
+        timestamp = "1793164800000000000"
+        left = common_logs({"response": {"data": {"result": [{"stream": {"service_name": "paymentservice"}, "values": [[
+            timestamp, "Error: charge unavailable"]]}]}}}, "A")[0]
+        right = common_logs({"response": {"data": {"result": [{"stream": {"service_name": "paymentservice", "severity": "ERROR",
+            "trace_id": "abc", "span_id": "def", "exception_message": "rpc error: code = Internal desc = charge unavailable"}, "values": [[
+                timestamp, "request failed"]]}]}}}, "B")[0]
+        self.assertEqual(left["attributes"]["error.message"], "charge unavailable")
+        self.assertEqual(right["attributes"]["error.message"], "charge unavailable")
+        self.assertEqual(canonical_log_event(left), canonical_log_event(right))
 
     def test_conventional_dotnet_console_envelope_matches_structured_otel_event(self):
         from .contract import common_logs
@@ -355,7 +416,8 @@ class DatasetBuilderTests(unittest.TestCase):
         log_b = common_logs(b, "B")[0]
         self.assertEqual(log_a["body"], log_b["body"])
         self.assertEqual(log_a["attributes"], log_b["attributes"])
-        self.assertEqual(log_a["attributes"]["error.type"], "StackExchange.Redis.RedisConnectionException")
+        self.assertEqual(log_a["attributes"]["error.message"], "Can't access cart storage.")
+        self.assertNotIn("error.type", log_a["attributes"])
         self.assertNotIn("nested", str(log_b))
         self.assertIsNone(log_a["trace_id"])
         self.assertEqual(log_b["trace_id"], "t")

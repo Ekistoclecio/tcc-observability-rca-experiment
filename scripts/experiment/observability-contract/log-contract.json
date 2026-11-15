@@ -1,7 +1,7 @@
 {
   "contract_version": "1.0",
-  "common_fields": ["timestamp", "service", "severity", "body", "application attributes"],
+  "common_fields": ["timestamp", "service", "canonical severity", "body/event", "error.message", "native trace_id/span_id when available"],
   "allowed_treatment_difference": ["B preserves native trace_id and span_id when an active span exists; A does not gain trace/span correlation"],
-  "excluded_noise": ["telemetry SDK/resource identity", "process/runtime/host/container identity", "instrumentation/exporter metadata", "stacktrace fields"],
-  "policy": "retain all SUT application log records; do not filter by severity, error status, ground truth, or other scenario data"
+  "excluded_noise": ["events without safely classifiable severity", "stack frames", "known runtime/health/lifecycle noise", "telemetry SDK/resource identity", "process/runtime/host/container identity", "instrumentation/exporter metadata", "code location", "exception type and stacktrace fields"],
+  "policy": "retain canonical SUT application events only; unknown-severity and known non-application noise remain in RAW but are excluded from the Common RCA View; never filter using fault metadata or scenario data"
 }

@@ -1,9 +1,11 @@
 {
   "contract_version": "1.0",
-  "logical_span_fields": ["service", "operation", "kind", "target", "start", "duration_ms", "status", "parent relationship"],
+  "logical_span_fields": ["service", "operation", "kind", "target", "start", "duration_ms", "canonical status", "parent relationship", "native trace/span IDs"],
   "allowed_kinds": ["server", "client", "datastore"],
+  "canonical_status_values": ["SUCCESS", "ERROR", "UNKNOWN"],
+  "status_sources": ["normalized status", "attributes.result", "otel.status_code", "status.code", "error", "rpc.response.status_code", "rpc.grpc.status_code", "grpc.status_code", "http.response.status_code"],
   "operation_catalog_source": "fixed Online Boutique v0.10.7 service/RPC/route catalog in scripts/experiment/dataset/contract.py",
-  "excluded_noise": ["health checks", "metrics scrape spans", "observability exporter spans", "exception stacktrace/type/message event payloads"],
+  "excluded_noise": ["health checks", "metrics scrape spans", "observability exporter spans", "redundant native span attributes", "code location", "exception stacktrace/type/message event payloads"],
   "allowed_treatment_difference": ["trace_id, span_id, and parent IDs remain native to each tracing implementation; B also has native log correlation"],
   "policy": "deduplicate repeated Jaeger service queries by trace ID and span ID; never select traces by fault, error, or suspected component"
 }

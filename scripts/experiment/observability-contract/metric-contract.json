@@ -1,5 +1,7 @@
 {
   "contract_version": "1.0",
+  "model_visible_native_metric_names": false,
+  "raw_metric_family_series_sample_count_parity_is_blocking": false,
   "concepts": {
     "request_count": {
       "dimensions": ["service", "operation", "kind", "target", "outcome"],

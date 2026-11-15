@@ -28,7 +28,6 @@ _RPC_TARGETS = {
     "ProductCatalogService": "productcatalogservice", "RecommendationService": "recommendationservice",
     "ShippingService": "shippingservice",
 }
-_METRIC_NAME_RE = re.compile(r"(?:^|_)(?:tcc_conventional_|online_boutique_otel_)?")
 _RESOURCE_NOISE = {
     "telemetry_sdk_name", "telemetry_sdk_version", "telemetry_sdk_language", "instrumentation_scope",
     "instrumentation_scope_version", "otel_scope_name", "otel_scope_version", "deployment_environment_name",
@@ -45,14 +44,121 @@ _NON_DIAGNOSTIC_LOG_FIELDS = {
     "userid", "user_id", "session", "session_id", "cartid", "cart_id", "productid", "product_id",
     "creditcardnumber", "credit_card_number", "creditcardcvv", "credit_card_cvv", "cvv",
 }
-_SPAN_ATTRIBUTES = {
-    "span.kind", "result", "status.code", "otel.status_code", "error", "rpc.system", "rpc.system.name",
-    "rpc.service", "rpc.method", "rpc.response.status_code", "rpc.grpc.status_code", "grpc.status_code",
-    "http.request.method", "http.route", "http.response.status_code", "http.status_code", "url.path",
-    "db.operation.name", "db.system.name", "server.address", "server.port", "net.peer.name",
-    "net.peer.ip", "net.peer.port", "network.peer.address", "network.peer.port",
-    "error.type", "error.message",
+_GRPC_STATUS_NAMES = {
+    "0": "SUCCESS", "ok": "SUCCESS", "1": "ERROR", "cancelled": "ERROR",
+    "2": "ERROR", "unknown": "ERROR", "3": "ERROR", "invalid_argument": "ERROR",
+    "4": "ERROR", "deadline_exceeded": "ERROR", "5": "ERROR", "not_found": "ERROR",
+    "6": "ERROR", "already_exists": "ERROR", "7": "ERROR", "permission_denied": "ERROR",
+    "8": "ERROR", "resource_exhausted": "ERROR", "9": "ERROR", "failed_precondition": "ERROR",
+    "10": "ERROR", "aborted": "ERROR", "11": "ERROR", "out_of_range": "ERROR",
+    "12": "ERROR", "unimplemented": "ERROR", "13": "ERROR", "internal": "ERROR",
+    "14": "ERROR", "unavailable": "ERROR", "15": "ERROR", "data_loss": "ERROR",
+    "16": "ERROR", "unauthenticated": "ERROR",
 }
+_LOG_METADATA_KEYS = {
+    "scope_name", "scope_version", "instrumentation_scope", "instrumentation_scope_version",
+    "os_description", "os_type", "os_version", "telemetry_distro_name", "telemetry_distro_version",
+    "code_file_path", "code_function_name", "code_line_number", "process_pid", "process_command",
+    "process_command_line", "process_runtime_name", "process_runtime_version", "container_id", "pod_uid",
+    "exporter", "exporter_name", "collector", "collector_name", "exception_type", "error_type",
+    "exception_stacktrace", "stacktrace",
+}
+_STACK_FRAME_RE = re.compile(r"^\s*(?:at\s+[\w.$<>`+/-]+\s*\(|---\s+End of|Caused by:|Traceback \(most recent call last\):)")
+_RUNTIME_NOISE_RE = re.compile(
+    r"^(?:env platform is either empty or invalid|\d+:[A-Z]\s+\d{2} [A-Z][a-z]{2} \d{4} .*"
+    r"(?:shutdown|saving the final rdb|redis is now ready to exit)|redis is starting|"
+    r"DeprecationWarning:|RuntimeWarning:|ExperimentalWarning:|.*(?:health|ready|startup).*(?:check|probe).*|"
+    r".*checking\s+[\w.-]+\s+(?:service\s+)?health.*)",
+    re.IGNORECASE,
+)
+
+
+def _normalized_key(value: Any) -> str:
+    return str(value).casefold().replace("-", "_").replace(".", "_")
+
+
+def _status_value(value: Any, *, grpc: bool = False, http: bool = False, otel: bool = False) -> str:
+    if value is None:
+        return "UNKNOWN"
+    if isinstance(value, bool):
+        return "ERROR" if value else "SUCCESS"
+    text = str(value).strip().casefold()
+    if not text or text in {"none", "null", "unset", "unspecified"}:
+        return "UNKNOWN"
+    if grpc:
+        return _GRPC_STATUS_NAMES.get(text, "UNKNOWN")
+    if otel:
+        return {"0": "UNKNOWN", "unset": "UNKNOWN", "1": "SUCCESS", "ok": "SUCCESS", "2": "ERROR", "error": "ERROR"}.get(text, "UNKNOWN")
+    if text == "unknown":
+        return "UNKNOWN"
+    if http:
+        try:
+            code = int(float(text))
+        except ValueError:
+            return "UNKNOWN"
+        return "SUCCESS" if 200 <= code < 400 else ("ERROR" if code >= 400 else "UNKNOWN")
+    try:
+        numeric = int(float(text))
+    except ValueError:
+        numeric = None
+    if numeric is not None:
+        if numeric == 0:
+            return "SUCCESS"
+        if 1 <= numeric <= 16:
+            return "ERROR"
+        if 200 <= numeric < 400:
+            return "SUCCESS"
+        if numeric >= 400:
+            return "ERROR"
+    if text in {"success", "succeeded", "ok", "okay", "0", "unset"}:
+        return "SUCCESS"
+    if text in {"error", "failed", "failure", "false", "2", "internal", "unavailable", "deadlineexceeded",
+                "deadline_exceeded", "cancelled", "canceled", "unknown", "invalidargument", "invalid_argument",
+                "failedprecondition", "failed_precondition", "notfound", "not_found", "resourceexhausted",
+                "resource_exhausted", "aborted", "outofrange", "out_of_range", "unimplemented", "dataloss",
+                "data_loss", "unauthenticated"}:
+        return "ERROR"
+    if text.endswith(("exception", "error")):
+        return "ERROR"
+    return "UNKNOWN"
+
+
+def canonical_span_outcome(span: dict[str, Any]) -> str:
+    """Normalize span status across conventional tags and OTel/gRPC/HTTP attributes."""
+    attrs = span.get("attributes") if isinstance(span.get("attributes"), dict) else {}
+    candidates: list[tuple[Any, str, bool, bool, bool]] = []
+    for key in ("status", "otel.status_code", "status.code"):
+        if key in span:
+            candidates.append((span[key], key, False, False, key == "otel.status_code"))
+        if key in attrs:
+            candidates.append((attrs[key], key, False, False, key == "otel.status_code"))
+    for key in ("attributes.result", "result"):
+        if key in attrs:
+            text = str(attrs[key]).strip().casefold()
+            grpc_result = text in _GRPC_STATUS_NAMES
+            if text.isdigit():
+                grpc_result = int(text) <= 16
+            candidates.append((attrs[key], key, grpc_result, False, False))
+    for key in ("rpc.grpc.status_code", "grpc.status_code", "rpc.response.status_code"):
+        if key in attrs:
+            candidates.append((attrs[key], key, True, False, False))
+    for key in ("http.response.status_code", "http.status_code"):
+        if key in attrs:
+            candidates.append((attrs[key], key, False, True, False))
+    error_value = attrs.get("error", span.get("error"))
+    if error_value not in (None, False, 0, "") and str(error_value).strip().casefold() not in {"false", "0", "no", "none"}:
+        return "ERROR"
+    outcomes = [_status_value(value, grpc=grpc, http=http, otel=otel) for value, _, grpc, http, otel in candidates]
+    if "ERROR" in outcomes:
+        return "ERROR"
+    if "SUCCESS" in outcomes:
+        return "SUCCESS"
+    # OTel span status is UNSET by default; for an otherwise normally completed
+    # semantic operation, instrumentation convention treats the absence of an
+    # error status as success. Spans without these semantic markers remain unknown.
+    if any(key in attrs for key in ("rpc.system", "rpc.system.name", "http.request.method", "db.system.name")):
+        return "SUCCESS"
+    return "UNKNOWN"
 
 
 def _utc_iso_epoch(value: float) -> str:
@@ -322,14 +428,14 @@ def common_metrics(raw: dict[str, Any], scenario: str, window: dict[str, str]) -
 
 def _compact_log_labels(labels: dict[str, Any], structured: dict[str, Any], scenario: str) -> tuple[dict[str, Any], dict[str, Any]]:
     merged = {**labels, **structured}
-    severity = _label(merged, "severity", "severity_text", "severity_text", "level", "detected_level")
+    severity = _label(merged, "severity", "severity_text", "level", "detected_level", "severity_number")
     correlation = {"trace_id": _label(merged, "trace_id", "traceID"), "span_id": _label(merged, "span_id", "spanID")}
     if scenario == "A" and any(correlation.values()):
         raise DatasetError("Scenario A log correlation invariant violated in RAW")
     attributes: dict[str, Any] = {}
     for key, value in merged.items():
-        normalized = key.casefold().replace(".", "_").replace("-", "_")
-        if normalized in _RESOURCE_NOISE or normalized in {"service_name", "service", "severity", "severity_text", "severity_number", "level", "detected_level", "trace_id", "traceid", "span_id", "spanid", "traceparent", "observed_timestamp", "flags"}:
+        normalized = _normalized_key(key)
+        if normalized in _RESOURCE_NOISE or normalized in _LOG_METADATA_KEYS or normalized in {"service_name", "service", "severity", "severity_text", "severity_number", "level", "detected_level", "trace_id", "traceid", "span_id", "spanid", "traceparent", "observed_timestamp", "flags"}:
             continue
         if normalized.replace("_", "") in _NON_DIAGNOSTIC_LOG_FIELDS:
             continue
@@ -390,7 +496,70 @@ def _log_body_and_fields(body: Any) -> tuple[Any, dict[str, Any], Any]:
         message = re.sub(r"product_ids=\[[^\]]*\]", "product_ids=[{ProductIds}]", message)
         message = re.sub(r"(PaymentService#Charge invoked with request )\{.*\}$", r"\1{request}", message)
         message = re.sub(r"(request )\{\"amount\":.*\}$", r"\1{request}", message)
+    # Align native exception fields and conventional error messages on one field.
+    error_message = None
+    for key in ("error.message", "error_message", "exception.message", "exception_message", "error"):
+        candidate = parsed.get(key)
+        if isinstance(candidate, (str, int, float)) and str(candidate).strip():
+            error_message = str(candidate).strip()
+            break
+    if error_message is None and isinstance(message, str):
+        match = re.match(r"^Error:\s*(.+)$", message.strip(), re.IGNORECASE)
+        if match:
+            error_message = match.group(1).strip()
+    if error_message:
+        parsed["error.message"] = error_message
+        for key in ("error", "error_message", "exception.message", "exception_message"):
+            parsed.pop(key, None)
     return message, parsed, body_severity
+
+
+def canonical_log_severity(value: Any) -> str | None:
+    """Normalize known severity names/numbers; return None when not safely inferable."""
+    if value is None:
+        return None
+    text = str(value).strip().casefold()
+    aliases = {
+        "trace": "DEBUG", "trce": "DEBUG", "debug": "DEBUG", "dbug": "DEBUG",
+        "info": "INFO", "information": "INFO", "informational": "INFO",
+        "warn": "WARN", "warning": "WARN", "wrn": "WARN",
+        "error": "ERROR", "err": "ERROR", "fail": "ERROR", "critical": "FATAL", "crit": "FATAL", "fatal": "FATAL",
+    }
+    if text in aliases:
+        return aliases[text]
+    try:
+        number = int(text)
+    except ValueError:
+        return None
+    if 1 <= number <= 4:
+        return "DEBUG"
+    if 5 <= number <= 8:
+        return "DEBUG"
+    if 9 <= number <= 12:
+        return "INFO"
+    if 13 <= number <= 16:
+        return "WARN"
+    if 17 <= number <= 20:
+        return "ERROR"
+    if 21 <= number <= 24:
+        return "FATAL"
+    return None
+
+
+def canonical_log_event(log: dict[str, Any]) -> tuple[str, ...]:
+    """A/B factual event identity; correlation IDs and native formatting are excluded."""
+    attrs = log.get("attributes") if isinstance(log.get("attributes"), dict) else {}
+    service = str(log.get("service") or "")
+    severity = canonical_log_severity(log.get("severity")) or "UNKNOWN"
+    operation = next((str(attrs[k]) for k in ("operation", "rpc.method", "rpc_method", "http.route", "http_route") if attrs.get(k)), "")
+    error_message = next((str(attrs[k]) for k in ("error.message", "error_message", "exception.message", "exception_message") if attrs.get(k)), "")
+    body = str(log.get("body") or "")
+    factual_message = error_message or body
+    factual_message = factual_message.casefold().strip()
+    factual_message = re.sub(r"\b[0-9a-f]{8}-[0-9a-f-]{27,}\b", "{uuid}", factual_message)
+    factual_message = re.sub(r"\b\d+(?:\.\d+)?\b", "{number}", factual_message)
+    factual_message = re.sub(r"\s+", " ", factual_message)
+    return service, severity, operation.casefold(), factual_message
 
 
 def _common_error_event(message: Any, attributes: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
@@ -410,7 +579,10 @@ def _common_error_event(message: Any, attributes: dict[str, Any]) -> tuple[Any, 
     error_type = exception_match.group(1) if exception_match else None
     error_message = clean_detail
     if error_type:
-        error_message = error_message.replace(error_type + ":", "", 1).strip()
+        if exception_match and exception_match.start() > 0:
+            error_message = clean_detail[:exception_match.start()].strip()
+        elif exception_match:
+            error_message = clean_detail[exception_match.end():].strip()
     normalized = {key: value for key, value in attributes.items() if key not in {"StatusCode", "status_code", "Detail", "detail"}}
     if status_code:
         normalized["status_code"] = status_code
@@ -419,6 +591,25 @@ def _common_error_event(message: Any, attributes: dict[str, Any]) -> tuple[Any, 
     if error_message:
         normalized["error.message"] = error_message
     return "Error status code '{StatusCode}' with detail '{Detail}' raised.", normalized
+
+
+def _canonical_error_message(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    # Unwrap nested RPC errors to their innermost application description, then
+    # remove stack/runtime detail beginning at an exception class or frame.
+    descriptions = re.findall(r"\bdesc\s*=\s*([^\n]+)", text, flags=re.IGNORECASE)
+    if descriptions:
+        text = descriptions[-1].strip()
+    text = re.split(r"\n|\s+--->\s+|\s+at\s+", text, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+    exception = re.search(r"\b[\w.$+]*(?:Exception|Error):", text)
+    if exception:
+        text = text[:exception.start()].strip()
+    text = re.sub(r"^(?:rpc error:\s*code\s*=\s*[^ ]+\s*desc\s*=\s*)", "", text, flags=re.IGNORECASE).strip()
+    return text or None
 
 
 def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
@@ -439,17 +630,40 @@ def common_logs(raw: dict[str, Any], scenario: str) -> list[dict[str, Any]]:
                          if str(key).casefold().replace(".", "_").replace("-", "_")
                          not in {"timestamp", "time", "instant", "message", "body"}}
                 normalized_body, attrs = _common_error_event(normalized_body, attrs)
-                severity = view["severity"]
-                if severity is None or str(severity).casefold() in {"unknown", "unspecified", "none", ""}:
-                    severity = body_severity or ("ERROR" if str(normalized_body).startswith("Error status code ") else None)
-                severity_aliases = {"trace": "TRACE", "trce": "TRACE", "debug": "DEBUG", "dbug": "DEBUG",
-                                    "info": "INFO", "information": "INFO", "warn": "WARN", "warning": "WARN",
-                                    "error": "ERROR", "fail": "ERROR", "critical": "FATAL", "crit": "FATAL"}
-                if severity is not None:
-                    severity = severity_aliases.get(str(severity).casefold(), str(severity).upper())
+                severity_value = view["severity"]
+                if severity_value is None or str(severity_value).casefold() in {"unknown", "unspecified", "none", ""}:
+                    severity_value = body_severity or attrs.get("severity_number")
+                if severity_value is None and re.match(r"^(?:Error:|Error status code )", str(normalized_body or ""), re.IGNORECASE):
+                    severity_value = "ERROR"
+                # Only explicit, safely classifiable severity is admitted to the Common RCA View.
+                severity = canonical_log_severity(severity_value)
+                message_text = str(normalized_body or "")
+                if _STACK_FRAME_RE.match(message_text) or _RUNTIME_NOISE_RE.match(message_text):
+                    continue
+                # Do not represent stack continuations as independent application events.
+                if severity is None:
+                    continue
+                canonical_attrs = {}
+                for key, value in attrs.items():
+                    normalized_key = _normalized_key(key)
+                    if normalized_key in {"error", "error_type", "error_message", "exception_message", "exception_type", "exception_stacktrace", "exception_stack_trace"}:
+                        continue
+                    canonical_attrs[key] = value
+                error_message = next((value for key, value in attrs.items()
+                                      if _normalized_key(key) in {"error_message", "exception_message", "error"}), None)
+                error_message = error_message or attrs.get("error.message") or attrs.get("exception.message")
+                if error_message is None:
+                    error_message = canonical_attrs.pop("error.message", None)
+                else:
+                    canonical_attrs.pop("exception.message", None)
+                    canonical_attrs.pop("error.message", None)
+                if error_message is None:
+                    error_message = body_fields.get("error.message")
+                if error_message:
+                    canonical_attrs["error.message"] = _canonical_error_message(error_message) or str(error_message)
                 rows.append({"timestamp": _utc_iso_epoch(int(timestamp) / 1_000_000_000), "service": service,
                              "severity": severity, "body": normalized_body,
-                             "trace_id": view["trace_id"], "span_id": view["span_id"], "attributes": attrs})
+                             "trace_id": view["trace_id"], "span_id": view["span_id"], "attributes": canonical_attrs})
     rows.sort(key=lambda x: (x["timestamp"], x["service"], str(x["body"]), str(x.get("trace_id"))))
     for index, row in enumerate(rows, 1):
         row["evidence_id"] = f"log-{index:06d}"
@@ -527,18 +741,15 @@ def common_traces(raw: dict[str, Any]) -> list[dict[str, Any]]:
                 continue
             parent = next((ref.get("spanID") for ref in span.get("references", []) if ref.get("refType") == "CHILD_OF"), None)
             start_us = int(span.get("startTime", 0)); duration_us = int(span.get("duration", 0))
-            attrs = {key: value for key, value in tags.items() if key in _SPAN_ATTRIBUTES}
-            events = []
-            for event in span.get("logs", []):
-                fields = {x.get("key"): x.get("value") for x in event.get("fields", []) if x.get("key") is not None}
-                fields = {k: v for k, v in fields.items()
-                          if k not in {"exception.stacktrace", "exception.message", "exception.type"}}
-                if fields:
-                    events.append(fields)
+            # Canonical outcome consumes the complete native status surface before
+            # redundant instrumentation attributes are discarded from the RCA view.
+            outcome = canonical_span_outcome({"status": tags.get("status"), "attributes": tags})
+            attrs: dict[str, Any] = {}
+            events: list[dict[str, Any]] = []
             accepted.append({"trace_id": trace["trace_id"], "span_id": span.get("spanID"),
                 "parent_span_id": parent, "service": service, "operation": operation, "kind": kind,
                 "target": target, "start": _utc_iso_epoch(start_us / 1_000_000),
-                "duration_ms": duration_us / 1000.0, "status": tags.get("otel.status_code") or tags.get("status.code") or tags.get("error") or tags.get("rpc.grpc.status_code"),
+                "duration_ms": duration_us / 1000.0, "status": outcome,
                 "attributes": attrs, "events": events})
         if accepted:
             span_records.extend(accepted)
