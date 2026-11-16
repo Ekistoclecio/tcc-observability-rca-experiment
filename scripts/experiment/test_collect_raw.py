@@ -12,7 +12,14 @@ import tempfile
 from threading import Thread
 import unittest
 
-from collect_raw import parse_time, query_url, save_native, sha256, verify_bundle
+from collect_raw import (
+    forwarding_confirmed,
+    parse_time,
+    query_url,
+    save_native,
+    sha256,
+    verify_bundle,
+)
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -38,6 +45,20 @@ class RawCollectorTest(unittest.TestCase):
         value = query_url("http://localhost:9090/", "/api/v1/query_range", {"query": '{__name__=~".+"}', "step": "1s"})
         self.assertIn("query=%7B__name__%3D~%22.%2B%22%7D", value)
         self.assertIn("step=1s", value)
+
+    def test_port_forward_must_confirm_its_expected_local_and_remote_ports(self) -> None:
+        self.assertTrue(forwarding_confirmed(
+            "Forwarding from 127.0.0.1:45678 -> 16686\n", 45678, 16686
+        ))
+        self.assertTrue(forwarding_confirmed(
+            "Forwarding from [::1]:45678 -> 16686\n", 45678, 16686
+        ))
+        self.assertFalse(forwarding_confirmed(
+            "Forwarding from 127.0.0.1:45678 -> 16686\n", 45679, 16686
+        ))
+        self.assertFalse(forwarding_confirmed(
+            "Forwarding from 127.0.0.1:45678 -> 9411\n", 45678, 16686
+        ))
 
     def test_response_body_is_preserved_byte_for_byte_and_hashed(self) -> None:
         server = HTTPServer(("127.0.0.1", 0), _Handler)

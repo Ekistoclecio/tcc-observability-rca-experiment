@@ -9,8 +9,11 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
+import socket
 import subprocess
 import sys
+import tempfile
 import time
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -31,12 +34,12 @@ SERVICES = (
     "adservice",
 )
 PORT_FORWARDS = (
-    ("prometheus-a", "observability-a", "prometheus-a", 19090, 9090, "/-/ready"),
-    ("prometheus-b", "observability-b", "prometheus-b", 19091, 9090, "/-/ready"),
-    ("loki-a", "observability-a", "loki-a", 13100, 3100, "/ready"),
-    ("loki-b", "observability-b", "loki-b", 13101, 3100, "/ready"),
-    ("jaeger-a", "observability-a", "jaeger-a", 16686, 16686, "/api/services"),
-    ("jaeger-b", "observability-b", "jaeger-b", 16687, 16686, "/api/services"),
+    ("prometheus-a", "observability-a", "prometheus-a", 9090, "/-/ready"),
+    ("prometheus-b", "observability-b", "prometheus-b", 9090, "/-/ready"),
+    ("loki-a", "observability-a", "loki-a", 3100, "/ready"),
+    ("loki-b", "observability-b", "loki-b", 3100, "/ready"),
+    ("jaeger-a", "observability-a", "jaeger-a", 16686, "/api/services"),
+    ("jaeger-b", "observability-b", "jaeger-b", 16686, "/api/services"),
 )
 
 
@@ -124,6 +127,52 @@ def readiness(url: str, deadline: float) -> None:
     raise CollectionError(f"port-forward/backend did not become ready: {url}")
 
 
+def reserve_local_port() -> int:
+    """Choose an ephemeral loopback port instead of trusting a shared fixed port."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def forwarding_confirmed(output: str, local_port: int, remote_port: int) -> bool:
+    escaped_local = re.escape(str(local_port))
+    escaped_remote = re.escape(str(remote_port))
+    return bool(re.search(
+        rf"Forwarding from (?:127\.0\.0\.1|\[::1\]):{escaped_local} -> {escaped_remote}(?:\s|$)",
+        output,
+    ))
+
+
+def wait_for_forward(
+    process: subprocess.Popen[bytes],
+    output_file: Any,
+    local_port: int,
+    remote_port: int,
+    deadline: float,
+) -> str:
+    while time.monotonic() < deadline:
+        output_file.flush()
+        output_file.seek(0)
+        output = output_file.read()
+        if forwarding_confirmed(output, local_port, remote_port):
+            if process.poll() is not None:
+                raise CollectionError(f"kubectl port-forward exited after binding port {local_port}: {output[-1000:]}")
+            return output
+        exit_code = process.poll()
+        if exit_code is not None:
+            raise CollectionError(
+                f"kubectl port-forward exited ({exit_code}) before confirming "
+                f"127.0.0.1:{local_port} -> {remote_port}: {output[-1000:]}"
+            )
+        time.sleep(0.1)
+    output_file.flush()
+    output_file.seek(0)
+    output = output_file.read()
+    raise CollectionError(
+        f"kubectl port-forward did not confirm 127.0.0.1:{local_port} -> {remote_port}: {output[-1000:]}"
+    )
+
+
 def verify_bundle(root: Path) -> int:
     manifest_path = root / "manifest.json"
     hashes_path = root / "hashes.sha256"
@@ -168,9 +217,14 @@ def collect(args: argparse.Namespace) -> int:
         raise CollectionError(f"output directory already exists (write-once): {root}")
     root.mkdir(parents=True)
 
-    port_forwards: list[subprocess.Popen[bytes]] = []
+    port_forwards: list[tuple[subprocess.Popen[bytes], Any]] = []
+    forward_processes: dict[str, subprocess.Popen[bytes]] = {}
+    ports: dict[str, int] = {}
+    forward_manifest: list[dict[str, Any]] = []
     try:
-        for _, namespace, service, local_port, remote_port, _ in PORT_FORWARDS:
+        for name, namespace, service, remote_port, _ in PORT_FORWARDS:
+            local_port = reserve_local_port()
+            output_file = tempfile.TemporaryFile(mode="w+t", encoding="utf-8")
             process = subprocess.Popen(
                 [
                     args.kubectl,
@@ -182,13 +236,32 @@ def collect(args: argparse.Namespace) -> int:
                     f"service/{service}",
                     f"{local_port}:{remote_port}",
                 ],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=output_file,
+                stderr=subprocess.STDOUT,
+                text=True,
             )
-            port_forwards.append(process)
+            port_forwards.append((process, output_file))
+            wait_for_forward(process, output_file, local_port, remote_port, time.monotonic() + 20)
+            forward_processes[name] = process
+            ports[name] = local_port
+            forward_manifest.append({
+                "name": name,
+                "namespace": namespace,
+                "service": service,
+                "local_address": f"127.0.0.1:{local_port}",
+                "remote_port": remote_port,
+                "process_id": process.pid,
+                "status": "BOUND_TO_EXPECTED_SERVICE_PORT",
+            })
 
-        for _, _, _, local_port, _, health_path in PORT_FORWARDS:
+        for name, _, _, _, health_path in PORT_FORWARDS:
+            process = forward_processes[name]
+            if process.poll() is not None:
+                raise CollectionError(f"port-forward {name} exited before backend readiness")
+            local_port = ports[name]
             readiness(f"http://127.0.0.1:{local_port}{health_path}", time.monotonic() + 20)
+            if process.poll() is not None:
+                raise CollectionError(f"port-forward {name} exited during backend readiness")
 
         if args.drain_seconds:
             time.sleep(args.drain_seconds)
@@ -200,6 +273,7 @@ def collect(args: argparse.Namespace) -> int:
             "collected_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "window": {"start": window_start, "end": window_end},
             "drain_seconds_before_queries": args.drain_seconds,
+            "port_forwards": forward_manifest,
             "collector_git_commit": args.collector_commit,
             "collector_script_sha256": sha256(Path(__file__).read_bytes()),
             "application_image_source_fingerprint": args.application_image_source_fingerprint,
@@ -234,11 +308,11 @@ def collect(args: argparse.Namespace) -> int:
                 "sha256": sha256(workload_bytes),
             })
         specs = (
-            ("A", "prometheus", "http://127.0.0.1:19090", "/api/v1/query_range", {
+            ("A", "prometheus", f"http://127.0.0.1:{ports['prometheus-a']}", "/api/v1/query_range", {
                 "query": '{__name__=~".+"}', "start": str(start.timestamp()),
                 "end": str(end.timestamp()), "step": args.step,
             }, "metrics.json"),
-            ("B", "prometheus", "http://127.0.0.1:19091", "/api/v1/query_range", {
+            ("B", "prometheus", f"http://127.0.0.1:{ports['prometheus-b']}", "/api/v1/query_range", {
                 "query": '{__name__=~".+"}', "start": str(start.timestamp()),
                 "end": str(end.timestamp()), "step": args.step,
             }, "metrics.json"),
@@ -250,7 +324,8 @@ def collect(args: argparse.Namespace) -> int:
                 root, f"dataset{scenario}/{filename}", url, backend, manifest["native_responses"]
             )
 
-        for scenario, base in (("A", "http://127.0.0.1:13100"), ("B", "http://127.0.0.1:13101")):
+        for scenario in ("A", "B"):
+            base = f"http://127.0.0.1:{ports[f'loki-{scenario.lower()}']}"
             for service in SERVICES:
                 selector = f'{{service_name="{service}"}}'
                 if scenario == "A":
@@ -279,7 +354,8 @@ def collect(args: argparse.Namespace) -> int:
                 manifest.setdefault("log_counts", {}).setdefault(scenario, {})[service] = entries
                 parsed_responses[f"{scenario}/loki/{service}"] = result
 
-        for scenario, base in (("A", "http://127.0.0.1:16686"), ("B", "http://127.0.0.1:16687")):
+        for scenario in ("A", "B"):
+            base = f"http://127.0.0.1:{ports[f'jaeger-{scenario.lower()}']}"
             service_url = f"{base}/api/services"
             services = save_native(
                 root,
@@ -344,14 +420,15 @@ def collect(args: argparse.Namespace) -> int:
         print(json.dumps({"status": "PASS", "output_dir": str(root), "summary": summary, "hashes": len(hashes_lines)}, indent=2))
         return 0
     finally:
-        for process in port_forwards:
+        for process, _ in port_forwards:
             process.terminate()
-        for process in port_forwards:
+        for process, output_file in port_forwards:
             try:
                 process.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=3)
+            output_file.close()
 
 
 def summarize(responses: dict[str, dict[str, Any]]) -> dict[str, dict[str, int]]:
