@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: online-boutique
+resources:
+  - ../base/adservice.yaml
+  - ../base/cartservice.yaml
+  - ../base/checkoutservice.yaml
+  - ../base/currencyservice.yaml
+  - ../base/emailservice.yaml
+  - ../base/frontend.yaml
+  - ../base/paymentservice.yaml
+  - ../base/productcatalogservice.yaml
+  - ../base/recommendationservice.yaml
+  - ../base/shippingservice.yaml
+images:
+  - name: redis
+    newName: docker.io/library/redis
+    digest: sha256:47b08295737773de3b711fb86f13ae802f5074e96a9a2d29f5f80164ac08c046
