@@ -11,6 +11,7 @@ from scripts.experiment.fault_smoke import (
     ready_endpoint_count,
     require_deployment_provenance,
     require_exclusive_environment,
+    run_workload,
     service_pods,
     target_service_is_fully_unavailable,
     wait_for_normal_workload_recovery,
@@ -110,6 +111,24 @@ class FaultSmokeTests(unittest.TestCase):
             ["POST:/cart/checkout=500", "GET:/cart=500"]
         )
         self.assertEqual(parsed, {("POST", "/cart/checkout"): 500, ("GET", "/cart"): 500})
+
+    @patch("scripts.experiment.fault_smoke.command")
+    def test_f5_expects_application_errors_on_all_cart_dependent_routes(self, command) -> None:
+        command.return_value = CompletedProcess([], 0, '{"status":"PASS"}', "")
+
+        run_workload("F5", 18080)
+
+        args = command.call_args.args[0]
+        configured = [args[index + 1] for index, value in enumerate(args[:-1]) if value == "--expect-status"]
+        self.assertEqual(
+            configured,
+            [
+                "GET:/=500",
+                "POST:/cart=500",
+                "GET:/cart=500",
+                "POST:/cart/checkout=500",
+            ],
+        )
 
     def test_invalid_expected_status_spec_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

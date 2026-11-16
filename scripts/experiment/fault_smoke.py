@@ -340,7 +340,12 @@ def run_workload(fault: str | None, port: int) -> dict[str, Any]:
     if fault in {"F3", "F4"}:
         expected = ["POST:/cart/checkout=500"]
     elif fault == "F5":
-        expected = ["GET:/cart=500", "POST:/cart/checkout=500"]
+        expected = [
+            "GET:/=500",
+            "POST:/cart=500",
+            "GET:/cart=500",
+            "POST:/cart/checkout=500",
+        ]
     command_args = [
         sys.executable,
         str(WORKLOAD),
