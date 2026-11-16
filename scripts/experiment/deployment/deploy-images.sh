@@ -44,15 +44,22 @@ node_names="$(docker ps --filter "label=io.x-k8s.kind.cluster=$KIND_CLUSTER_NAME
   fail "esperado exatamente um node Kind em execução: $node_names"
 node_name="$(printf '%s\n' "$node_names" | sed '/^[[:space:]]*$/d')"
 for image in "${images[@]}"; do
+  image_identity="$(docker image save "$image" | python3 "$DEPLOY_DIR/image_config_digest.py")"
+  local_config_digest="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["config_digest"])' <<<"$image_identity")"
+  local_image_manifest_digest="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["index_manifest_digest"])' <<<"$image_identity")"
+  [[ "$local_image_manifest_digest" =~ ^sha256:[0-9a-f]{64}$ ]] || \
+    fail "Docker image manifest digest inválido para $image"
   docker exec "$node_name" crictl inspecti "$image" | python3 -c '
 import json, sys
-expected, revision = sys.argv[1:]
+expected_config, revision, reference = sys.argv[1:]
 data = json.load(sys.stdin)
 status = data.get("status", {})
 labels = data.get("info", {}).get("imageSpec", {}).get("config", {}).get("Labels", {}) or {}
-if status.get("id") != expected or labels.get("org.opencontainers.image.revision") != revision:
-    raise SystemExit("Kind image verification failed for " + expected)
-' "$(docker image inspect "$image" --format '{{.Id}}')" "$revision"
+repo_tags = status.get("repoTags", [])
+if status.get("id") != expected_config or labels.get("org.opencontainers.image.revision") != revision or "docker.io/" + reference not in repo_tags:
+    raise SystemExit("Kind image verification failed for " + reference)
+' "$local_config_digest" "$revision" "$image"
+  [[ -n "$local_image_manifest_digest" ]] || fail "Docker image manifest não identificado para $image"
 done
 
 "$KUBECTL_BIN" --context "$KIND_CONTEXT" create namespace "$SUT_NAMESPACE" --dry-run=client -o yaml \

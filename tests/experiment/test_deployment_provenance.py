@@ -1,4 +1,8 @@
 import unittest
+import hashlib
+from io import BytesIO
+import json
+import tarfile
 
 from scripts.experiment.deployment.verify_provenance import (
     REVISION_LABEL,
@@ -7,11 +11,13 @@ from scripts.experiment.deployment.verify_provenance import (
     validate_service,
     working_tree_is_clean,
 )
+from scripts.experiment.deployment.image_config_digest import read_image_archive
 
 
 class DeploymentProvenanceTests(unittest.TestCase):
     revision = "a" * 40
     image_id = "sha256:" + "b" * 64
+    manifest_digest = "sha256:" + "c" * 64
     image_reference = f"tcc-experiment-v2/paymentservice:{revision}"
 
     def service_record(self, revision=None, include_label=True):
@@ -21,9 +27,11 @@ class DeploymentProvenanceTests(unittest.TestCase):
             self.revision,
             self.image_reference,
             {
-                "Id": self.image_id,
+                "Id": self.manifest_digest,
                 "RepoTags": [self.image_reference],
                 "Config": {"Labels": labels},
+                "ExperimentConfigDigest": self.image_id,
+                "ExperimentIndexManifestDigest": self.manifest_digest,
             },
             {
                 "metadata": {"name": "paymentservice-123"},
@@ -47,7 +55,10 @@ class DeploymentProvenanceTests(unittest.TestCase):
                 },
             },
             {
-                "status": {"id": self.image_id},
+                "status": {
+                    "id": self.image_id,
+                    "repoTags": ["docker.io/" + self.image_reference],
+                },
                 "info": {
                     "imageSpec": {
                         "config": {"Labels": labels}
@@ -83,6 +94,26 @@ class DeploymentProvenanceTests(unittest.TestCase):
         ]
         records[0] = {"service": SERVICES[0], "status": "FAIL"}
         self.assertEqual(validate_all(records)["status"], "FAIL")
+
+    def test_docker_save_config_digest_is_extracted_and_hashed(self):
+        config = b'{"architecture":"amd64","config":{"Labels":{}}}'
+        config_hash = hashlib.sha256(config).hexdigest()
+        manifest = json.dumps([{"Config": f"blobs/sha256/{config_hash}"}]).encode()
+        index = json.dumps({"manifests": [{"digest": "sha256:" + "d" * 64}]}).encode()
+        archive_bytes = BytesIO()
+        with tarfile.open(fileobj=archive_bytes, mode="w") as archive:
+            for name, content in (
+                (f"blobs/sha256/{config_hash}", config),
+                ("manifest.json", manifest),
+                ("index.json", index),
+            ):
+                member = tarfile.TarInfo(name)
+                member.size = len(content)
+                archive.addfile(member, BytesIO(content))
+
+        identity = read_image_archive(BytesIO(archive_bytes.getvalue()))
+        self.assertEqual(identity["config_digest"], "sha256:" + config_hash)
+        self.assertEqual(identity["index_manifest_digest"], "sha256:" + "d" * 64)
 
 
 if __name__ == "__main__":

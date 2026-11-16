@@ -28,6 +28,7 @@ SERVICES = (
 )
 REVISION_LABEL = "org.opencontainers.image.revision"
 VERSIONS_FILE = ROOT / "config/experiment/environment/versions.env"
+IMAGE_CONFIG_READER = ROOT / "scripts/experiment/deployment/image_config_digest.py"
 
 
 def run(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -38,6 +39,29 @@ def run(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[s
             f"{result.stderr.strip()}"
         )
     return result
+
+
+def docker_config_identity(docker: str, reference: str) -> dict[str, str]:
+    archive = subprocess.Popen(
+        [docker, "image", "save", reference], stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    assert archive.stdout is not None
+    parsed = subprocess.run(
+        [sys.executable, str(IMAGE_CONFIG_READER)],
+        stdin=archive.stdout,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    archive.stdout.close()
+    docker_stderr = archive.communicate()[1].decode(errors="replace")
+    if archive.returncode or parsed.returncode:
+        raise RuntimeError(
+            f"could not read Docker image config for {reference}: "
+            f"{docker_stderr.strip()} {parsed.stderr.strip()}"
+        )
+    return json.loads(parsed.stdout)
 
 
 def digest(value: str) -> str:
@@ -78,6 +102,8 @@ def validate_service(
 ) -> dict[str, Any]:
     problems: list[str] = []
     local_config_id = local_image.get("Id")
+    image_config_id = local_image.get("ExperimentConfigDigest")
+    image_manifest_id = local_image.get("ExperimentIndexManifestDigest")
     local_labels = (local_image.get("Config") or {}).get("Labels") or {}
     runtime_status = runtime_image.get("status") or {}
     runtime_info = runtime_image.get("info") or {}
@@ -94,8 +120,12 @@ def validate_service(
         problems.append("local OCI revision missing or mismatched")
     if runtime_labels.get(REVISION_LABEL) != expected_revision:
         problems.append("Kind runtime OCI revision missing or mismatched")
-    if not same_digest(local_config_id, runtime_id):
-        problems.append("local and Kind image config IDs differ")
+    if not same_digest(image_config_id, runtime_id):
+        problems.append("local image config digest differs from Kind CRI config ID")
+    repo_tags = runtime_status.get("repoTags") or []
+    expected_node_reference = f"docker.io/{expected_reference}"
+    if expected_node_reference not in repo_tags:
+        problems.append("Kind CRI image reference is missing or mismatched")
 
     containers = pod_spec.get("containers") or []
     if len(containers) != 1:
@@ -119,14 +149,16 @@ def validate_service(
         running_id = status.get("imageID")
         if not status.get("ready"):
             problems.append("application container is not Ready")
-        if not same_digest(running_id, runtime_id):
-            problems.append("Pod imageID differs from the inspected Kind image config ID")
+        if not same_digest(running_id, image_config_id):
+            problems.append("Pod imageID differs from the local image config digest")
 
     return {
         "service": service,
         "expected_git_revision": expected_revision,
         "image_reference": expected_reference,
-        "local_image_id": local_config_id,
+        "local_docker_image_id": local_config_id,
+        "local_index_manifest_digest": image_manifest_id,
+        "local_image_config_digest": image_config_id,
         "image_revision": local_labels.get(REVISION_LABEL),
         "kind_image_id": runtime_id,
         "kind_image_revision": runtime_labels.get(REVISION_LABEL),
@@ -203,6 +235,11 @@ def main() -> int:
             local = json.loads(
                 run([docker, "image", "inspect", reference]).stdout
             )[0]
+            image_identity = docker_config_identity(docker, reference)
+            local["ExperimentConfigDigest"] = image_identity["config_digest"]
+            local["ExperimentIndexManifestDigest"] = image_identity[
+                "index_manifest_digest"
+            ]
             deployment = json.loads(
                 run(
                     [
