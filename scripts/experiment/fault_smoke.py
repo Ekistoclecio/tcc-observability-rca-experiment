@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 VERSIONS = ROOT / "config/experiment/environment/versions.env"
 FAULT_CONFIG = ROOT / "config/experiment/faults.json"
 WORKLOAD = ROOT / "scripts/experiment/workload.py"
-HOOK_PATCH = ROOT / "config/experiment/faults/paymentservice-hook.patch.yaml"
+PROVENANCE_VALIDATOR = ROOT / "scripts/experiment/deployment/verify_provenance.py"
 CONTAINER = "server"
 
 
@@ -162,6 +162,23 @@ def require_sut_ready() -> None:
     }
     if not_ready:
         raise FaultSmokeError(f"SUT is not fully Ready: {not_ready}")
+
+
+def require_deployment_provenance() -> dict[str, Any]:
+    output = Path(os.environ.get("TMPDIR", "/tmp")) / "tcc-fault-preflight-provenance.json"
+    result = command(
+        [sys.executable, str(PROVENANCE_VALIDATOR), "--output", str(output)],
+        check=False,
+    )
+    try:
+        evidence = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise FaultSmokeError(
+            f"deployment provenance validator returned invalid JSON: {result.stdout}"
+        ) from exc
+    if result.returncode or evidence.get("status") != "PASS":
+        raise FaultSmokeError(f"deployment provenance hard blocker: {evidence}")
+    return evidence
 
 
 def chaos_items() -> list[dict[str, Any]]:
@@ -513,6 +530,7 @@ def main() -> int:
     port_forward: subprocess.Popen[str] | None = None
     try:
         require_exclusive_environment()
+        report["deployment_provenance"] = require_deployment_provenance()
         require_sut_ready()
         port_forward = start_port_forward(args.frontend_port)
         report["normal_precondition_probe"] = run_workload(None, args.frontend_port)

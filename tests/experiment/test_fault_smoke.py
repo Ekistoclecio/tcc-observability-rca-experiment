@@ -8,6 +8,7 @@ from scripts.experiment.fault_smoke import (
     FAULT_CONFIG,
     FaultSmokeError,
     chaos_manifest,
+    require_deployment_provenance,
     require_exclusive_environment,
 )
 from scripts.experiment.workload import parse_expected_statuses
@@ -93,6 +94,15 @@ class FaultSmokeTests(unittest.TestCase):
 
         with self.assertRaises(FaultSmokeError):
             require_exclusive_environment()
+
+    @patch("scripts.experiment.fault_smoke.command")
+    def test_deployment_provenance_failure_blocks_fault_runner(self, command):
+        command.return_value = CompletedProcess(
+            [], 1, '{"status":"FAIL"}\n', ""
+        )
+
+        with self.assertRaises(FaultSmokeError):
+            require_deployment_provenance()
 
 
 if __name__ == "__main__":

@@ -15,6 +15,36 @@ resources:
 patches:
   - path: ../../config/experiment/faults/paymentservice-hook.patch.yaml
 images:
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
+    newName: tcc-experiment-v2/adservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
+    newName: tcc-experiment-v2/cartservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
+    newName: tcc-experiment-v2/checkoutservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice
+    newName: tcc-experiment-v2/currencyservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice
+    newName: tcc-experiment-v2/emailservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
+    newName: tcc-experiment-v2/frontend
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
+    newName: tcc-experiment-v2/paymentservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
+    newName: tcc-experiment-v2/productcatalogservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice
+    newName: tcc-experiment-v2/recommendationservice
+    newTag: EXPERIMENT_REVISION
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
+    newName: tcc-experiment-v2/shippingservice
+    newTag: EXPERIMENT_REVISION
   - name: redis
     newName: docker.io/library/redis
     digest: sha256:47b08295737773de3b711fb86f13ae802f5074e96a9a2d29f5f80164ac08c046
