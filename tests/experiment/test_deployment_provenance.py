@@ -9,6 +9,7 @@ from scripts.experiment.deployment.verify_provenance import (
     SERVICES,
     validate_all,
     validate_service,
+    pod_image_matches_runtime,
     working_tree_is_clean,
 )
 from scripts.experiment.deployment.image_config_digest import read_image_archive
@@ -114,6 +115,23 @@ class DeploymentProvenanceTests(unittest.TestCase):
         identity = read_image_archive(BytesIO(archive_bytes.getvalue()))
         self.assertEqual(identity["config_digest"], "sha256:" + config_hash)
         self.assertEqual(identity["index_manifest_digest"], "sha256:" + "d" * 64)
+
+    def test_pod_image_id_may_use_runtime_registered_repo_digest(self):
+        repo_digest = "docker.io/library/import-date@sha256:" + "e" * 64
+        self.assertTrue(
+            pod_image_matches_runtime(
+                repo_digest,
+                {"repoDigests": [repo_digest]},
+                self.image_id,
+            )
+        )
+        self.assertFalse(
+            pod_image_matches_runtime(
+                repo_digest,
+                {"repoDigests": []},
+                self.image_id,
+            )
+        )
 
 
 if __name__ == "__main__":

@@ -92,6 +92,19 @@ def same_digest(left: str | None, right: str | None) -> bool:
         return False
 
 
+def pod_image_matches_runtime(
+    pod_image_id: str | None,
+    runtime_status: dict[str, Any],
+    local_config_digest: str | None,
+) -> bool:
+    if not pod_image_id:
+        return False
+    repo_digests = runtime_status.get("repoDigests") or []
+    if "@sha256:" in pod_image_id:
+        return pod_image_id in repo_digests
+    return same_digest(pod_image_id, local_config_digest)
+
+
 def validate_service(
     service: str,
     expected_revision: str,
@@ -149,8 +162,10 @@ def validate_service(
         running_id = status.get("imageID")
         if not status.get("ready"):
             problems.append("application container is not Ready")
-        if not same_digest(running_id, image_config_id):
-            problems.append("Pod imageID differs from the local image config digest")
+        if not pod_image_matches_runtime(running_id, runtime_status, image_config_id):
+            problems.append(
+                "Pod imageID matches neither the local config digest nor a CRI repo digest"
+            )
 
     return {
         "service": service,
@@ -167,7 +182,7 @@ def validate_service(
             containers[0].get("image") if len(containers) == 1 else None
         ),
         "running_image_id": running_id,
-        "comparison_method": "local Docker config ID == Kind CRI config ID == Pod imageID; OCI revision label read from local Docker and Kind CRI image config",
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
         "status": "PASS" if not problems else "FAIL",
         "problems": problems,
     }
