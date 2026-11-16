@@ -13,8 +13,11 @@ require_exclusive_kind_runtime
 "$KUBECTL_BIN" --context "$KIND_CONTEXT" wait \
   --for=condition=Available deployment --all \
   --namespace observability-b --timeout=5m
-"$KUBECTL_BIN" --context "$KIND_CONTEXT" rollout status \
-  daemonset/promtail-b --namespace observability-b --timeout=5m
+
+if "$KUBECTL_BIN" --context "$KIND_CONTEXT" get daemonset/promtail-b \
+  --namespace observability-b >/dev/null 2>&1; then
+  fail "promtail-b must not collect Scenario B application stdout; B application logs are OTLP-only"
+fi
 
 "$KUBECTL_BIN" --context "$KIND_CONTEXT" get deployments,daemonsets,pods \
   --namespace observability-b -o wide
