@@ -147,11 +147,10 @@ data:
             target_label: service_name
           - source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
-          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_pod_name, __meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
-            separator: ";"
-            regex: (.+);(.+);(.+);(.+)
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            separator: "/"
             target_label: __path__
-            replacement: /var/log/pods/$1_$2_$3/$4/*.log
+            replacement: /var/log/pods/*$1/*.log
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -173,6 +172,11 @@ spec:
         - name: promtail
           image: grafana/promtail:3.5.5
           args: ["-config.file=/etc/promtail/promtail.yaml"]
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           ports:
             - name: http
               containerPort: 9080
