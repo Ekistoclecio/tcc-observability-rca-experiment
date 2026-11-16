@@ -116,3 +116,15 @@ A e B tiveram contagens RAW diferentes para alguns serviços. Isso não foi usad
 - `npm test` do `paymentservice` e `test` do Java não contêm testes unitários; a prova principal aqui é build e runtime real.
 
 **Gate da Etapa 7: PASS.** Esta conclusão cobre somente instrumentação e validação normal de logs/metrics/traces. Não valida faults, coleta RAW, Dataset Builder, RCA Input nem qualquer bateria experimental.
+
+## Erratum — cobertura de rota HTTP do `frontend` B
+
+Durante a validação do Dataset Builder, foi encontrada uma assimetria não detectada pelo gate semântico original: as métricas HTTP do `frontend` A preservavam operações como `GET /` e `GET /cart`, enquanto o `otelhttp.NewHandler(handler, "frontend")` do Scenario B exportava método/status/endereço sem `http.route`. O Builder não pode recuperar a rota a partir dessas séries.
+
+A correção substituiu esse wrapper genérico pela instrumentação idiomática `otelmux.Middleware("frontend")` aplicada ao router Gorilla Mux. A integração registra a rota resolvida nas métricas e spans OTel. Não foi adicionada métrica manual nem inferência no Builder.
+
+Validação pre-commit em `2026-11-16`, sem fault: a imagem `tcc-experiment-v2/frontend:stage10-route-fix-validation` foi construída do snapshot local e carregada no Kind. Depois de duas requisições benignas, Prometheus B mostrou `http_route=/` e `http_route=/cart`, ambas com seus métodos/status. Jaeger B registrou `GET /`, `span.kind=server` e `http.route=/`. O mesmo fluxo retornou HTTP 200. O Deployment foi restaurado à imagem anterior ao teste; somente o Pod frontend de validação foi substituído. O Collector e os demais Deployments não foram alterados.
+
+A consulta observou também `GET /_healthz` em B, enquanto o middleware convencional A exclui esse endpoint. O Dataset o classifica como health check RAW-only; nenhum conteúdo causal é removido.
+
+Esta validação corrige a implementação e a cobertura do Scenario B, mas não substitui uma nova coleta RAW nem as novas validações semânticas F4/F5 após mudança de instrumentação. A coleta histórica anterior à correção permanece válida para os sinais que já registrava, mas não prova cobertura de `http.route` no frontend B.
