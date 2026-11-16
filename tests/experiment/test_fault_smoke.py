@@ -10,6 +10,7 @@ from scripts.experiment.fault_smoke import (
     chaos_manifest,
     require_deployment_provenance,
     require_exclusive_environment,
+    service_pods,
     target_service_is_fully_unavailable,
 )
 from scripts.experiment.workload import parse_expected_statuses
@@ -26,6 +27,10 @@ class FaultSmokeTests(unittest.TestCase):
         self.assertFalse(target_service_is_fully_unavailable(state))
         state["pods"] = 0
         self.assertTrue(target_service_is_fully_unavailable(state))
+
+    @patch("scripts.experiment.fault_smoke.kube_json", return_value={"items": None})
+    def test_empty_pod_list_is_normalized_to_empty(self, _kube_json) -> None:
+        self.assertEqual(service_pods("paymentservice"), [])
 
     def test_fault_matrix_matches_the_five_declared_root_locations(self) -> None:
         faults = json.loads(FAULT_CONFIG.read_text(encoding="utf-8"))["faults"]

@@ -264,7 +264,7 @@ def chaos_manifest(fault: str, definition: dict[str, Any]) -> dict[str, Any]:
 def service_pods(service: str) -> list[dict[str, Any]]:
     return kube_json(
         "-n", NAMESPACE, "get", "pods", "-l", f"app={service}", "-o", "json"
-    ).get("items", [])
+    ).get("items") or []
 
 
 def check_f4_hook_ready() -> list[dict[str, Any]]:
