@@ -5,10 +5,13 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import re
 import subprocess
 import sys
+import tarfile
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -36,7 +39,9 @@ def evaluate_service(
     expected_revision: str,
     image_reference: str,
     local_image_id: str | None,
+    local_image_config_id: str | None,
     image_revision: str | None,
+    config_revision: str | None,
     deployment_image: str | None,
     desired_replicas: int,
     ready_replicas: int,
@@ -44,9 +49,14 @@ def evaluate_service(
 ) -> dict[str, Any]:
     failures: list[str] = []
     if not local_image_id:
-        failures.append("local image ID unavailable")
-    if image_revision != expected_revision:
-        failures.append(f"image OCI revision {image_revision or '<missing>'} != expected {expected_revision}")
+        failures.append("local image inspect ID unavailable")
+    if not local_image_config_id:
+        failures.append("local image config digest unavailable")
+    if image_revision != expected_revision or config_revision != expected_revision:
+        failures.append(
+            f"image OCI revision {image_revision or '<missing>'} or saved config revision "
+            f"{config_revision or '<missing>'} != expected {expected_revision}"
+        )
     if deployment_image != image_reference:
         failures.append(f"Deployment image {deployment_image or '<missing>'} != expected image {image_reference}")
     if desired_replicas < 1 or ready_replicas != desired_replicas:
@@ -57,7 +67,7 @@ def evaluate_service(
     checked_pods = []
     for pod in pods:
         running_digest = normalize_config_digest(pod.get("image_id"))
-        local_digest = normalize_config_digest(local_image_id)
+        local_digest = normalize_config_digest(local_image_config_id)
         pod_ok = True
         if not pod.get("ready"):
             failures.append(f"Pod {pod.get('name')} is not Ready")
@@ -85,14 +95,17 @@ def evaluate_service(
         "expected_git_revision": expected_revision,
         "local_image_reference": image_reference,
         "local_image_id": local_image_id,
+        "local_image_id_type": "Docker image inspect .Id; may identify an OCI index",
+        "local_image_config_digest": local_image_config_id,
         "image_revision": image_revision,
+        "saved_config_revision": config_revision,
         "deployment_image_reference": deployment_image,
         "desired_replicas": desired_replicas,
         "ready_replicas": ready_replicas,
         "running_pod": checked_pods[0]["pod"] if len(checked_pods) == 1 else None,
         "running_image_reference": checked_pods[0]["image_reference"] if len(checked_pods) == 1 else None,
         "running_pods": checked_pods,
-        "comparison_method": "OCI revision label plus exact image reference and local config digest == Pod runtime config digest",
+        "comparison_method": "OCI revision in image inspect and saved config plus exact image reference and saved config digest == Pod runtime config digest",
         "failures": failures,
         "status": "PASS" if not failures else "FAIL",
     }
@@ -100,6 +113,10 @@ def evaluate_service(
 
 def validate_records(records: list[dict[str, Any]], working_tree_clean: bool) -> dict[str, Any]:
     failures = [] if working_tree_clean else ["working tree is dirty"]
+    service_names = [record.get("service") for record in records]
+    services_complete = len(records) == len(SERVICES) and set(service_names) == set(SERVICES)
+    if not services_complete:
+        failures.append("validated service set does not exactly match the ten SUT application services")
     for record in records:
         if record.get("status") != "PASS":
             failures.append(f"{record.get('service', '<unknown>')}: service provenance failed")
@@ -108,23 +125,30 @@ def validate_records(records: list[dict[str, Any]], working_tree_clean: bool) ->
         "working_tree_clean": working_tree_clean,
         "services_expected": len(SERVICES),
         "services_validated": len(records),
-        "passed": len(records) == len(SERVICES) and working_tree_clean and not failures,
-        "build_provenance_passed": len(records) == len(SERVICES) and all(
-            record.get("image_revision") == record.get("expected_git_revision") for record in records
+        "passed": services_complete and working_tree_clean and not failures,
+        "build_provenance_passed": services_complete and all(
+            record.get("image_revision") == record.get("expected_git_revision")
+            and record.get("saved_config_revision") == record.get("expected_git_revision")
+            for record in records
         ),
-        "kind_image_loading_passed": len(records) == len(SERVICES) and all(
+        "kind_image_loading_passed": services_complete and all(
             bool(record.get("running_pods")) and all(pod.get("passed") for pod in record["running_pods"])
             for record in records
         ),
-        "pod_rollout_passed": len(records) == len(SERVICES) and all(
+        "pod_rollout_passed": services_complete and all(
             record.get("deployment_image_reference") == record.get("local_image_reference")
             and record.get("ready_replicas") == record.get("desired_replicas")
             and record.get("desired_replicas", 0) > 0 for record in records
         ),
         "revision_mismatches": sum(
-            record.get("image_revision") != record.get("expected_git_revision") for record in records
+            record.get("image_revision") != record.get("expected_git_revision")
+            or record.get("saved_config_revision") != record.get("expected_git_revision")
+            for record in records
         ),
-        "missing_revision_metadata": sum(not record.get("image_revision") for record in records),
+        "missing_revision_metadata": sum(
+            not record.get("image_revision") or not record.get("saved_config_revision")
+            for record in records
+        ),
         "unproven_running_images": sum(
             not record.get("running_pods") or any(not pod.get("passed") for pod in record["running_pods"])
             for record in records
@@ -144,6 +168,34 @@ def run_text(command: list[str]) -> str:
     return result.stdout.strip()
 
 
+def inspect_saved_image_config(image_reference: str) -> tuple[str, str | None]:
+    """Read the selected platform config from docker save and hash its exact bytes."""
+    with tempfile.TemporaryDirectory(prefix="tcc-image-config-") as temporary_dir:
+        archive_path = Path(temporary_dir) / "image.tar"
+        subprocess.run(
+            ["docker", "image", "save", "--output", str(archive_path), image_reference],
+            check=True, capture_output=True, text=True,
+        )
+        with tarfile.open(archive_path, mode="r:") as archive:
+            manifest_member = archive.extractfile("manifest.json")
+            if manifest_member is None:
+                raise ValueError(f"docker save archive for {image_reference} has no manifest.json")
+            manifest = json.load(manifest_member)
+            entry = next(
+                (item for item in manifest if image_reference in item.get("RepoTags", [])),
+                None,
+            )
+            if entry is None:
+                raise ValueError(f"docker save archive has no exact RepoTag {image_reference}")
+            config_member = archive.extractfile(entry["Config"])
+            if config_member is None:
+                raise ValueError(f"docker save archive has no config for {image_reference}")
+            config_bytes = config_member.read()
+        config = json.loads(config_bytes)
+        labels = config.get("config", {}).get("Labels") or {}
+        return "sha256:" + hashlib.sha256(config_bytes).hexdigest(), labels.get(OCI_REVISION)
+
+
 def git_state() -> tuple[str, bool]:
     revision = run_text(["git", "-C", str(REPO), "rev-parse", "HEAD"])
     status = run_text(["git", "-C", str(REPO), "status", "--porcelain"])
@@ -155,6 +207,7 @@ def collect_service(service: str, revision: str) -> dict[str, Any]:
     local_image = run_json(["docker", "image", "inspect", image])[0]
     local_image_id = local_image.get("Id")
     image_revision = (local_image.get("Config", {}).get("Labels") or {}).get(OCI_REVISION)
+    local_config_digest, config_revision = inspect_saved_image_config(image)
 
     deployment = run_json(["kubectl", "get", "deployment", service, "-n", "default", "-o", "json"])
     containers = deployment.get("spec", {}).get("template", {}).get("spec", {}).get("containers", [])
@@ -185,7 +238,9 @@ def collect_service(service: str, revision: str) -> dict[str, Any]:
         expected_revision=revision,
         image_reference=image,
         local_image_id=local_image_id,
+        local_image_config_id=local_config_digest,
         image_revision=image_revision,
+        config_revision=config_revision,
         deployment_image=deployment_image,
         desired_replicas=int(deployment.get("spec", {}).get("replicas", 0)),
         ready_replicas=int(deployment.get("status", {}).get("readyReplicas", 0)),
@@ -242,9 +297,9 @@ def main() -> int:
     for service in SERVICES:
         try:
             image_records.append(collect_service(service, revision))
-        except (subprocess.CalledProcessError, json.JSONDecodeError, OSError) as exc:
+        except (subprocess.CalledProcessError, json.JSONDecodeError, OSError, ValueError, tarfile.TarError) as exc:
             image_records.append(evaluate_service(
-                service, revision, f"{service}:tcc-{revision}", None, None, None, 0, 0, []
+                service, revision, f"{service}:tcc-{revision}", None, None, None, None, None, 0, 0, []
             ) | {"collection_error": str(exc)})
     report = validate_records(image_records, clean)
     report["expected_git_revision"] = revision
