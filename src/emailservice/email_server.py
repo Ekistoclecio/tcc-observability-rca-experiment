@@ -35,12 +35,11 @@ from opentelemetry.instrumentation.grpc import GrpcInstrumentorServer
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource
 
 # @TODO: Temporarily removed in https://github.com/GoogleCloudPlatform/microservices-demo/pull/3196
 # import googlecloudprofiler
 
-from logger import configure_otel_logging, getJSONLogger
+from logger import configure_otel_logging, getJSONLogger, otel_resource
 from conventional_telemetry import ConventionalTelemetry
 from otel_metrics import configure_metrics
 logger = getJSONLogger('emailservice-server')
@@ -189,7 +188,7 @@ if __name__ == '__main__':
   try:
     if os.environ["ENABLE_TRACING"] == "1":
       otel_endpoint = os.getenv("COLLECTOR_SERVICE_ADDR", "localhost:4317")
-      trace.set_tracer_provider(TracerProvider(resource=Resource.create({"service.name": "emailservice"})))
+      trace.set_tracer_provider(TracerProvider(resource=otel_resource("emailservice")))
       otel_server_metrics = configure_metrics(otel_endpoint)
       trace.get_tracer_provider().add_span_processor(
         BatchSpanProcessor(

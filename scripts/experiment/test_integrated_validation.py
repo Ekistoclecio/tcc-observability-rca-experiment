@@ -8,7 +8,9 @@ from unittest.mock import patch
 from run_integrated_validation import (
     IntegratedRunError,
     dataset_evidence,
+    fresh_prometheus_instances,
     run,
+    run_normal_baseline,
     validate_fault_facts,
     verify_global_raw_hashes,
     write_hashes,
@@ -33,6 +35,58 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_normal_measurement_starts_only_after_warmup_and_fresh_baseline(self):
+        warmup = {
+            "status": "PASS", "base_url": "http://127.0.0.1:18080",
+            "started_at": "warmup-start", "warmup_finished_at": "warmup-end",
+            "finished_at": "warmup-finish", "configuration": {"warmup_flows": 1},
+            "warmup": [{"flow": 1}], "successful_warmup_flows": 1,
+        }
+        measured = {
+            "status": "PASS", "base_url": "http://127.0.0.1:18080",
+            "started_at": "measurement-start", "steady_started_at": "measurement-start",
+            "finished_at": "measurement-end", "configuration": {"steady_flows": 3},
+            "steady": [{"flow": 1}, {"flow": 2}, {"flow": 3}],
+            "successful_steady_flows": 3,
+        }
+        readiness_report = {"status": "PASS", "ready_at": "baseline-ready"}
+        with TemporaryDirectory() as temporary:
+            output = Path(temporary) / "workload.json"
+            with patch("run_integrated_validation.run_normal_workload_with_forward",
+                       side_effect=[warmup, measured]) as workload, patch(
+                           "run_integrated_validation.wait_for_duration_baseline",
+                           return_value=readiness_report,
+                       ):
+                result = run_normal_baseline({}, {}, output)
+            self.assertEqual(workload.call_args_list[0].args[-1], ("--steady-flows", "0"))
+            self.assertEqual(workload.call_args_list[1].args[-1], ("--warmup-flows", "0"))
+            self.assertEqual(result["measurement_started_at"], "measurement-start")
+            self.assertEqual(result["warmup_finished_at"], "warmup-end")
+            self.assertEqual(result["baseline_readiness"], readiness_report)
+            self.assertEqual(json.loads(output.read_text())["measurement_started_at"],
+                             "measurement-start")
+
+    def test_baseline_readiness_uses_fresh_pod_or_exported_instance_samples(self):
+        response = {
+            "status": "success",
+            "data": {"result": [
+                {"metric": {"pod": "old"}, "value": [100, "99.5"]},
+                {"metric": {"pod": "current"}, "value": [100, "100.2"]},
+                {"metric": {}, "value": [100, "100.3"]},
+            ]},
+        }
+        self.assertEqual(
+            fresh_prometheus_instances(response, 100.0, "pod"),
+            {"current": 100.2},
+        )
+
+    def test_baseline_readiness_rejects_missing_prometheus_identity(self):
+        response = {
+            "status": "success",
+            "data": {"result": [{"metric": {}, "value": [100, "100.2"]}]},
+        }
+        self.assertEqual(fresh_prometheus_instances(response, 100.0, "exported_instance"), {})
+
     def test_integrated_runner_rejects_fault_windows_shorter_than_scrape_gate(self):
         from run_integrated_validation import main
 

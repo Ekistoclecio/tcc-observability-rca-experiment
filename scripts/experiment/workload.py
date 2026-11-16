@@ -138,6 +138,11 @@ def parse_expected_statuses(values: list[str]) -> dict[tuple[str, str], int]:
     return expected
 
 
+def validate_phase_counts(warmup_flows: int, steady_flows: int) -> None:
+    if warmup_flows < 0 or steady_flows < 0 or warmup_flows + steady_flows < 1:
+        raise ValueError("warmup and steady flows must be non-negative and at least one must be positive")
+
+
 def main() -> int:
     default_config = (
         Path(__file__).resolve().parents[2]
@@ -178,8 +183,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if args.warmup_flows < 0 or args.steady_flows < 1:
-        parser.error("warmup flows must be >= 0 and steady flows must be >= 1")
+    try:
+        validate_phase_counts(args.warmup_flows, args.steady_flows)
+    except ValueError as exc:
+        parser.error(str(exc))
     if args.arrival_interval_seconds <= 0 or args.max_concurrent_flows < 1:
         parser.error("arrival interval and concurrency must be positive")
     try:
@@ -219,6 +226,9 @@ def main() -> int:
                     expected_statuses,
                 )
             )
+
+        result["warmup_finished_at"] = timestamp()
+        result["steady_started_at"] = timestamp()
 
         futures: list[concurrent.futures.Future[dict[str, Any]]] = []
         schedule_start = time.monotonic()

@@ -18,6 +18,15 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+from collect_raw import (
+    CollectionError as RawCollectionError,
+    query_url,
+    readiness,
+    request_bytes,
+    reserve_local_port,
+    wait_for_forward,
+)
+
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPERIMENT = ROOT / "docs/experiment"
@@ -192,7 +201,8 @@ def preflight(output: Path, branch: str, commit: str, envvars: dict[str, str]) -
 
 
 def run_normal_workload_with_forward(envvars: dict[str, str], env: dict[str, str],
-                                     output_path: Path) -> dict[str, Any]:
+                                     output_path: Path | None,
+                                     workload_arguments: tuple[str, ...] = ()) -> dict[str, Any]:
     port = 18080
     process = subprocess.Popen(
         [env.get("KUBECTL_BIN", "kubectl"), "--context", f"kind-{envvars['KIND_CLUSTER_NAME']}",
@@ -213,7 +223,7 @@ def run_normal_workload_with_forward(envvars: dict[str, str], env: dict[str, str
         else:
             raise IntegratedRunError("normal workload port-forward readiness timed out")
         summary = run_script(WORKLOAD, "--base-url", f"http://127.0.0.1:{port}",
-                             output_path=output_path, env=env)
+                             *workload_arguments, output_path=output_path, env=env)
         return summary
     finally:
         process.terminate()
@@ -224,6 +234,189 @@ def run_normal_workload_with_forward(envvars: dict[str, str], env: dict[str, str
             process.wait()
         if process.stdout:
             process.stdout.close()
+
+
+def reserve_local_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def start_prometheus_forward(envvars: dict[str, str], env: dict[str, str], side: str
+                             ) -> tuple[subprocess.Popen[str], Any, int]:
+    namespace = f"observability-{side.lower()}"
+    service = f"prometheus-{side.lower()}"
+    remote_port = 9090
+    local_port = reserve_local_port()
+    output = tempfile.TemporaryFile(mode="w+t", encoding="utf-8")
+    process = subprocess.Popen(
+        [env.get("KUBECTL_BIN", "kubectl"), "--context",
+         f"kind-{envvars['KIND_CLUSTER_NAME']}", "-n", namespace, "port-forward",
+         f"service/{service}", f"{local_port}:{remote_port}"],
+        cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT, text=True,
+    )
+    try:
+        wait_for_forward(process, output, local_port, remote_port, time.monotonic() + 20)
+    except RawCollectionError as exc:
+        process.terminate()
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=3)
+        output.close()
+        raise IntegratedRunError(f"Prometheus {side} port-forward failed: {exc}") from exc
+    return process, output, local_port
+
+
+def fresh_prometheus_instances(response: dict[str, Any], after_epoch: float,
+                               identity_label: str) -> dict[str, float]:
+    if response.get("status") != "success":
+        raise IntegratedRunError(f"Prometheus instant query failed: {response}")
+    fresh: dict[str, float] = {}
+    for series in response.get("data", {}).get("result", []):
+        labels = series.get("metric", {})
+        identity = labels.get(identity_label)
+        value = series.get("value")
+        if not identity or not isinstance(value, list) or len(value) != 2:
+            continue
+        try:
+            sample_timestamp = float(value[1])
+        except (TypeError, ValueError):
+            continue
+        if sample_timestamp > after_epoch:
+            fresh[str(identity)] = max(fresh.get(str(identity), 0.0), sample_timestamp)
+    return fresh
+
+
+def query_prometheus_instant(port: int, expression: str) -> dict[str, Any]:
+    url = query_url(f"http://127.0.0.1:{port}", "/api/v1/query", {"query": expression})
+    try:
+        status, body = request_bytes(url, timeout=3)
+        if status != 200:
+            raise IntegratedRunError(f"HTTP {status} from Prometheus instant query")
+        return json.loads(body)
+    except (RawCollectionError, json.JSONDecodeError) as exc:
+        raise IntegratedRunError(f"Prometheus instant query failed: {exc}") from exc
+
+
+def duration_baseline_expressions() -> dict[str, dict[str, str]]:
+    return {
+        "A": {
+            "count": 'timestamp(tcc_conventional_request_duration_seconds_count{service_name="checkoutservice",operation="/hipstershop.CheckoutService/PlaceOrder",status_code="OK"})',
+            "sum": 'timestamp(tcc_conventional_request_duration_seconds_sum{service_name="checkoutservice",operation="/hipstershop.CheckoutService/PlaceOrder",status_code="OK"})',
+        },
+        "B": {
+            "count": 'timestamp(otel_rpc_server_call_duration_seconds_count{exported_job="checkoutservice",rpc_method="hipstershop.CheckoutService/PlaceOrder",rpc_response_status_code="OK"})',
+            "sum": 'timestamp(otel_rpc_server_call_duration_seconds_sum{exported_job="checkoutservice",rpc_method="hipstershop.CheckoutService/PlaceOrder",rpc_response_status_code="OK"})',
+        },
+    }
+
+
+def wait_for_duration_baseline(envvars: dict[str, str], env: dict[str, str],
+                               warmup_finished_at: str, timeout: float = 90.0
+                               ) -> dict[str, Any]:
+    after_epoch = parse_time(warmup_finished_at).timestamp()
+    forwards: list[tuple[subprocess.Popen[str], Any]] = []
+    ports: dict[str, int] = {}
+    try:
+        for side in ("A", "B"):
+            process, output, port = start_prometheus_forward(envvars, env, side)
+            forwards.append((process, output))
+            ports[side] = port
+            try:
+                readiness(f"http://127.0.0.1:{port}/-/ready", time.monotonic() + 20)
+            except RawCollectionError as exc:
+                raise IntegratedRunError(f"Prometheus {side} readiness failed: {exc}") from exc
+
+        expressions = duration_baseline_expressions()
+        deadline = time.monotonic() + timeout
+        last_observation: dict[str, Any] = {}
+        while time.monotonic() < deadline:
+            observations: dict[str, Any] = {}
+            ready = True
+            for side in ("A", "B"):
+                identity_label = "pod" if side == "A" else "exported_instance"
+                observations[side] = {}
+                for concept, expression in expressions[side].items():
+                    response = query_prometheus_instant(ports[side], expression)
+                    instances = fresh_prometheus_instances(response, after_epoch, identity_label)
+                    observations[side][concept] = {
+                        "query": expression,
+                        "identity_label": identity_label,
+                        "fresh_instances": instances,
+                    }
+                    if not instances:
+                        ready = False
+                count_ids = set(observations[side]["count"]["fresh_instances"])
+                sum_ids = set(observations[side]["sum"]["fresh_instances"])
+                common_ids = sorted(count_ids & sum_ids)
+                observations[side]["common_instances"] = common_ids
+                if not common_ids:
+                    ready = False
+            last_observation = observations
+            if ready:
+                return {
+                    "status": "PASS",
+                    "metric_boundary": "checkoutservice PlaceOrder server duration count and sum",
+                    "warmup_finished_at": warmup_finished_at,
+                    "sample_timestamp_must_be_after_epoch": after_epoch,
+                    "ready_at": time_text(utc_now()),
+                    "scenarios": observations,
+                }
+            time.sleep(1.0)
+        raise IntegratedRunError(
+            "Prometheus A/B did not expose fresh PlaceOrder duration count+sum samples "
+            f"from one instance after warmup within {timeout:g}s: {last_observation}"
+        )
+    finally:
+        for process, _ in forwards:
+            process.terminate()
+        for process, output in forwards:
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=3)
+            output.close()
+
+
+def run_normal_baseline(envvars: dict[str, str], env: dict[str, str],
+                        output_path: Path) -> dict[str, Any]:
+    warmup = run_normal_workload_with_forward(
+        envvars, env, None, ("--steady-flows", "0")
+    )
+    if warmup.get("status") != "PASS" or not warmup.get("warmup"):
+        raise IntegratedRunError(f"normal workload warmup failed: {warmup}")
+    baseline_readiness = wait_for_duration_baseline(
+        envvars, env, warmup["warmup_finished_at"]
+    )
+    measured = run_normal_workload_with_forward(
+        envvars, env, None, ("--warmup-flows", "0")
+    )
+    if measured.get("status") != "PASS" or not measured.get("steady"):
+        raise IntegratedRunError(f"normal measured workload failed: {measured}")
+    summary = {
+        "status": "PASS",
+        "base_url": measured["base_url"],
+        "started_at": measured["steady_started_at"],
+        "measurement_started_at": measured["steady_started_at"],
+        "warmup_started_at": warmup["started_at"],
+        "warmup_finished_at": warmup["warmup_finished_at"],
+        "finished_at": measured["finished_at"],
+        "configuration": {
+            **measured["configuration"],
+            "warmup_flows": warmup["configuration"]["warmup_flows"],
+            "steady_flows": measured["configuration"]["steady_flows"],
+        },
+        "warmup": warmup["warmup"],
+        "steady": measured["steady"],
+        "successful_warmup_flows": warmup["successful_warmup_flows"],
+        "successful_steady_flows": measured["successful_steady_flows"],
+        "baseline_readiness": baseline_readiness,
+    }
+    output_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
+    return summary
 
 
 def collect(raw: Path, start: str, end: str, record: Path, commit: str,
@@ -715,10 +908,8 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
 
         start_time = utc_now()
         normal_record = work / "normal-workload.json"
-        normal_summary = run_normal_workload_with_forward(envvars, env, normal_record)
-        if normal_summary.get("status") != "PASS":
-            raise IntegratedRunError(f"normal workload failed: {normal_summary}")
-        normal_start = normal_summary["started_at"]
+        normal_summary = run_normal_baseline(envvars, env, normal_record)
+        normal_start = normal_summary["measurement_started_at"]
         normal_end = time_text(parse_time(normal_summary["finished_at"]) + timedelta(seconds=20))
         normal_raw = work / "normal-raw"
         normal_collection = collect(normal_raw, normal_start, normal_end, normal_record,

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+import os
 import sys
 from pythonjsonlogger import jsonlogger
 
@@ -40,13 +41,20 @@ def getJSONLogger(name):
   logger.propagate = False
   return logger
 
-def configure_otel_logging(logger, service_name, endpoint):
+def otel_resource(service_name):
   from opentelemetry.sdk.resources import Resource
+
+  attributes = {"service.name": service_name}
+  if instance_id := os.getenv("POD_UID"):
+    attributes["service.instance.id"] = instance_id
+  return Resource.create(attributes)
+
+def configure_otel_logging(logger, service_name, endpoint):
   from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
   from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
   from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 
-  provider = LoggerProvider(resource=Resource.create({"service.name": service_name}))
+  provider = LoggerProvider(resource=otel_resource(service_name))
   provider.add_log_record_processor(BatchLogRecordProcessor(
     OTLPLogExporter(endpoint=endpoint, insecure=True)))
   logger.addHandler(LoggingHandler(level=logging.NOTSET, logger_provider=provider))

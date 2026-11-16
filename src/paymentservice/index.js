@@ -46,6 +46,7 @@ if (process.env.ENABLE_TRACING == "1") {
   const sdk = new opentelemetry.NodeSDK({
     resource: resourceFromAttributes({
       [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'paymentservice',
+      ...(process.env.POD_UID ? { 'service.instance.id': process.env.POD_UID } : {}),
     }),
     traceExporter: traceExporter,
     metricReader: metricReader,

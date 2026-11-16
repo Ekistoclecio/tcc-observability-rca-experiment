@@ -37,12 +37,10 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -181,7 +179,7 @@ func initTracing() {
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "checkoutservice"))),
+		sdktrace.WithResource(experimentOtelResource("checkoutservice")),
 		sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(collectorConn))
@@ -190,7 +188,7 @@ func initTracing() {
 		return
 	}
 	mp := sdkmetric.NewMeterProvider(
-		sdkmetric.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "checkoutservice"))),
+		sdkmetric.WithResource(experimentOtelResource("checkoutservice")),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(5*time.Second))))
 	otel.SetMeterProvider(mp)
 	if err := configureOtelLogging(ctx, collectorAddr, "checkoutservice", log); err != nil {

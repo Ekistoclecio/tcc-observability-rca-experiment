@@ -7,7 +7,7 @@ from opentelemetry import metrics
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-from opentelemetry.sdk.resources import Resource
+from logger import otel_resource
 
 
 def configure_metrics(endpoint):
@@ -16,7 +16,7 @@ def configure_metrics(endpoint):
         export_interval_millis=5000,
     )
     provider = MeterProvider(
-        resource=Resource.create({"service.name": "emailservice"}),
+        resource=otel_resource("emailservice"),
         metric_readers=[reader],
     )
     metrics.set_meter_provider(provider)

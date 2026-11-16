@@ -1,52 +1,38 @@
 {
   "affected_files": [
-    "scripts/experiment/fault_smoke.py",
     "scripts/experiment/run_integrated_validation.py",
-    "scripts/experiment/test_integrated_validation.py"
+    "scripts/experiment/workload.py",
+    "kustomize/experiment-v2/telemetry-b.patch.yaml",
+    "src/frontend/main.go",
+    "src/frontend/otel_logging.go",
+    "src/checkoutservice/main.go",
+    "src/checkoutservice/otel_logging.go",
+    "src/productcatalogservice/server.go",
+    "src/productcatalogservice/otel_logging.go",
+    "src/shippingservice/main.go",
+    "src/shippingservice/otel_logging.go",
+    "src/currencyservice/server.js",
+    "src/paymentservice/index.js",
+    "src/emailservice/email_server.py",
+    "src/emailservice/logger.py",
+    "src/emailservice/otel_metrics.py",
+    "src/recommendationservice/recommendation_server.py",
+    "src/recommendationservice/logger.py",
+    "src/recommendationservice/otel_metrics.py"
   ],
-  "affected_invariant": "F1 RAW/Dataset must expose checkoutservice CPU saturation and request degradation during a confirmed fault window.",
-  "alternative": "Change both Prometheus scrape intervals and redeploy the observability stack; this changes more infrastructure and is unnecessary for the proven timing mismatch.",
+  "affected_invariant": "the complete fault-to-RCA-input chain must pass on one frozen commit",
   "branch": "experiment-v2",
-  "evidence": {
-    "chaos_mesh": "Selected and AllInjected true for checkoutservice-568b456645-gbxfs/server; Chaos Daemon recorded stress-ng start at 20:51:35.796Z and kill at 20:51:40.302Z",
-    "confirmed_end": "2026-11-16T20:51:40.492123Z",
-    "confirmed_start": "2026-11-16T20:51:36.926493Z",
-    "confirmed_window_seconds": 3.56563,
-    "dataset_cpu_cores": {
-      "A": 0.0,
-      "B": 0.0
-    },
-    "normal_baseline_cpu_cores": {
-      "A": 0.009623444444444443,
-      "B": 0.009623444444444443
-    },
-    "preserved_artifacts": "docs/experiment/reports/BLOCKED-12-artifacts-1794862330",
-    "prometheus_scrape_interval_seconds": 5,
-    "query_evaluation_step": "1s; repeated evaluation values do not imply new source scrapes",
-    "raw_cpu_counter": "A and B server-container and Pod-cgroup counter values were constant at all four evaluation points inside the confirmed window",
-    "recovery": "StressChaos resource absent; no residual Chaos resources; SUT 11/11 Ready"
-  },
-  "expected": "Confirmed F1 window long enough to include cAdvisor samples and reveal CPU counter delta in A and B.",
-  "faults_applied": [
-    "F1 (confirmed and recovered)"
-  ],
-  "faults_not_started": [
-    "F2",
-    "F3",
-    "F4",
-    "F5"
-  ],
-  "first_divergence": "F1 confirmed fault window to Prometheus cAdvisor sampling: the 3.56563-second window was shorter than the configured 5-second scrape interval.",
-  "last_successful_commit": "5ab52334b08d1ef1d93bf17c0dad9c5593c2b236",
-  "llm_invocations": 0,
-  "observed": "F1 AllInjected and stress-ng lifecycle were confirmed; confirmed Ground Truth window was 3.56563 seconds; CPU utilization was 0 in both Datasets versus 0.009623 cores normal baseline.",
+  "correction_status": "implemented_locally; focused tests pass; clean-commit build/deploy, provenance, and normal validation pending",
+  "evidence": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/reports/BLOCKED-12-artifacts-1794863260",
+  "expected": "normal workload, F1-F5, RAW, Dataset, RCA Input, semantic coverage and artifact integrity all PASS",
+  "first_divergence": "normal baseline counter construction and Scenario B OTel metric resource identity",
+  "last_successful_commit": "e66b8160b38e6bdedf7c6e246fc0a4f7d290852d",
+  "observed": "F1 CPU signal passed in A/B, but duration comparison failed: the normal window began before warmup initialized PlaceOrder counters (A series starts about five seconds after window start); B cumulative PlaceOrder series also decreased across Pod lifecycle while old metric streams remained cached",
   "physical_rerun_required": true,
-  "recommended_correction": "Start active_seconds after injection confirmation and enforce 15 seconds for integrated faults; both Prometheus cAdvisor scrape intervals are configured at 5 seconds.",
+  "recommended_correction": "Start the normal measurement window only after fresh A/B PlaceOrder count and sum samples are observed after a separate warmup; add real Downward API Pod UID as service.instance.id to Go, Node.js, and Python Scenario B resources so cumulative streams from distinct processes cannot share the same resource identity; retain UNKNOWN for missing baselines and resets",
   "root_cause": "PROVEN",
   "safe_automatic_correction_possible": true,
-  "scientific_impact": "The battery is invalid. F2-F5 were not started and this run cannot contribute results.",
+  "scientific_impact": "the integrated battery is invalid; current failure is caused by an incorrectly delimited normal measurement window and missing Scenario B instance identity, not evidence that F1 lacked CPU impact",
   "stage": "12-integrated-validation",
-  "status": "INVALIDATED_BLOCKED_F1",
-  "tested_commit": "5ab52334b08d1ef1d93bf17c0dad9c5593c2b236",
-  "working_tree": "local timing correction plus this blocker report and preserved evidence; no new battery has started"
+  "working_tree": "local correction in progress; invalid battery evidence preserved under docs/experiment/reports/BLOCKED-12-artifacts-1794863260/"
 }

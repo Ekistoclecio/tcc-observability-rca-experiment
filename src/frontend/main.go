@@ -25,15 +25,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -197,7 +195,7 @@ func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServe
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "frontend"))),
+		sdktrace.WithResource(experimentOtelResource("frontend")),
 		sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
 	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(svc.collectorConn))
@@ -205,7 +203,7 @@ func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServe
 		return nil, err
 	}
 	mp := sdkmetric.NewMeterProvider(
-		sdkmetric.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "frontend"))),
+		sdkmetric.WithResource(experimentOtelResource("frontend")),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(5*time.Second))))
 	otel.SetMeterProvider(mp)
 	if err := configureOtelLogging(ctx, svc.collectorAddr, "frontend", log.(*logrus.Logger)); err != nil {

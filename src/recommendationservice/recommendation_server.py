@@ -36,9 +36,8 @@ from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient, GrpcInstr
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource
 
-from logger import configure_otel_logging, getJSONLogger
+from logger import configure_otel_logging, getJSONLogger, otel_resource
 from conventional_telemetry import ConventionalTelemetry
 from otel_metrics import configure_metrics
 logger = getJSONLogger('recommendationservice-server')
@@ -119,7 +118,7 @@ if __name__ == "__main__":
         grpc_server_instrumentor.instrument()
       if os.environ["ENABLE_TRACING"] == "1":
         otel_endpoint = os.getenv("COLLECTOR_SERVICE_ADDR", "localhost:4317")
-        trace.set_tracer_provider(TracerProvider(resource=Resource.create({"service.name": "recommendationservice"})))
+        trace.set_tracer_provider(TracerProvider(resource=otel_resource("recommendationservice")))
         otel_server_metrics = configure_metrics(otel_endpoint)
         trace.get_tracer_provider().add_span_processor(
           BatchSpanProcessor(

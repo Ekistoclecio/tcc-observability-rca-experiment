@@ -1,43 +1,42 @@
-# BLOCKED — Etapa 12 integrated validation (bateria invalidada em F1)
+# BLOCKED — Etapa 12: validação integrada F1–F5
 
-## Identificação
+## Estado
 
-- Branch: `experiment-v2`.
-- Commit executado: `5ab52334b08d1ef1d93bf17c0dad9c5593c2b236`.
-- Proveniência Git → imagem → Pod: PASS, 10/10.
-- Preflight: PASS; ambiente, Scenario A/B, SUT e ausência de faults residuais foram confirmados.
-- A tentativa anterior no commit `e7305f6a` também foi invalidada antes de qualquer fault por erro no entrypoint de F1. Seu diagnóstico e artefatos permanecem registrados no histórico deste blocker.
+- Branch: `experiment-v2`
+- Último commit estável antes da correção: `e66b8160b38e6bdedf7c6e246fc0a4f7d290852d`
+- Resultado da bateria: inválido e interrompido em F1. Nenhuma conclusão F2–F5 foi produzida por esta tentativa.
+- Evidências preservadas: [`BLOCKED-12-artifacts-1794863260/`](BLOCKED-12-artifacts-1794863260/)
 
-## Observado nesta tentativa
+## Observado
 
-F1 foi selecionada e injetada pelo Chaos Mesh no Pod `checkoutservice-568b456645-gbxfs`, e o runner registrou recuperação. O Chaos Daemon registrou o início do `stress-ng` às `20:51:35.796Z` e seu encerramento às `20:51:40.302Z`. O fluxo ativo completou com HTTP 200.
+F1 confirmou CPU elevada em checkoutservice nos dois cenários, mas o gate de duração não encontrou um baseline numérico válido e superior para comparar. Os artefatos da tentativa preservada mostram que a janela normal começava antes do fluxo de warm-up. A primeira amostra da duração de checkoutservice aparece aproximadamente cinco segundos após o início da janela, depois de a aplicação já ter processado a primeira operação. O Builder marcou a duração como `missing_baseline`, conforme o contrato temporal.
 
-O Ground Truth confirmou a janela `20:51:36.926493Z`–`20:51:40.492123Z`, total de **3,56563 s**. Os Prometheus A e B estão configurados com `scrape_interval: 5s`; a coleta avalia a consulta a cada 1 s, o que repete o último sample quando não há novo scrape. No RAW de F1, os quatro pontos de avaliação de ambos os cenários mantêm os contadores `container_cpu_usage_seconds_total` do container `server` e do cgroup do Pod constantes. O Dataset calculou `checkoutservice.cpu_utilization = 0` em A e B. O baseline normal tinha `0,009623 cores` em ambos.
+Os dados B também contêm séries cumulativas de checkoutservice que diminuem dentro da janela (por exemplo, o contador `rpc.server.call.duration` de PlaceOrder). A configuração do Collector B conserva streams inativos por cinco minutos. Os recursos de alguns SDKs não incluem identidade de instância: para esses serviços as séries exportadas usam somente `service.name`; a substituição de Pod pode, portanto, juntar uma série antiga conservada e uma série nova inicializada em zero sob o mesmo conjunto de labels. A mesma queda foi observada em duas janelas normais preservadas. As amostras .NET e Java possuem `exported_instance`; as amostras Go, Node.js e Python analisadas não possuíam identidade equivalente. Os recursos OTel dessas implementações confirmam que definem explicitamente `service.name` e omitem `service.instance.id`.
 
-## Primeira divergência e causa
+## Divergência e causa
 
-- Esperado: a janela confirmada de F1 conter amostras cAdvisor suficientes para observar o delta de CPU durante o stress.
-- Primeira divergência: **janela temporal de observação F1 → scrape cAdvisor**; o fault confirmado durou menos que um período de scrape.
-- Causa-raiz: **PROVEN**. `fault_smoke` contava `active_seconds` desde antes da criação/confirmação do recurso, mas o Ground Truth iniciava somente após `AllInjected`. Assim, os 5 s configurados produziram uma janela confirmada de 3,56563 s, menor que o scrape de 5 s. A avaliação Prometheus de 1 s não cria samples novos; os valores RAW repetidos e o delta zero são consistentes com essa janela sem novo scrape observável.
-- Impacto: a bateria é inválida; F2–F5 não foram iniciadas e nenhum resultado desta tentativa é oficial.
+1. **Baseline:** o runner usa o `started_at` do processo de workload, registrado antes do warm-up, como início do Dataset normal. Essa janela não garante que os counters de duração já tenham sido inicializados e observados pelos dois Prometheus.
+2. **Identidade temporal em B:** recursos OTel de Go, Node.js e Python definem `service.name`, mas não definem `service.instance.id`. O Prometheus exporter recebe streams com as mesmas labels após substituição de Pods; com retenção de métricas inativas, valores de processos diferentes podem colidir e parecer reset.
 
-## Correção mínima
+As duas causas são bugs de medição/identidade na origem e no controle temporal. Não são justificativa para converter baseline ausente/reset em zero ou relaxar o gate F1. Ground Truth e semântica do fault não são alterados. A janela F1 desta tentativa durou 19,0327 segundos e o CPU de checkoutservice subiu de aproximadamente 0,0096 para 0,153 cores em A/B; portanto a evidência de CPU passou e a divergência ficou restrita ao sinal de duração usado no gate.
 
-A correção permanece na temporização do runner, sem alterar a fault, a instrumentação ou o Builder:
+## Invariante afetado
 
-1. iniciar a contagem de `active_seconds` imediatamente após confirmação da injeção;
-2. exigir janela confirmada mínima de 15 s na bateria integrada, cobrindo três períodos configurados de scrape cAdvisor de 5 s.
+Counters cumulativos devem ter baseline observado para a janela e não podem atravessar um reset/uma fronteira de instância como se fossem a mesma série. Baseline ausente e reset permanecem `UNKNOWN`.
 
-A correção está preparada no código local para validação, junto com uma checagem de que o runner rejeita janelas inferiores a 15 s. A bateria completa deve ser repetida desde F1 somente após commit, working tree limpa, build/deploy e proveniência do novo SHA. Não executar retry seletivo de F1.
+## Correção mínima recomendada
 
-## Cleanup e evidência
+- Dar a cada Pod uma identidade real e estável durante sua vida via Downward API (`metadata.uid`) e incluir essa identidade como `service.instance.id` nos recursos OTel dos serviços Go, Node.js e Python. Manter a identidade nativa no RAW; não usar Ground Truth ou a causa correta para selecionar séries.
+- Separar o fluxo de warm-up da janela medida. Após o warm-up, aguardar amostras recentes de count e sum de PlaceOrder nos Prometheus A e B; iniciar então a janela de workload medida. Registrar ambas as fases no artefato de controle.
 
-- Nenhum `StressChaos` ou `NetworkChaos` residual após F1.
-- SUT: 11/11 Ready na verificação posterior.
-- F2–F5: não executadas.
-- LLM: não executado.
-- RAW, workload, Ground Truth, Dataset, RCA Input e proveniência da tentativa invalidada estão preservados em [`BLOCKED-12-artifacts-1794862330/`](BLOCKED-12-artifacts-1794862330/).
+Essa correção preserva a execução física compartilhada, o workload e a instrumentação A/B; corrige a identidade da série e delimita a medição antes de recolher evidência.
 
-## Resultado
+## O que não fazer
 
-**BLOCKED** até a correção de temporização ser commitada e uma nova bateria completa, com proveniência correspondente, passar.
+- Não enfraquecer `counter_delta`, nem converter `missing_baseline`/`counter_reset` em zero.
+- Não derivar métricas de traces, não equalizar contagens e não filtrar por fault/serviço correto.
+- Não alterar a duração/semântica de F1 para fazer o gate passar.
+
+## Correção implementada e próximas validações
+
+A correção local separa warm-up da janela medida e aguarda amostras frescas de count e sum de PlaceOrder nos Prometheus A e B antes de iniciar a medição. Recursos OTel de Go, Node.js e Python agora incluem `service.instance.id` derivado do UID real do Pod, propagado via Downward API. As regras de deltas e resets do Builder não foram alteradas. Os testes focados passaram; build/deploy do commit corrigido, proveniência e validação normal ainda são gates pendentes. Depois deles, a bateria inválida não poderá ser retomada ou mesclada: a validação integrada deve recomeçar desde F1 em uma execução nova.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/bridges/otellogrus"
@@ -21,8 +22,16 @@ func configureOtelLogging(ctx context.Context, collectorAddr, service string, lo
 	}
 	provider := sdklog.NewLoggerProvider(
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter)),
-		sdklog.WithResource(resource.NewWithAttributes("", attribute.String("service.name", service))),
+		sdklog.WithResource(experimentOtelResource(service)),
 	)
 	logger.AddHook(otellogrus.NewHook(service, otellogrus.WithLoggerProvider(provider)))
 	return nil
+}
+
+func experimentOtelResource(service string) *resource.Resource {
+	attributes := []attribute.KeyValue{attribute.String("service.name", service)}
+	if instanceID := os.Getenv("POD_UID"); instanceID != "" {
+		attributes = append(attributes, attribute.String("service.instance.id", instanceID))
+	}
+	return resource.NewWithAttributes("", attributes...)
 }

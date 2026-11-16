@@ -22,5 +22,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.labels['app']
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
             - name: OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION
               value: "true"
