@@ -119,11 +119,11 @@ def ready_endpoint_count(service: str) -> int:
         f"kubernetes.io/service-name={service}",
         "-o",
         "json",
-    ).get("items", [])
+    ).get("items") or []
     return sum(
         len(endpoint.get("addresses", []))
         for item in items
-        for endpoint in item.get("endpoints", [])
+        for endpoint in (item.get("endpoints") or [])
         if endpoint.get("conditions", {}).get("ready") is not False
     )
 

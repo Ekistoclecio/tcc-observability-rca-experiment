@@ -8,6 +8,7 @@ from scripts.experiment.fault_smoke import (
     FAULT_CONFIG,
     FaultSmokeError,
     chaos_manifest,
+    ready_endpoint_count,
     require_deployment_provenance,
     require_exclusive_environment,
     service_pods,
@@ -31,6 +32,13 @@ class FaultSmokeTests(unittest.TestCase):
     @patch("scripts.experiment.fault_smoke.kube_json", return_value={"items": None})
     def test_empty_pod_list_is_normalized_to_empty(self, _kube_json) -> None:
         self.assertEqual(service_pods("paymentservice"), [])
+
+    @patch(
+        "scripts.experiment.fault_smoke.kube_json",
+        return_value={"items": [{"endpoints": None}]},
+    )
+    def test_empty_endpoint_slice_is_normalized_to_zero(self, _kube_json) -> None:
+        self.assertEqual(ready_endpoint_count("paymentservice"), 0)
 
     def test_fault_matrix_matches_the_five_declared_root_locations(self) -> None:
         faults = json.loads(FAULT_CONFIG.read_text(encoding="utf-8"))["faults"]
