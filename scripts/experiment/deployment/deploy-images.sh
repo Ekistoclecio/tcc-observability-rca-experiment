@@ -71,8 +71,9 @@ if grep -q 'EXPERIMENT_REVISION' <<<"$manifest"; then
 fi
 "$KUBECTL_BIN" --context "$KIND_CONTEXT" apply -f - <<<"$manifest"
 
-"$KUBECTL_BIN" --context "$KIND_CONTEXT" wait \
-  --for=condition=Available deployment --all \
-  --namespace "$SUT_NAMESPACE" --timeout=5m
+for service in "${services[@]}"; do
+  "$KUBECTL_BIN" --context "$KIND_CONTEXT" --namespace "$SUT_NAMESPACE" \
+    rollout status "deployment/$service" --timeout=5m
+done
 python3 "$DEPLOY_DIR/verify_provenance.py" \
   --output "${TCC_PROVENANCE_OUTPUT:-${TMPDIR:-/tmp}/tcc-experiment-v2-deployment-provenance.json}"
