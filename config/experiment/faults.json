@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "faults": {
+    "F1": {
+      "fault_type": "cpu_saturation",
+      "root_location": { "kind": "service", "value": "checkoutservice" },
+      "mechanism": {
+        "kind": "StressChaos",
+        "workers": 1,
+        "load_percent": 100,
+        "failsafe_duration": "2m"
+      }
+    },
+    "F2": {
+      "fault_type": "network_latency",
+      "root_location": {
+        "kind": "service_edge",
+        "value": "checkoutservice -> paymentservice"
+      },
+      "mechanism": {
+        "kind": "NetworkChaos",
+        "latency_ms": 100,
+        "correlation_percent": 100,
+        "jitter_ms": 0,
+        "failsafe_duration": "2m"
+      }
+    },
+    "F3": {
+      "fault_type": "service_unavailable",
+      "root_location": { "kind": "service", "value": "paymentservice" },
+      "mechanism": { "kind": "scale", "deployment": "paymentservice", "replicas": 0 }
+    },
+    "F4": {
+      "fault_type": "application_exception",
+      "root_location": {
+        "kind": "operation",
+        "value": "paymentservice/Charge"
+      },
+      "mechanism": {
+        "kind": "file_flag",
+        "path": "/tmp/tcc-faults/payment-charge-exception"
+      }
+    },
+    "F5": {
+      "fault_type": "datastore_unavailable",
+      "root_location": { "kind": "datastore", "value": "redis-cart" },
+      "mechanism": { "kind": "scale", "deployment": "redis-cart", "replicas": 0 }
+    }
+  }
+}

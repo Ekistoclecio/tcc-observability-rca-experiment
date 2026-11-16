@@ -47,6 +47,7 @@ def request(
     path: str,
     timeout: float,
     form: dict[str, str] | None = None,
+    expected_status: int = 200,
 ) -> dict[str, Any]:
     data = urllib.parse.urlencode(form).encode("ascii") if form is not None else None
     req = urllib.request.Request(
@@ -74,35 +75,67 @@ def request(
         "status": status,
         "duration_seconds": round(elapsed, 6),
     }
-    if status < 200 or status >= 400:
-        raise FlowFailure(f"{method} {path} returned HTTP {status}")
-    if method == "POST" and path == "/cart/checkout" and status != 200:
-        raise FlowFailure(f"checkout returned HTTP {status}, expected 200")
+    if status != expected_status:
+        raise FlowFailure(
+            f"{method} {path} returned HTTP {status}, expected {expected_status}"
+        )
     if not final_url.startswith(base_url.rstrip("/") + "/"):
         raise FlowFailure(f"unexpected redirect destination for {method} {path}")
     return result
 
 
-def run_flow(base_url: str, timeout: float, flow_number: int) -> dict[str, Any]:
+def run_flow(
+    base_url: str,
+    timeout: float,
+    flow_number: int,
+    expected_statuses: dict[tuple[str, str], int] | None = None,
+) -> dict[str, Any]:
     cookie_jar = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
-    steps = [
-        request(opener, base_url, "GET", "/", timeout),
-        request(opener, base_url, "GET", f"/product/{PRODUCT_ID}", timeout),
-        request(
+    expected_statuses = expected_statuses or {}
+
+    def do(method: str, path: str, form: dict[str, str] | None = None) -> dict[str, Any]:
+        return request(
             opener,
             base_url,
-            "POST",
-            "/cart",
+            method,
+            path,
             timeout,
-            {"product_id": PRODUCT_ID, "quantity": "1"},
-        ),
-        request(opener, base_url, "GET", "/cart", timeout),
-        request(opener, base_url, "POST", "/cart/checkout", timeout, CHECKOUT_FORM),
+            form,
+            expected_statuses.get((method, path), 200),
+        )
+
+    steps = [
+        do("GET", "/"),
+        do("GET", f"/product/{PRODUCT_ID}"),
+        do("POST", "/cart", {"product_id": PRODUCT_ID, "quantity": "1"}),
+        do("GET", "/cart"),
+        do("POST", "/cart/checkout", CHECKOUT_FORM),
     ]
-    if any(step["status"] != 200 for step in steps):
-        raise FlowFailure(f"flow {flow_number} contained a non-200 response")
     return {"flow": flow_number, "status": "PASS", "steps": steps}
+
+
+def parse_expected_statuses(values: list[str]) -> dict[tuple[str, str], int]:
+    expected: dict[tuple[str, str], int] = {}
+    for value in values:
+        try:
+            operation, code = value.rsplit("=", 1)
+            method, path = operation.split(":", 1)
+            status = int(code)
+        except ValueError as exc:
+            raise ValueError(
+                f"invalid expected status {value!r}; use METHOD:/path=HTTP_CODE"
+            ) from exc
+        method = method.upper()
+        if method not in {"GET", "POST"} or not path.startswith("/"):
+            raise ValueError(f"invalid expected request in {value!r}")
+        if status < 100 or status > 599:
+            raise ValueError(f"invalid HTTP status in {value!r}")
+        key = (method, path)
+        if key in expected:
+            raise ValueError(f"duplicate expected status for {method} {path}")
+        expected[key] = status
+    return expected
 
 
 def main() -> int:
@@ -136,12 +169,23 @@ def main() -> int:
         type=float,
         default=config["drain_timeout_seconds"],
     )
+    parser.add_argument(
+        "--expect-status",
+        action="append",
+        default=[],
+        metavar="METHOD:/path=HTTP_CODE",
+        help="expected response for a request (default: HTTP 200)",
+    )
     args = parser.parse_args()
 
     if args.warmup_flows < 0 or args.steady_flows < 1:
         parser.error("warmup flows must be >= 0 and steady flows must be >= 1")
     if args.arrival_interval_seconds <= 0 or args.max_concurrent_flows < 1:
         parser.error("arrival interval and concurrency must be positive")
+    try:
+        expected_statuses = parse_expected_statuses(args.expect_status)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     result: dict[str, Any] = {
         "base_url": args.base_url.rstrip("/"),
@@ -156,6 +200,10 @@ def main() -> int:
             "max_concurrent_flows": args.max_concurrent_flows,
             "request_timeout_seconds": args.request_timeout_seconds,
             "drain_timeout_seconds": args.drain_timeout_seconds,
+            "expected_statuses": {
+                f"{method} {path}": status
+                for (method, path), status in sorted(expected_statuses.items())
+            },
         },
         "warmup": [],
         "steady": [],
@@ -164,7 +212,12 @@ def main() -> int:
     try:
         for number in range(1, args.warmup_flows + 1):
             result["warmup"].append(
-                run_flow(args.base_url, args.request_timeout_seconds, number)
+                run_flow(
+                    args.base_url,
+                    args.request_timeout_seconds,
+                    number,
+                    expected_statuses,
+                )
             )
 
         futures: list[concurrent.futures.Future[dict[str, Any]]] = []
@@ -183,6 +236,7 @@ def main() -> int:
                         args.base_url,
                         args.request_timeout_seconds,
                         index + 1,
+                        expected_statuses,
                     )
                 )
             done, pending = concurrent.futures.wait(

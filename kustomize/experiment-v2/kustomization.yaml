@@ -12,6 +12,8 @@ resources:
   - ../base/productcatalogservice.yaml
   - ../base/recommendationservice.yaml
   - ../base/shippingservice.yaml
+patches:
+  - path: ../../config/experiment/faults/paymentservice-hook.patch.yaml
 images:
   - name: redis
     newName: docker.io/library/redis
