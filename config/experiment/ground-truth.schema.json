@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcc.example.invalid/experiment/ground-truth.schema.json",
+  "title": "Ground Truth de uma execução de fault",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fault_id",
+    "fault_type",
+    "root_location",
+    "requested_start",
+    "confirmed_start",
+    "confirmed_end",
+    "injection_confirmation",
+    "recovery_confirmation",
+    "execution_eligible",
+    "status",
+    "ineligibility_reason"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "fault_id": { "type": "string", "minLength": 1 },
+    "fault_type": {
+      "enum": [
+        "cpu_saturation",
+        "network_latency",
+        "service_unavailable",
+        "application_exception",
+        "datastore_unavailable"
+      ]
+    },
+    "root_location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "enum": ["service", "service_edge", "operation", "datastore"]
+        },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "requested_start": { "$ref": "#/$defs/timestamp" },
+    "confirmed_start": {
+      "oneOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }]
+    },
+    "confirmed_end": {
+      "oneOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }]
+    },
+    "injection_confirmation": {
+      "oneOf": [{ "$ref": "#/$defs/confirmation" }, { "type": "null" }]
+    },
+    "recovery_confirmation": {
+      "oneOf": [{ "$ref": "#/$defs/confirmation" }, { "type": "null" }]
+    },
+    "execution_eligible": { "type": "boolean" },
+    "status": { "enum": ["PENDING", "ACTIVE", "RECOVERED", "INELIGIBLE"] },
+    "ineligibility_reason": {
+      "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+    }
+  },
+  "$defs": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed_at", "control_plane_check", "evidence"],
+      "properties": {
+        "observed_at": { "$ref": "#/$defs/timestamp" },
+        "control_plane_check": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
