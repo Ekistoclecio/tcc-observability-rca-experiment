@@ -79,17 +79,25 @@ func newConventionalServerTelemetry(service string) *conventionalServerTelemetry
 
 func (t *conventionalServerTelemetry) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-		if !t.enabled || strings.Contains(info.FullMethod, "grpc.health") {
+		if strings.Contains(info.FullMethod, "grpc.health") {
 			return handler(ctx, req)
 		}
-		traceID, parentID := conventionalIncomingIDs(ctx)
-		if traceID == "" {
-			traceID = conventionalRandomHex(16)
+		traceID, parentID, spanID := "", "", ""
+		if t.enabled {
+			traceID, parentID = conventionalIncomingIDs(ctx)
+			if traceID == "" {
+				traceID = conventionalRandomHex(16)
+			}
+			spanID = conventionalRandomHex(8)
 		}
-		spanID := conventionalRandomHex(8)
 		start := time.Now()
 		response, err := handler(ctx, req)
-		t.finish(traceID, spanID, parentID, info.FullMethod, status.Code(err).String(), start)
+		duration := time.Since(start)
+		result := status.Code(err).String()
+		recordSharedRPCServerObservation(ctx, info.FullMethod, duration, result)
+		if t.enabled {
+			t.finish(traceID, spanID, parentID, info.FullMethod, result, start, duration)
+		}
 		return response, err
 	}
 }
@@ -117,8 +125,7 @@ func conventionalRandomHex(size int) string {
 	return hex.EncodeToString(value)
 }
 
-func (t *conventionalServerTelemetry) finish(traceID, spanID, parentID, operation, result string, start time.Time) {
-	duration := time.Since(start)
+func (t *conventionalServerTelemetry) finish(traceID, spanID, parentID, operation, result string, start time.Time, duration time.Duration) {
 	key := conventionalServerMetric{operation: operation, status: result}
 	t.mu.Lock()
 	t.count[key]++

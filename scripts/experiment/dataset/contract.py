@@ -329,13 +329,13 @@ def _metric_candidate(scenario: str, labels: dict[str, Any], name: str) -> tuple
     candidates = (
         (r"rpc_client_call_duration_seconds_(count|sum)$", 100, "rpc_client"),
         (r"rpc_server_call_duration_seconds_(count|sum)$", 100, "rpc_server"),
-        (r"tcc_otel_rpc_client_duration_seconds_(count|sum)$", 100, "tcc_rpc_client"),
-        (r"tcc_otel_rpc_client_requests_total$", 100, "tcc_rpc_client_count"),
+        (r"tcc_otel_rpc_client_duration_seconds_(count|sum)$", 200, "tcc_rpc_client"),
+        (r"tcc_otel_rpc_client_requests_total$", 200, "tcc_rpc_client_count"),
         (r"http_server_request_duration_seconds_(count|sum)$", 100, "http_server"),
-        (r"tcc_otel_http_server_requests_total$", 100, "http_server_count"),
-        (r"tcc_otel_http_server_duration_seconds_(count|sum)$", 100, "http_server"),
+        (r"tcc_otel_http_server_requests_total$", 200, "http_server_count"),
+        (r"tcc_otel_http_server_duration_seconds_(count|sum)$", 200, "http_server"),
         (r"rpc_server_duration_milliseconds_(count|sum)$", 90, "dotnet_rpc_server"),
-        (r"tcc_otel_rpc_server_duration_seconds_(count|sum)$", 80, "tcc_rpc_server"),
+        (r"tcc_otel_rpc_server_duration_seconds_(count|sum)$", 200, "tcc_rpc_server"),
         (r"cart_redis_operation_duration_seconds_(count|sum)$", 100, "redis"),
         (r"cart_redis_operations_total$", 100, "redis_count"),
     )

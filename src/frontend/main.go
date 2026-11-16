@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -30,8 +29,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
@@ -169,7 +166,6 @@ func main() {
 	r.HandleFunc(baseUrl+"/bot", svc.chatBotHandler).Methods(http.MethodPost)
 
 	var handler http.Handler = r
-	handler = otelHTTPMetricsMiddleware(handler)
 	handler = &logHandler{log: log, next: handler}     // add logging
 	handler = ensureSessionID(handler)                 // add session ID
 	handler = otelhttp.NewHandler(handler, "frontend") // add OTel tracing
@@ -177,39 +173,6 @@ func main() {
 
 	log.Infof("starting server on %s:%s", addr, srvPort)
 	log.Fatal(http.ListenAndServe(addr+":"+srvPort, handler))
-}
-
-type httpStatusRecorder struct {
-	http.ResponseWriter
-	status int
-}
-
-func (w *httpStatusRecorder) WriteHeader(status int) {
-	if w.status == 0 {
-		w.status = status
-	}
-	w.ResponseWriter.WriteHeader(status)
-}
-
-func (w *httpStatusRecorder) Write(body []byte) (int, error) {
-	if w.status == 0 {
-		w.status = http.StatusOK
-	}
-	return w.ResponseWriter.Write(body)
-}
-
-func (w *httpStatusRecorder) Flush() {
-	if w.status == 0 {
-		w.status = http.StatusOK
-		w.ResponseWriter.WriteHeader(w.status)
-	}
-	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
-		flusher.Flush()
-	}
-}
-
-func (w *httpStatusRecorder) Unwrap() http.ResponseWriter {
-	return w.ResponseWriter
 }
 
 func frontendRoute(path string) string {
@@ -234,28 +197,6 @@ func frontendRoute(path string) string {
 	}
 }
 
-func otelHTTPMetricsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		started := time.Now()
-		recorder := &httpStatusRecorder{ResponseWriter: w}
-		next.ServeHTTP(recorder, r)
-		route := frontendRoute(r.URL.Path)
-		if route == "" || route == "/_healthz" || otelHTTPRequests == nil || otelHTTPDuration == nil {
-			return
-		}
-		status := recorder.status
-		if status == 0 {
-			status = http.StatusOK
-		}
-		attributes := []attribute.KeyValue{
-			attribute.String("http.request.method", r.Method),
-			attribute.String("http.route", route),
-			attribute.String("http.response.status_code", strconv.Itoa(status)),
-		}
-		otelHTTPRequests.Add(r.Context(), 1, metric.WithAttributes(attributes...))
-		otelHTTPDuration.Record(r.Context(), time.Since(started).Seconds(), metric.WithAttributes(attributes...))
-	})
-}
 func initStats(log logrus.FieldLogger) {
 	// TODO(arbrown) Implement OpenTelemtry stats
 }

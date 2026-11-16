@@ -24,6 +24,13 @@ import grpc
 TRACE_HEADER = "x-tcc-trace-id"
 SPAN_HEADER = "x-tcc-span-id"
 _CURRENT_CONTEXT = ContextVar("tcc_conventional_context", default=None)
+_OTEL_OBSERVER = None
+
+
+def set_otel_observer(observer):
+    """Register the B adapter callback for shared completion observations."""
+    global _OTEL_OBSERVER
+    _OTEL_OBSERVER = observer
 
 
 def extract_context(metadata):
@@ -98,8 +105,11 @@ class ConventionalTelemetry:
         threading.Thread(target=send, daemon=True).start()
 
     def _complete_span(self, trace_id, span_id, parent_id, operation,
-                       span_kind, result, started_at_micros, started_at_ns):
-        duration_micros = max(1, (time.perf_counter_ns() - started_at_ns) // 1000)
+                       span_kind, result, started_at_micros, started_at_ns,
+                       duration_seconds=None):
+        if duration_seconds is None:
+            duration_seconds = max(0.0, (time.perf_counter_ns() - started_at_ns) / 1e9)
+        duration_micros = max(1, int(duration_seconds * 1e6))
         self._record(operation, span_kind.lower(), result, duration_micros / 1_000_000)
         span = {
             "traceId": trace_id,
@@ -126,17 +136,19 @@ class ConventionalTelemetry:
             def intercept_service(self, continuation, handler_call_details):
                 handler = continuation(handler_call_details)
                 method = handler_call_details.method
-                if (not telemetry.enabled or handler is None or
+                if (handler is None or
                         handler.unary_unary is None or method.startswith("/grpc.health.")):
                     return handler
 
                 def invoke(request, context):
-                    trace_id, parent_id = extract_context(handler_call_details.invocation_metadata)
-                    trace_id = trace_id or telemetry._new_id(16)
-                    span_id = telemetry._new_id(8)
+                    trace_id, parent_id, span_id = "", "", ""
+                    if telemetry.enabled:
+                        trace_id, parent_id = extract_context(handler_call_details.invocation_metadata)
+                        trace_id = trace_id or telemetry._new_id(16)
+                        span_id = telemetry._new_id(8)
                     started_at_micros = time.time_ns() // 1000
                     started_at_ns = time.perf_counter_ns()
-                    token = _CURRENT_CONTEXT.set((trace_id, span_id))
+                    token = _CURRENT_CONTEXT.set((trace_id, span_id)) if telemetry.enabled else None
                     result = "OK"
                     try:
                         return handler.unary_unary(request, context)
@@ -146,10 +158,15 @@ class ConventionalTelemetry:
                     finally:
                         if context.code() not in (None, grpc.StatusCode.OK):
                             result = context.code().name
-                        _CURRENT_CONTEXT.reset(token)
-                        telemetry._complete_span(
-                            trace_id, span_id, parent_id, method, "SERVER", result,
-                            started_at_micros, started_at_ns)
+                        if token is not None:
+                            _CURRENT_CONTEXT.reset(token)
+                        duration_seconds = max(0.0, (time.perf_counter_ns() - started_at_ns) / 1e9)
+                        if telemetry.enabled:
+                            telemetry._complete_span(
+                                trace_id, span_id, parent_id, method, "SERVER", result,
+                                started_at_micros, started_at_ns, duration_seconds)
+                        if _OTEL_OBSERVER is not None:
+                            _OTEL_OBSERVER(method, duration_seconds, context, result, "server")
 
                 return grpc.unary_unary_rpc_method_handler(
                     invoke,
@@ -164,20 +181,20 @@ class ConventionalTelemetry:
         class ClientInterceptor(grpc.UnaryUnaryClientInterceptor):
             def intercept_unary_unary(self, continuation, client_call_details, request):
                 current = _CURRENT_CONTEXT.get()
-                if not telemetry.enabled or current is None:
-                    return continuation(client_call_details, request)
-
-                trace_id, parent_id = current
-                span_id = telemetry._new_id(8)
-                metadata = list(client_call_details.metadata or ())
-                metadata.extend(((TRACE_HEADER, trace_id), (SPAN_HEADER, span_id)))
-                details = _ClientCallDetails(
-                    client_call_details.method,
-                    client_call_details.timeout,
-                    metadata,
-                    client_call_details.credentials,
-                    getattr(client_call_details, "wait_for_ready", None),
-                    getattr(client_call_details, "compression", None))
+                trace_id, parent_id, span_id = "", "", ""
+                details = client_call_details
+                if telemetry.enabled and current is not None:
+                    trace_id, parent_id = current
+                    span_id = telemetry._new_id(8)
+                    metadata = list(client_call_details.metadata or ())
+                    metadata.extend(((TRACE_HEADER, trace_id), (SPAN_HEADER, span_id)))
+                    details = _ClientCallDetails(
+                        client_call_details.method,
+                        client_call_details.timeout,
+                        metadata,
+                        client_call_details.credentials,
+                        getattr(client_call_details, "wait_for_ready", None),
+                        getattr(client_call_details, "compression", None))
                 started_at_micros = time.time_ns() // 1000
                 started_at_ns = time.perf_counter_ns()
                 completed = threading.Event()
@@ -188,18 +205,27 @@ class ConventionalTelemetry:
                     completed.set()
                     code = call.code()
                     result = "OK" if code in (None, grpc.StatusCode.OK) else code.name
-                    telemetry._complete_span(
-                        trace_id, span_id, parent_id, client_call_details.method,
-                        "CLIENT", result, started_at_micros, started_at_ns)
+                    duration_seconds = max(0.0, (time.perf_counter_ns() - started_at_ns) / 1e9)
+                    if telemetry.enabled:
+                        telemetry._complete_span(
+                            trace_id, span_id, parent_id, client_call_details.method,
+                            "CLIENT", result, started_at_micros, started_at_ns, duration_seconds)
+                    if _OTEL_OBSERVER is not None:
+                        _OTEL_OBSERVER(client_call_details.method, duration_seconds, None, result, "client")
 
                 try:
                     call = continuation(details, request)
                     call.add_done_callback(finish)
                     return call
                 except Exception as error:
-                    telemetry._complete_span(
-                        trace_id, span_id, parent_id, client_call_details.method,
-                        "CLIENT", type(error).__name__, started_at_micros, started_at_ns)
+                    result = type(error).__name__
+                    duration_seconds = max(0.0, (time.perf_counter_ns() - started_at_ns) / 1e9)
+                    if telemetry.enabled:
+                        telemetry._complete_span(
+                            trace_id, span_id, parent_id, client_call_details.method,
+                            "CLIENT", result, started_at_micros, started_at_ns, duration_seconds)
+                    if _OTEL_OBSERVER is not None:
+                        _OTEL_OBSERVER(client_call_details.method, duration_seconds, None, result, "client")
                     raise
 
         return ClientInterceptor()

@@ -18,6 +18,11 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.LongCounter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -52,6 +57,8 @@ final class ConventionalTelemetry implements ServerInterceptor {
   private final URI zipkinEndpoint;
   private final HttpClient httpClient;
   private final ConcurrentHashMap<MetricKey, Metric> metrics = new ConcurrentHashMap<>();
+  private final LongCounter sharedRequests;
+  private final DoubleHistogram sharedDuration;
 
   ConventionalTelemetry(String serviceName) {
     this.serviceName = serviceName;
@@ -63,6 +70,11 @@ final class ConventionalTelemetry implements ServerInterceptor {
                     "CONVENTIONAL_ZIPKIN_ENDPOINT",
                     "http://jaeger-conventional.observability-conventional.svc.cluster.local:9411/api/v2/spans"));
     this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
+    var meter = GlobalOpenTelemetry.get().getMeter("tcc/shared-observation");
+    this.sharedRequests = meter.counterBuilder("tcc.otel.rpc.server.requests")
+        .setUnit("{request}").build();
+    this.sharedDuration = meter.histogramBuilder("tcc.otel.rpc.server.duration")
+        .setUnit("s").build();
     if (enabled) {
       startMetricsServer(
           Integer.parseInt(System.getenv().getOrDefault("CONVENTIONAL_METRICS_PORT", "9464")));
@@ -75,14 +87,16 @@ final class ConventionalTelemetry implements ServerInterceptor {
       Metadata headers,
       ServerCallHandler<ReqT, RespT> next) {
     String operation = call.getMethodDescriptor().getFullMethodName();
-    if (!enabled || operation.startsWith("grpc.health.")) {
+    if (operation.startsWith("grpc.health.")) {
       return next.startCall(call, headers);
     }
 
-    String incomingTraceId = headers.get(TRACE_HEADER);
-    String traceId = incomingTraceId == null ? newId(16) : incomingTraceId;
-    String parentId = headers.get(SPAN_HEADER);
-    String spanId = newId(8);
+    String incomingTraceId = enabled ? headers.get(TRACE_HEADER) : null;
+    final String traceId = enabled
+        ? (incomingTraceId == null ? newId(16) : incomingTraceId)
+        : "";
+    final String parentId = enabled ? headers.get(SPAN_HEADER) : null;
+    final String spanId = enabled ? newId(8) : "";
     long timestampMicros = System.currentTimeMillis() * 1000;
     long startedAtNanos = System.nanoTime();
     AtomicReference<Status> finalStatus = new AtomicReference<>(Status.OK);
@@ -159,9 +173,21 @@ final class ConventionalTelemetry implements ServerInterceptor {
       long timestampMicros,
       long startedAtNanos) {
     long durationMicros = Math.max(1, (System.nanoTime() - startedAtNanos) / 1000);
+    double durationSeconds = durationMicros / 1_000_000.0;
+    Attributes attributes = Attributes.of(
+        AttributeKey.stringKey("rpc.method"), operation,
+        AttributeKey.stringKey("kind"), "SERVER",
+        AttributeKey.stringKey("rpc.response.status_code"), result,
+        AttributeKey.stringKey("outcome"), "OK".equals(result) ? "SUCCESS" : "ERROR");
+    sharedRequests.add(1, attributes);
+    sharedDuration.record(durationSeconds, attributes);
+
+    if (!enabled) {
+      return;
+    }
     Metric metric = metrics.computeIfAbsent(new MetricKey(operation, result), ignored -> new Metric());
     metric.count.incrementAndGet();
-    metric.durationSeconds.add(durationMicros / 1_000_000.0);
+    metric.durationSeconds.add(durationSeconds);
 
     String parent = parentId == null ? "" : ",\"parentId\":\"" + json(parentId) + "\"";
     String body =

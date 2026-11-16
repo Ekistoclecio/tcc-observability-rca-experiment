@@ -12,6 +12,7 @@ import os
 import time
 
 import grpc
+from conventional_telemetry import set_otel_observer
 from opentelemetry import metrics, trace
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
@@ -53,47 +54,40 @@ class OTelTelemetry:
         level=logging.NOTSET, logger_provider=logger_provider))
     meter = metrics.get_meter("online-boutique/" + service_name, "0.10.7")
     self.requests = meter.create_counter("tcc.otel.rpc.server.requests", unit="{request}")
-    self.errors = meter.create_counter("tcc.otel.rpc.server.errors", unit="{error}")
     self.duration = meter.create_histogram("tcc.otel.rpc.server.duration", unit="s")
+    self.client_requests = meter.create_counter("tcc.otel.rpc.client.requests", unit="{request}")
+    self.client_duration = meter.create_histogram("tcc.otel.rpc.client.duration", unit="s")
 
-  def record(self, operation, started_at, context, error):
-    status = "OK"
-    if error is not None:
-      status = type(error).__name__
-    elif context is not None and context.code() not in (None, grpc.StatusCode.OK):
+  def record_observation(self, operation, duration_seconds, context, result, span_kind):
+    status = result or "UNKNOWN"
+    if context is not None and context.code() not in (None, grpc.StatusCode.OK):
       status = context.code().name
+    outcome = "SUCCESS" if status == "OK" else "ERROR"
     attributes = {
         "rpc.system.name": "grpc",
         "rpc.method": operation,
         "rpc.response.status_code": status,
+        "kind": span_kind.upper(),
+        "outcome": outcome,
     }
-    self.requests.add(1, attributes)
-    if status != "OK":
-      self.errors.add(1, attributes)
-    self.duration.record(time.perf_counter() - started_at, attributes)
+    if span_kind == "client":
+      self.client_requests.add(1, attributes)
+      self.client_duration.record(duration_seconds, attributes)
+    else:
+      self.requests.add(1, attributes)
+      self.duration.record(duration_seconds, attributes)
 
 
 def configure_otel(service_name, application_logger):
   global _telemetry
   if os.getenv("ENABLE_TRACING") == "1" and _telemetry is None:
     _telemetry = OTelTelemetry(service_name, application_logger)
+    set_otel_observer(_telemetry.record_observation)
   return _telemetry
 
 
 def otel_rpc(operation):
   def decorate(function):
-    @functools.wraps(function)
-    def invoke(*args, **kwargs):
-      started_at = time.perf_counter()
-      error = None
-      try:
-        return function(*args, **kwargs)
-      except Exception as exception:
-        error = exception
-        raise
-      finally:
-        if _telemetry is not None:
-          context = args[2] if len(args) > 2 else kwargs.get("context")
-          _telemetry.record(operation, started_at, context, error)
-    return invoke
+    # The gRPC interceptor owns the shared A/B request completion boundary.
+    return function
   return decorate

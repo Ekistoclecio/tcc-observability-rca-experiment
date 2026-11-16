@@ -10,6 +10,8 @@ package main
 
 import (
 	"context"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -29,6 +31,8 @@ import (
 
 var otelHTTPRequests otelmetric.Int64Counter
 var otelHTTPDuration otelmetric.Float64Histogram
+var otelRPCClientRequests otelmetric.Int64Counter
+var otelRPCClientDuration otelmetric.Float64Histogram
 
 func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.ClientConn, logger *logrus.Logger) (*sdktrace.TracerProvider, error) {
 	res, err := resource.Merge(resource.Default(), resource.NewSchemaless(
@@ -39,7 +43,6 @@ func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.
 	if err != nil {
 		return nil, err
 	}
-
 	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
 	if err != nil {
 		return nil, err
@@ -69,6 +72,14 @@ func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.
 	if err != nil {
 		return nil, err
 	}
+	otelRPCClientRequests, err = meter.Int64Counter("tcc.otel.rpc.client.requests", otelmetric.WithUnit("{request}"))
+	if err != nil {
+		return nil, err
+	}
+	otelRPCClientDuration, err = meter.Float64Histogram("tcc.otel.rpc.client.duration", otelmetric.WithUnit("s"))
+	if err != nil {
+		return nil, err
+	}
 
 	logExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithGRPCConn(conn))
 	if err != nil {
@@ -81,4 +92,42 @@ func configureOTelProviders(ctx context.Context, serviceName string, conn *grpc.
 	logger.AddHook(otellogrus.NewHook(serviceName, otellogrus.WithLoggerProvider(lp)))
 
 	return tp, nil
+}
+
+func recordSharedHTTPServerObservation(ctx context.Context, method, route, result string, duration time.Duration) {
+	if otelHTTPRequests == nil || otelHTTPDuration == nil {
+		return
+	}
+	outcome := "SUCCESS"
+	if code, err := strconv.Atoi(result); err == nil && code >= http.StatusBadRequest {
+		outcome = "ERROR"
+	}
+	opts := otelmetric.WithAttributes(
+		attribute.String("http.request.method", method),
+		attribute.String("http.route", route),
+		attribute.String("http.response.status_code", result),
+		attribute.String("kind", "SERVER"),
+		attribute.String("outcome", outcome),
+	)
+	otelHTTPRequests.Add(ctx, 1, opts)
+	otelHTTPDuration.Record(ctx, duration.Seconds(), opts)
+}
+
+func recordSharedRPCClientObservation(ctx context.Context, operation, target, result string, duration time.Duration) {
+	if otelRPCClientRequests == nil || otelRPCClientDuration == nil {
+		return
+	}
+	outcome := "SUCCESS"
+	if result != "OK" {
+		outcome = "ERROR"
+	}
+	opts := otelmetric.WithAttributes(
+		attribute.String("rpc.method", operation),
+		attribute.String("kind", "CLIENT"),
+		attribute.String("rpc.response.status_code", result),
+		attribute.String("outcome", outcome),
+		attribute.String("target_service", target),
+	)
+	otelRPCClientRequests.Add(ctx, 1, opts)
+	otelRPCClientDuration.Record(ctx, duration.Seconds(), opts)
 }

@@ -105,21 +105,32 @@ func randomHex(bytes int) string {
 }
 
 func (t *conventionalTelemetry) HTTPMiddleware(next http.Handler) http.Handler {
-	if !t.enabled {
-		return next
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		traceID := r.Header.Get(conventionalTraceHeader)
-		parentID := r.Header.Get(conventionalSpanHeader)
-		if traceID == "" {
-			traceID = randomHex(16)
+		traceID, parentID, spanID := "", "", ""
+		requestContext := r.Context()
+		if t.enabled {
+			traceID = r.Header.Get(conventionalTraceHeader)
+			parentID = r.Header.Get(conventionalSpanHeader)
+			if traceID == "" {
+				traceID = randomHex(16)
+			}
+			spanID = randomHex(8)
+			requestContext = context.WithValue(requestContext, conventionalContextKey{}, conventionalTraceContext{traceID: traceID, spanID: spanID})
 		}
-		spanID := randomHex(8)
-		ctx := context.WithValue(r.Context(), conventionalContextKey{}, conventionalTraceContext{traceID: traceID, spanID: spanID})
 		start := time.Now()
 		recorder := &conventionalResponseWriter{ResponseWriter: w, status: http.StatusOK}
-		next.ServeHTTP(recorder, r.WithContext(ctx))
-		t.finish(traceID, spanID, parentID, r.Method+" "+r.URL.Path, "SERVER", strconv.Itoa(recorder.status), start)
+		next.ServeHTTP(recorder, r.WithContext(requestContext))
+		duration := time.Since(start)
+		route := frontendRoute(r.URL.Path)
+		if route == "" || route == "/_healthz" {
+			return
+		}
+		result := strconv.Itoa(recorder.status)
+		operation := r.Method + " " + route
+		recordSharedHTTPServerObservation(r.Context(), r.Method, route, result, duration)
+		if t.enabled {
+			t.finish(traceID, spanID, parentID, operation, "SERVER", result, start, duration)
+		}
 	})
 }
 
@@ -135,23 +146,44 @@ func (w *conventionalResponseWriter) WriteHeader(statusCode int) {
 
 func (t *conventionalTelemetry) UnaryClientInterceptor() grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		if !t.enabled || excludedConventionalRPC(method) {
+		if excludedConventionalRPC(method) {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
-		parent, ok := ctx.Value(conventionalContextKey{}).(conventionalTraceContext)
-		if !ok {
-			parent = conventionalTraceContext{traceID: randomHex(16)}
+		parent, spanID := conventionalTraceContext{}, ""
+		outgoing := ctx
+		if t.enabled {
+			parent, _ = ctx.Value(conventionalContextKey{}).(conventionalTraceContext)
+			if parent.traceID == "" {
+				parent.traceID = randomHex(16)
+			}
+			spanID = randomHex(8)
+			outgoing = metadata.AppendToOutgoingContext(ctx,
+				conventionalTraceHeader, parent.traceID,
+				conventionalSpanHeader, spanID,
+			)
 		}
-		spanID := randomHex(8)
-		outgoing := metadata.AppendToOutgoingContext(ctx,
-			conventionalTraceHeader, parent.traceID,
-			conventionalSpanHeader, spanID,
-		)
 		start := time.Now()
 		err := invoker(outgoing, method, req, reply, cc, opts...)
-		t.finish(parent.traceID, spanID, parent.spanID, method, "CLIENT", status.Code(err).String(), start)
+		duration := time.Since(start)
+		result := status.Code(err).String()
+		recordSharedRPCClientObservation(ctx, method, targetService(method), result, duration)
+		if t.enabled {
+			t.finish(parent.traceID, spanID, parent.spanID, method, "CLIENT", result, start, duration)
+		}
 		return err
 	}
+}
+
+func targetService(method string) string {
+	parts := strings.Split(strings.Trim(method, "/"), "/")
+	if len(parts) != 2 {
+		return ""
+	}
+	service := parts[0]
+	if index := strings.LastIndexByte(service, '.'); index >= 0 {
+		service = service[index+1:]
+	}
+	return strings.ToLower(service)
 }
 
 func excludedConventionalRPC(method string) bool {
@@ -159,8 +191,7 @@ func excludedConventionalRPC(method string) bool {
 		strings.Contains(method, "opentelemetry.proto.collector")
 }
 
-func (t *conventionalTelemetry) finish(traceID, spanID, parentID, operation, kind, result string, start time.Time) {
-	duration := time.Since(start)
+func (t *conventionalTelemetry) finish(traceID, spanID, parentID, operation, kind, result string, start time.Time, duration time.Duration) {
 	key := conventionalMetricKey{operation: operation, kind: strings.ToLower(kind), status: result}
 	t.mu.Lock()
 	metric := t.metrics[key]
