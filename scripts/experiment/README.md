@@ -45,7 +45,10 @@ The experiment cluster is pinned in `deployments/experiment/kind/cluster.yaml` t
 Use Kind v0.33.0 and kubectl v1.35.x. The installer downloads/checksums kubectl to a
 temporary tools directory; add it to `PATH` for setup and validation commands. The Kind
 script refuses to overwrite an existing cluster; delete it explicitly before recreation.
-It loads the ten local `tcc-phase2` application images.
+It loads ten local images tagged with the full Git revision. Images carry the
+`org.opencontainers.image.revision` label. After applying the overlay,
+`deploy-application-images.sh` sets all SUT Deployments to those immutable tags,
+waits for rollout and runs the provenance preflight.
 
 ```bash
 export PATH="$(scripts/experiment/install-kubectl.sh):$PATH"
@@ -56,14 +59,15 @@ scripts/experiment/setup-chaos-mesh.sh
 
 On a host without the local application images, build them sequentially first with
 `TCC_LOAD_IMAGES=0 scripts/experiment/build-application-images.sh`; the cluster creation
-script then loads those images after creating Kind. The experiment overlay installs the
+script then loads those revision-tagged images after creating Kind. The experiment overlay installs the
 Online Boutique, A/B backends, F4 hook configuration and keeps the original Kubernetes
 `loadgenerator` at zero replicas.
 
 ### Install the experiment hook
 
 The overlay has the F4 hook enabled but inert until its per-pod control file is created.
-The setup helper can rebuild and verify the paymentservice image when required:
+The setup helper rebuilds the ten SUT images from the same clean revision and verifies
+their deployment provenance before confirming the paymentservice hook:
 
    ```bash
    scripts/experiment/setup-fault-injection.sh
@@ -74,6 +78,17 @@ For F1/F2, install the pinned Chaos Mesh release:
    ```bash
    scripts/experiment/setup-chaos-mesh.sh
    ```
+
+The image workflow requires a clean Git working tree. To check image-to-Pod
+provenance without starting workload or faults, run:
+
+```bash
+python3 scripts/experiment/validate_deployment_provenance.py
+```
+
+This check is a hard gate in the fault orchestrator. It verifies the full Git SHA,
+the OCI revision label, the immutable image reference in each Deployment and Pod,
+Pod readiness, and equality between local image config digest and runtime Pod imageID.
 
    Chaos Mesh 2.8.6 documents Kubernetes 1.30–1.35 as its tested range. The pinned
    Kubernetes v1.35.8 combination is supported and needs no override. On another

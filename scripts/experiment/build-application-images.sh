@@ -8,6 +8,12 @@ minimum_available_kib="${TCC_MIN_AVAILABLE_MEMORY_KIB:-2097152}"
 build_memory="${TCC_BUILD_MEMORY:-1024m}"
 build_cpu_quota="${TCC_BUILD_CPU_QUOTA:-50000}"
 load_images="${TCC_LOAD_IMAGES:-1}"
+git_revision="$(git -C "${repo_root}" rev-parse HEAD)"
+
+if [[ -n "$(git -C "${repo_root}" status --porcelain)" ]]; then
+  echo "Refusing to build provenance-valid images from a dirty working tree." >&2
+  exit 6
+fi
 
 all_services=(
   frontend
@@ -72,19 +78,25 @@ for service in "${services[@]}"; do
     exit 3
   fi
 
-  image="${service}:tcc-phase2"
+  image="${service}:tcc-${git_revision}"
   echo "Building ${image} sequentially (memory=${build_memory}, cpu-quota=${build_cpu_quota})"
   docker build \
     --resource "memory=${build_memory}" \
     --resource "cpu-quota=${build_cpu_quota}" \
+    --label "org.opencontainers.image.revision=${git_revision}" \
     --load \
     --tag "${image}" \
     "${repo_root}/${contexts[$service]}"
+  image_revision="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${image}")"
+  if [[ "${image_revision}" != "${git_revision}" ]]; then
+    echo "Image ${image} has revision ${image_revision:-<missing>}, expected ${git_revision}." >&2
+    exit 7
+  fi
   tagged_images+=("${image}")
 done
 
 if [[ "${load_images}" != "1" ]]; then
-  echo "Built ${#tagged_images[@]} image(s); image loading was skipped."
+  echo "Built ${#tagged_images[@]} provenance-labeled image(s) for revision ${git_revision}; image loading was skipped."
   exit 0
 fi
 
@@ -96,4 +108,4 @@ else
     docker exec -i "${control_plane}" ctr -n k8s.io images import -
 fi
 
-echo "Built and loaded ${#tagged_images[@]} image(s) into ${cluster_name}."
+echo "Built and loaded ${#tagged_images[@]} provenance-labeled image(s) for revision ${git_revision} into ${cluster_name}."

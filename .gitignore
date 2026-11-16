@@ -36,5 +36,6 @@ artifacts/integration-validation/
 artifacts/experiment-validation/
 audit/results/
 audit/final-validation/
+audit/deployment-provenance/
 teste/
 .venv-tcc-workload/

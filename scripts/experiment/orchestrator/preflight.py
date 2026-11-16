@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
+import sys
+from pathlib import Path
 
 from .kube import deployment_status, kubectl_json, run_kubectl
 
@@ -11,6 +14,24 @@ SUT_DEPLOYMENTS = (
     "paymentservice", "shippingservice", "emailservice", "recommendationservice", "adservice", "redis-cart",
 )
 CHAOS_MESH_2_8_TESTED_KUBERNETES_MINORS = (30, 31, 32, 33, 34, 35)
+REPO = Path(__file__).resolve().parents[3]
+
+
+def deployment_provenance() -> dict:
+    """Run the standalone hard gate before any fault/workload preparation."""
+    validator = REPO / "scripts/experiment/validate_deployment_provenance.py"
+    result = subprocess.run(
+        [sys.executable, str(validator)], capture_output=True, text=True, check=False,
+    )
+    try:
+        report = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            f"deployment provenance validator returned invalid output: {result.stderr.strip()}"
+        ) from exc
+    if result.returncode != 0 or not report.get("passed"):
+        raise RuntimeError(f"deployment provenance hard gate failed: {report}")
+    return report
 
 
 def chaos_mesh_combo_supported(kubernetes_version: str, installed_version: str, expected_version: str = "2.8.6") -> bool:
@@ -24,6 +45,7 @@ def chaos_mesh_combo_supported(kubernetes_version: str, installed_version: str, 
 
 
 def preflight(fault_class: str, allow_unsupported_chaos_mesh: bool, expected_chaos_mesh_version: str = "2.8.6") -> dict:
+    provenance = deployment_provenance()
     run_kubectl("get", "nodes")
     nodes = kubectl_json("get", "nodes")
     version = nodes.get("items", [{}])[0].get("status", {}).get("nodeInfo", {}).get("kubeletVersion", "unknown")
@@ -102,6 +124,7 @@ def preflight(fault_class: str, allow_unsupported_chaos_mesh: bool, expected_cha
         if not chaos["controller_ready"] or not chaos["daemon_ready"]:
             raise RuntimeError("Chaos Mesh components are not Ready")
     return {
+        "deployment_provenance": provenance,
         "kubernetes_version": version,
         "kubernetes_minor_supported_by_chaos_mesh_2_8_6": version_supported,
         "chaos_mesh_version_supported": chaos_version_supported,

@@ -4,7 +4,15 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+if [[ -n "$(git -C "${repo_root}" status --porcelain)" ]]; then
+  echo "Refusing experiment deployment from a dirty working tree." >&2
+  exit 2
+fi
+
 kubectl apply -k "${repo_root}/deployments/experiment"
+# The overlay's base tags are mutable defaults; immediately pin SUT Deployments
+# to the immutable images built from the current clean Git commit.
+"${repo_root}/scripts/experiment/deploy-application-images.sh"
 # ConfigMaps use stable names in this overlay, so applying a Collector change
 # does not itself recreate the pod.
 kubectl rollout restart deployment/otel-collector -n observability-otel
