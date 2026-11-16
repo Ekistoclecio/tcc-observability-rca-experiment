@@ -1,0 +1,93 @@
+{
+  "base_url": "http://127.0.0.1:18080",
+  "configuration": {
+    "arrival_interval_seconds": 1.0,
+    "configured_arrival_rate_flows_per_second": 1.0,
+    "drain_timeout_seconds": 60.0,
+    "expected_statuses": {},
+    "max_concurrent_flows": 1,
+    "request_timeout_seconds": 30.0,
+    "steady_flows": 2,
+    "warmup_flows": 0
+  },
+  "finished_at": "2026-11-16T18:10:58.690015Z",
+  "started_at": "2026-11-16T18:10:56.409215Z",
+  "status": "PASS",
+  "steady": [
+    {
+      "flow": 1,
+      "status": "PASS",
+      "steps": [
+        {
+          "duration_seconds": 0.26026,
+          "method": "GET",
+          "path": "/",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.199497,
+          "method": "GET",
+          "path": "/product/OLJCESPC7Z",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.207668,
+          "method": "POST",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.195878,
+          "method": "GET",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.206382,
+          "method": "POST",
+          "path": "/cart/checkout",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "flow": 2,
+      "status": "PASS",
+      "steps": [
+        {
+          "duration_seconds": 0.274373,
+          "method": "GET",
+          "path": "/",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.19454,
+          "method": "GET",
+          "path": "/product/OLJCESPC7Z",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.206131,
+          "method": "POST",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.195673,
+          "method": "GET",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.291134,
+          "method": "POST",
+          "path": "/cart/checkout",
+          "status": 200
+        }
+      ]
+    }
+  ],
+  "successful_steady_flows": 2,
+  "successful_warmup_flows": 0,
+  "warmup": []
+}
