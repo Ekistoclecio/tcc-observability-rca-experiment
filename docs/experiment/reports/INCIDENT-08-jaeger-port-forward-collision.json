@@ -1,0 +1,64 @@
+{
+  "format": "tcc-experiment-v2-incident-v1",
+  "incident": "INCIDENT-08-jaeger-port-forward-collision",
+  "status": "ROOT_CAUSE_PROVEN_AND_CORRECTED",
+  "affected_stages": ["08-raw-collection", "09-raw-semantic-validation"],
+  "observed": {
+    "old_jaeger_a_local_port": 16686,
+    "old_jaeger_b_local_port": 16687,
+    "captured_processes": [
+      {
+        "local_port": 16686,
+        "namespace": "observability-b",
+        "service": "jaeger-b",
+        "pid_at_diagnostic_capture": 650800
+      },
+      {
+        "local_port": 16687,
+        "namespace": "observability-b",
+        "service": "jaeger-b",
+        "pid_at_diagnostic_capture": 791409
+      },
+      {
+        "local_port": 16688,
+        "namespace": "observability-a",
+        "service": "jaeger-a",
+        "pid_at_diagnostic_capture": 801379
+      }
+    ],
+    "old_manifests": {
+      "scenario_a_jaeger_request_port": 16686,
+      "scenario_b_jaeger_request_port": 16687
+    },
+    "corrected_normal_unique_traces": {"A": 12, "B": 15},
+    "corrected_normal_unique_spans": {"A": 310, "B": 317}
+  },
+  "expected": "each local port-forward must be demonstrably bound to its intended backend before queries",
+  "first_divergence": "collector readiness/query accepted an already-listening Scenario B port while the Scenario A port-forward could not bind",
+  "root_cause": "A fixed local port collision hid by discarded port-forward output caused Jaeger B responses to be stored as Jaeger A",
+  "evidence": [
+    "old manifests recorded Jaeger A queries against 127.0.0.1:16686 and Jaeger B against 127.0.0.1:16687",
+    "read-only process/socket inspection during diagnosis showed Jaeger B bound to 16686 and Jaeger A bound to 16688",
+    "corrected historical queries through separately confirmed dynamic forwards returned distinct A/B trace populations",
+    "corrected manifests record six distinct local ports and BOUND_TO_EXPECTED_SERVICE_PORT for all backend processes"
+  ],
+  "fix_commit": "265aa87039964a412773a9046b7bba65f587c76f",
+  "fix": "allocate ephemeral local ports, capture kubectl output, require exact local/remote binding confirmation, and verify process liveness",
+  "tests": {"collector_unit_tests_passed": 6, "semantic_validator_tests_passed": 8, "corrected_bundles_integrity": "PASS"},
+  "affected_evidence": {
+    "invalid_original_trace_a": [
+      "docs/experiment/stages/08-raw-smoke/raw/",
+      "docs/experiment/stages/09-raw-semantic-validation/raw/F4/",
+      "docs/experiment/stages/09-raw-semantic-validation/raw/F5/"
+    ],
+    "corrected_bundles": [
+      "docs/experiment/stages/08-raw-smoke/raw-corrected/",
+      "docs/experiment/stages/09-raw-semantic-validation/raw/corrected/F4/",
+      "docs/experiment/stages/09-raw-semantic-validation/raw/corrected/F5/"
+    ],
+    "invalidated_signals": ["Scenario A Jaeger traces in original bundles"],
+    "not_invalidated_by_this_incident": ["Prometheus metrics", "Loki logs", "control-plane Ground Truth", "workload/fault execution"]
+  },
+  "new_workload_or_fault_run": false,
+  "working_tree_note": "incident report records an already corrected collector commit; no application or observability changes were made for this incident"
+}

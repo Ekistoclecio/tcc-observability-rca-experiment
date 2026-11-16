@@ -1,0 +1,115 @@
+{
+  "expected_service_count": 10,
+  "format": "tcc-experiment-v2-stage9-deployment-provenance-summary-v1",
+  "independent_preflight_checks": [
+    "F4",
+    "F5"
+  ],
+  "services": [
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/frontend:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:41836c4a0bc27aaca3808bb72344abd7c8d4ba1325fff0ee727342756395a60a",
+      "running_image_reference": "tcc-experiment-v2/frontend:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "frontend-58588547d8-mqnwx",
+      "service": "frontend",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/checkoutservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:d43e02bb4e53e43bc163c68e28d0a0f495cb618d666456f383438981f1e33a93",
+      "running_image_reference": "tcc-experiment-v2/checkoutservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "checkoutservice-6fbbbcdd96-qgkvh",
+      "service": "checkoutservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/cartservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:60dbd9972d6afe0a4fd0560dfb952ba53f9a8e06e26a7333aef25a6e0c99c310",
+      "running_image_reference": "tcc-experiment-v2/cartservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "cartservice-5cc886bb5-d49w8",
+      "service": "cartservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/productcatalogservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:bb6cc88b9e3ab40d45c08eaa347d46c5fc68032d4065eaaa5b5c256c83d22d47",
+      "running_image_reference": "tcc-experiment-v2/productcatalogservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "productcatalogservice-5699b6c8-qjpxh",
+      "service": "productcatalogservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/currencyservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:e54c004f07d6d4aae4670ef1c454b804580f40711f7cd46cf74cafbaa899bb94",
+      "running_image_reference": "tcc-experiment-v2/currencyservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "currencyservice-b7dccf7d8-2zzs9",
+      "service": "currencyservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/paymentservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:9fc80116f179c6eb4aa9c9e6944d22e93344953d9df4c038080c00553ad46914",
+      "running_image_reference": "tcc-experiment-v2/paymentservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "paymentservice-55cd768c5f-4clzz",
+      "service": "paymentservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/shippingservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:120ad41267059363c3c6214b7a0b764786378b16d6c16973314fe376960824d8",
+      "running_image_reference": "tcc-experiment-v2/shippingservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "shippingservice-556d9d5fd4-vt6nq",
+      "service": "shippingservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/emailservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:43a663e9aaed17ba6d72c2a698c677ebc9b990a990ddb933b0be007ca078af94",
+      "running_image_reference": "tcc-experiment-v2/emailservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "emailservice-6b769f996-pcpzj",
+      "service": "emailservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/recommendationservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "sha256:b3f0b788c3a814e8efc7883a291f814645de1a2d2a6bdbc14fa37469fac3b18f",
+      "running_image_reference": "tcc-experiment-v2/recommendationservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "recommendationservice-844858f7bd-nkdtl",
+      "service": "recommendationservice",
+      "status": "PASS"
+    },
+    {
+      "expected_git_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_reference": "tcc-experiment-v2/adservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "image_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_image_id": "docker.io/library/import-2026-11-16@sha256:b2e8b4caa2adf2307c7d7b36641f13912c424173e45422e94f33e59d21300cf6",
+      "running_image_reference": "tcc-experiment-v2/adservice:9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+      "running_pod": "adservice-649895fb56-gx7dw",
+      "service": "adservice",
+      "status": "PASS"
+    }
+  ],
+  "source_revision": "9b7d775bbc8b00857f7b04d3aebe63880d29fe41",
+  "status": "PASS",
+  "validated_pod_count": 10,
+  "validated_service_count": 10,
+  "working_tree": "clean during physical smokes"
+}

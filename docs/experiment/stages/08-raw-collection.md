@@ -68,3 +68,11 @@ Na primeira tentativa, o endpoint Loki rejeitou `limit=10000`, acima do máximo 
 ## Próxima etapa
 
 A Etapa 8 está concluída e commitada junto do coletor e deste registro. A próxima é a Etapa 9: validação semântica diretamente sobre RAW, incluindo smokes F4/F5 autorizadas pelo plano. Nenhum fault foi executado nesta etapa.
+
+## Errata de proveniência dos traces A (registrada durante a Etapa 9)
+
+Uma auditoria posterior encontrou uma colisão no coletor original. Ele usava a porta local fixa `16686` para Jaeger A e escondia a saída do processo `kubectl port-forward`. Já havia um port-forward de Jaeger B escutando em `127.0.0.1:16686`; a verificação de readiness consultava essa porta ocupada e não provava qual serviço respondia. Assim, as consultas de traces rotuladas A no bundle original foram atendidas por Jaeger B. Os arquivos originais permanecem inalterados e seu conteúdo de traces A não deve ser usado como evidência.
+
+A causa foi corrigida no commit `265aa87039964a412773a9046b7bba65f587c76f`: cada forward agora reserva uma porta efêmera, precisa confirmar em sua própria saída a associação local/remota esperada e permanece vivo durante a coleta. A mesma janela normal, `2026-11-16T18:10:56.314997Z`–`2026-11-16T18:10:58.690015Z`, foi reconsultada sem gerar requests adicionais. O bundle corrigido está em [`08-raw-smoke/raw-corrected`](08-raw-smoke/raw-corrected/), com hashes próprios. Ele registra 310 spans únicos/12 trace IDs A e 317 spans únicos/15 trace IDs B; as contagens anteriores de traces A/B iguais não são válidas. Métricas e logs foram reconsultados; os counts permaneceram em 217/1.375 séries e 152/136 registros, respectivamente. A consulta corrigida usou `drain_seconds=0`, pois foi uma leitura histórica de dados já ingeridos, não uma nova coleta imediatamente após workload.
+
+O incidente, a evidência de colisão e o alcance da invalidação estão em [`reports/INCIDENT-08-jaeger-port-forward-collision.md`](../reports/INCIDENT-08-jaeger-port-forward-collision.md). O bundle original foi preservado; a Etapa 9 usa somente a cópia corrigida para comparação semântica.
