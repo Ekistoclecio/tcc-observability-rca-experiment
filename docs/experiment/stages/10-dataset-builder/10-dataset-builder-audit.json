@@ -1,0 +1,34 @@
+{
+  "canonical_raw_revision": "b790b6639532cedef93e357149ad96b204ab9ec0",
+  "facts_equalized": false,
+  "faults": [
+    {
+      "all_provenance_resolves": true,
+      "deterministic": true,
+      "fact_counts": {
+        "A": 304,
+        "B": 282
+      },
+      "fault": "F4",
+      "raw_hash_list_sha256": "940de109df87c788628e1f7bda0424724cd89867a09c1e67c9866ac416fc0810",
+      "raw_manifest_sha256": "3206fc74f26aab0b9c4d8bcbeb1f5f328bf4eaaa4ea960449363ea30ae822525",
+      "stack_and_leakage_scan": "PASS",
+      "status": "PASS"
+    },
+    {
+      "all_provenance_resolves": true,
+      "deterministic": true,
+      "fact_counts": {
+        "A": 170,
+        "B": 165
+      },
+      "fault": "F5",
+      "raw_hash_list_sha256": "a2672cf3720ad3f9533235390796fae8842d79627bc34b368c03f9f9bc3a2da3",
+      "raw_manifest_sha256": "2baf85379adb0795101e183054538210869829ec13bc7fd90ada3d409ad665e2",
+      "stack_and_leakage_scan": "PASS",
+      "status": "PASS"
+    }
+  ],
+  "format": "tcc-dataset-builder-validation-v1",
+  "status": "PASS"
+}
