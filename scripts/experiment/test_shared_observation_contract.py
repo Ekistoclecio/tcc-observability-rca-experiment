@@ -21,6 +21,17 @@ class SharedObservationContractTests(unittest.TestCase):
         cls.cart_interceptor = (ROOT / "src/cartservice/src/ConventionalTelemetry.cs").read_text()
         cls.cart_startup = (ROOT / "src/cartservice/src/Startup.cs").read_text()
         cls.cart_telemetry = (ROOT / "src/cartservice/src/Telemetry.cs").read_text()
+        cls.frontend_wrapper = (ROOT / "src/frontend/conventional.go").read_text()
+        cls.frontend_otel = (ROOT / "src/frontend/otel_telemetry.go").read_text()
+        cls.catalog_wrapper = (ROOT / "src/productcatalogservice/conventional.go").read_text()
+        cls.catalog_otel = (ROOT / "src/productcatalogservice/otel_telemetry.go").read_text()
+        cls.shipping_wrapper = (ROOT / "src/shippingservice/conventional.go").read_text()
+        cls.shipping_otel = (ROOT / "src/shippingservice/otel_telemetry.go").read_text()
+        cls.email_wrapper = (ROOT / "src/emailservice/conventional_telemetry.py").read_text()
+        cls.email_otel = (ROOT / "src/emailservice/otel_telemetry.py").read_text()
+        cls.recommendation_wrapper = (ROOT / "src/recommendationservice/conventional_telemetry.py").read_text()
+        cls.recommendation_otel = (ROOT / "src/recommendationservice/otel_telemetry.py").read_text()
+        cls.ad_wrapper = (ROOT / "src/adservice/src/main/java/hipstershop/ConventionalTelemetry.java").read_text()
 
     def test_contract_declares_shared_observation_points_and_treatments(self):
         points = {item["concept"] for item in self.contract["observation_points"]}
@@ -36,13 +47,44 @@ class SharedObservationContractTests(unittest.TestCase):
         self.assertEqual(set(coverage), expected)
         for service, declaration in coverage.items():
             with self.subTest(service=service):
-                self.assertIn(declaration["status"], {"implemented", "partial"})
+                self.assertIn(declaration["status"], {"COMPLETE", "COMPLETE_WITH_NA"})
                 self.assertIn("server_request", declaration)
                 self.assertIn("client_downstream", declaration)
                 self.assertIn("datastore", declaration)
                 self.assertIn("application_events", declaration)
                 self.assertIn("shared_metric_adapters", declaration)
-        self.assertEqual(self.contract["coverage_status"], "partial")
+                self.assertTrue(declaration["evidence"])
+                if declaration["status"] == "COMPLETE_WITH_NA":
+                    self.assertTrue(declaration["na_reasons"])
+        self.assertEqual(self.contract["coverage_status"], "complete")
+
+    def test_go_server_completion_is_shared_with_otel_adapter(self):
+        for wrapper, otel in ((self.catalog_wrapper, self.catalog_otel),
+                              (self.shipping_wrapper, self.shipping_otel)):
+            with self.subTest(service="Go RPC service"):
+                self.assertIn("recordSharedRPCServerObservation(ctx, info.FullMethod, duration, result)", wrapper)
+                self.assertIn("sharedServerDuration.Record(ctx, duration.Seconds(), attrs)", otel)
+
+    def test_frontend_http_and_rpc_metrics_use_shared_completion_duration(self):
+        self.assertIn("recordSharedHTTPServerObservation(r.Context(), r.Method, route, result, duration)", self.frontend_wrapper)
+        self.assertIn("recordSharedRPCClientObservation(ctx, method, targetService(method), result, duration)", self.frontend_wrapper)
+        self.assertIn("otelHTTPDuration.Record(ctx, duration.Seconds(), opts)", self.frontend_otel)
+        self.assertIn("otelRPCClientDuration.Record(ctx, duration.Seconds(), opts)", self.frontend_otel)
+
+    def test_python_services_dispatch_same_interceptor_duration_to_otel(self):
+        for wrapper, otel in ((self.email_wrapper, self.email_otel),
+                              (self.recommendation_wrapper, self.recommendation_otel)):
+            with self.subTest(service="Python server observation"):
+                self.assertIn("_OTEL_OBSERVER(method, duration_seconds, context, result, \"server\")", wrapper)
+                self.assertIn("set_otel_observer(_telemetry.record_observation)", otel)
+                self.assertIn("record_observation(self, operation, duration_seconds", otel)
+        self.assertIn("_OTEL_OBSERVER(client_call_details.method, duration_seconds, None, result, \"client\")",
+                      self.recommendation_wrapper)
+
+    def test_adservice_shared_completion_records_otel_metric_and_conventional_metric(self):
+        self.assertIn("sharedRequests.add(1, attributes)", self.ad_wrapper)
+        self.assertIn("sharedDuration.record(durationSeconds, attributes)", self.ad_wrapper)
+        self.assertIn("if (!enabled) {\n      return;\n    }\n    Metric metric", self.ad_wrapper)
 
     def test_contract_makes_shared_event_identity_and_zero_delta_policy_explicit(self):
         event = self.contract["shared_application_event"]

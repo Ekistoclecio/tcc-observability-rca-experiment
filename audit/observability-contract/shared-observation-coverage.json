@@ -1,0 +1,380 @@
+{
+  "schema_version": "1.0",
+  "result": "PASS",
+  "fault_execution_allowed": true,
+  "service_count": 10,
+  "complete": 0,
+  "complete_with_na": 10,
+  "partial": 0,
+  "services": [
+    {
+      "service": "frontend",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "datastore": "No direct datastore access; datastore work is observed in cartservice.",
+        "application_events": "No service-specific error event is required by the current fault contract; request outcomes remain shared."
+      },
+      "evidence": [
+        "src/frontend/conventional.go",
+        "src/frontend/otel_telemetry.go",
+        "src/frontend/main.go"
+      ],
+      "source_markers": [
+        {
+          "path": "src/frontend/conventional.go",
+          "marker": "recordSharedHTTPServerObservation",
+          "found": true
+        },
+        {
+          "path": "src/frontend/conventional.go",
+          "marker": "recordSharedRPCClientObservation",
+          "found": true
+        },
+        {
+          "path": "src/frontend/otel_telemetry.go",
+          "marker": "otelHTTPDuration.Record(ctx, duration.Seconds(), opts)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "checkoutservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": true,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "datastore": "No direct datastore access; Redis is observed in cartservice."
+      },
+      "evidence": [
+        "src/checkoutservice/conventional.go",
+        "src/checkoutservice/otel_telemetry.go"
+      ],
+      "source_markers": [
+        {
+          "path": "src/checkoutservice/conventional.go",
+          "marker": "recordSharedRPCObservation(ctx",
+          "found": true
+        },
+        {
+          "path": "src/checkoutservice/otel_telemetry.go",
+          "marker": "sharedRPCClientDuration.Record(ctx, duration.Seconds(), options)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "cartservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": true,
+      "application_events": true,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client; Redis access is declared under DATASTORE."
+      },
+      "evidence": [
+        "src/cartservice/src/ConventionalTelemetry.cs",
+        "src/cartservice/src/Telemetry.cs",
+        "src/cartservice/src/cartstore/RedisCartStore.cs"
+      ],
+      "source_markers": [
+        {
+          "path": "src/cartservice/src/ConventionalTelemetry.cs",
+          "marker": "CartTelemetry.RecordRpcObservation",
+          "found": true
+        },
+        {
+          "path": "src/cartservice/src/cartstore/RedisCartStore.cs",
+          "marker": "CompleteRedisObservation",
+          "found": true
+        },
+        {
+          "path": "src/cartservice/src/Telemetry.cs",
+          "marker": "EmitApplicationEvent",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "productcatalogservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/productcatalogservice/conventional.go",
+        "src/productcatalogservice/otel_telemetry.go",
+        "src/productcatalogservice/server.go"
+      ],
+      "source_markers": [
+        {
+          "path": "src/productcatalogservice/conventional.go",
+          "marker": "recordSharedRPCServerObservation",
+          "found": true
+        },
+        {
+          "path": "src/productcatalogservice/otel_telemetry.go",
+          "marker": "sharedServerDuration.Record(ctx, duration.Seconds(), attrs)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "currencyservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/currencyservice/conventional-telemetry.js",
+        "src/currencyservice/otel-telemetry.js",
+        "src/currencyservice/server.js"
+      ],
+      "source_markers": [
+        {
+          "path": "src/currencyservice/conventional-telemetry.js",
+          "marker": "dispatchObservation",
+          "found": true
+        },
+        {
+          "path": "src/currencyservice/otel-telemetry.js",
+          "marker": "recordObservation",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "paymentservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": true,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access."
+      },
+      "evidence": [
+        "src/paymentservice/conventional-telemetry.js",
+        "src/paymentservice/otel-telemetry.js",
+        "src/paymentservice/server.js"
+      ],
+      "source_markers": [
+        {
+          "path": "src/paymentservice/conventional-telemetry.js",
+          "marker": "dispatchObservation",
+          "found": true
+        },
+        {
+          "path": "src/paymentservice/server.js",
+          "marker": "dispatchApplicationEvent",
+          "found": true
+        },
+        {
+          "path": "src/paymentservice/otel-telemetry.js",
+          "marker": "recordObservation",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "shippingservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/shippingservice/conventional.go",
+        "src/shippingservice/otel_telemetry.go",
+        "src/shippingservice/main.go"
+      ],
+      "source_markers": [
+        {
+          "path": "src/shippingservice/conventional.go",
+          "marker": "recordSharedRPCServerObservation",
+          "found": true
+        },
+        {
+          "path": "src/shippingservice/otel_telemetry.go",
+          "marker": "sharedServerDuration.Record(ctx, duration.Seconds(), attrs)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "emailservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/emailservice/conventional_telemetry.py",
+        "src/emailservice/otel_telemetry.py",
+        "src/emailservice/email_server.py"
+      ],
+      "source_markers": [
+        {
+          "path": "src/emailservice/conventional_telemetry.py",
+          "marker": "_OTEL_OBSERVER(method, duration_seconds, context, result, \"server\")",
+          "found": true
+        },
+        {
+          "path": "src/emailservice/otel_telemetry.py",
+          "marker": "set_otel_observer(_telemetry.record_observation)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "recommendationservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": true,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/recommendationservice/conventional_telemetry.py",
+        "src/recommendationservice/otel_telemetry.py",
+        "src/recommendationservice/recommendation_server.py"
+      ],
+      "source_markers": [
+        {
+          "path": "src/recommendationservice/conventional_telemetry.py",
+          "marker": "_OTEL_OBSERVER(client_call_details.method, duration_seconds, None, result, \"client\")",
+          "found": true
+        },
+        {
+          "path": "src/recommendationservice/otel_telemetry.py",
+          "marker": "set_otel_observer(_telemetry.record_observation)",
+          "found": true
+        }
+      ]
+    },
+    {
+      "service": "adservice",
+      "status": "COMPLETE_WITH_NA",
+      "server_request": true,
+      "client_downstream": false,
+      "datastore": false,
+      "application_events": false,
+      "request_count": true,
+      "request_duration": true,
+      "metric_adapters": [
+        "conventional",
+        "opentelemetry"
+      ],
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/adservice/src/main/java/hipstershop/ConventionalTelemetry.java",
+        "src/adservice/build.gradle",
+        "src/adservice/src/main/java/hipstershop/AdService.java"
+      ],
+      "source_markers": [
+        {
+          "path": "src/adservice/src/main/java/hipstershop/ConventionalTelemetry.java",
+          "marker": "sharedRequests.add(1, attributes)",
+          "found": true
+        },
+        {
+          "path": "src/adservice/src/main/java/hipstershop/ConventionalTelemetry.java",
+          "marker": "sharedDuration.record(durationSeconds, attributes)",
+          "found": true
+        }
+      ]
+    }
+  ],
+  "issues": [],
+  "source_parity_of_existing_raw": "NOT_APPLICABLE_OLD_INSTRUMENTATION"
+}

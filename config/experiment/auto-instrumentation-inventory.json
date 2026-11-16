@@ -4,57 +4,89 @@
   "items": [
     {
       "runtime": "Node.js",
-      "services": ["paymentservice", "currencyservice"],
-      "instrumentation": ["@opentelemetry/instrumentation-grpc", "@opentelemetry/instrumentation-pino"],
+      "services": [
+        "paymentservice",
+        "currencyservice"
+      ],
+      "instrumentation": [
+        "@opentelemetry/instrumentation-grpc",
+        "@opentelemetry/instrumentation-pino"
+      ],
       "classification": {
         "grpc server spans": "REQUIRED_BY_SHARED_CONTRACT",
         "shared RPC metric adapter": "REQUIRED_BY_SHARED_CONTRACT",
         "Pino export": "RAW_AUDIT_ONLY"
       },
-      "notes": "Application RPC duration/outcome is measured by the shared outer handler wrapper; OTel records the supplied observation. Payment application errors use the shared explicit event adapter."
+      "notes": "paymentservice and currencyservice use one server completion wrapper to compute duration/outcome and dispatch to conventional and OTel metric adapters. Payment shared application errors use the same event object."
     },
     {
       "runtime": ".NET",
-      "services": ["cartservice"],
-      "instrumentation": ["AspNetCore instrumentation", "runtime instrumentation", "CartTelemetry ActivitySource/Meter"],
+      "services": [
+        "cartservice"
+      ],
+      "instrumentation": [
+        "AspNetCore instrumentation",
+        "runtime instrumentation",
+        "CartTelemetry ActivitySource/Meter"
+      ],
       "classification": {
         "ASP.NET gRPC server span": "REQUIRED_BY_SHARED_CONTRACT",
         "CartTelemetry datastore ActivitySource": "REQUIRED_BY_SHARED_CONTRACT",
         "CartTelemetry shared RPC and datastore metrics": "REQUIRED_BY_SHARED_CONTRACT",
         "runtime metrics": "RAW_AUDIT_ONLY"
       },
-      "notes": "RPC and Redis operation durations/outcomes are computed once in the application interceptor/operation and supplied to the conventional and OTel metric/span adapters."
+      "notes": "CartService server RPC and Redis datastore completions supply the same measured duration/outcome to conventional and OTel adapters. Shared datastore errors are routed through both log adapters."
     },
     {
       "runtime": "Go",
-      "services": ["checkoutservice", "frontend", "productcatalogservice", "shippingservice"],
-      "instrumentation": ["otelgrpc server/client handlers", "conventional gRPC interceptors", "otelhttp where configured"],
+      "services": [
+        "checkoutservice",
+        "frontend",
+        "productcatalogservice",
+        "shippingservice"
+      ],
+      "instrumentation": [
+        "otelgrpc server/client handlers",
+        "conventional gRPC interceptors",
+        "otelhttp where configured"
+      ],
       "classification": {
         "gRPC/HTTP operation spans": "REQUIRED_BY_SHARED_CONTRACT",
         "automatic runtime/library metrics": "RAW_AUDIT_ONLY"
       },
-      "notes": "checkoutservice gRPC server/client interceptors now compute shared RPC duration/outcome and feed the OTel metric adapter; the client emits one shared downstream failure event. Other Go services still use separate conventional interceptors and OTel framework metrics without a shared completion object."
+      "notes": "frontend HTTP/RPC client, checkoutservice RPC server/client, productcatalogservice server, and shippingservice server completion paths supply one duration/outcome to the shared adapters. Automatic OTel instrumentation is retained for context/spans; common metrics select the explicit tcc.otel shared measurements."
     },
     {
       "runtime": "Python",
-      "services": ["emailservice", "recommendationservice"],
-      "instrumentation": ["opentelemetry-instrumentation-grpc", "conventional gRPC interceptors"],
+      "services": [
+        "emailservice",
+        "recommendationservice"
+      ],
+      "instrumentation": [
+        "opentelemetry-instrumentation-grpc",
+        "conventional gRPC interceptors"
+      ],
       "classification": {
         "gRPC operation spans": "REQUIRED_BY_SHARED_CONTRACT",
         "runtime/library diagnostics": "RAW_AUDIT_ONLY"
       },
-      "notes": "The current code paths use separate conventional and OTel wrappers; a shared completion observation is not yet wired."
+      "notes": "emailservice and recommendationservice gRPC interceptors own the shared server/client completion boundary and call the OTel observer with that exact duration/outcome. Decorator timers no longer independently emit common request metrics."
     },
     {
       "runtime": "Java",
-      "services": ["adservice"],
-      "instrumentation": ["OpenTelemetry Java agent", "ConventionalTelemetry ServerInterceptor"],
+      "services": [
+        "adservice"
+      ],
+      "instrumentation": [
+        "OpenTelemetry Java agent",
+        "ConventionalTelemetry ServerInterceptor"
+      ],
       "classification": {
         "gRPC operation spans": "REQUIRED_BY_SHARED_CONTRACT",
         "automatic runtime/library diagnostics": "RAW_AUDIT_ONLY"
       },
-      "notes": "The Java agent and conventional interceptor currently observe the RPC independently; a shared completion observation is not yet wired."
+      "notes": "adservice ConventionalTelemetry owns the gRPC completion boundary. It sends the same duration/outcome to conventional metrics/spans when A is enabled and to the OTel metric adapter; the Java agent supplies native B context/spans."
     }
   ],
-  "readiness": "PARTIAL: paymentservice, currencyservice, checkoutservice, and cartservice fault-relevant paths are wired to shared observations. Other Go services, Python services, and Java adservice still need shared completion adapters before claiming system-wide adoption."
+  "readiness": "STATIC_COMPLETE_PHYSICAL_SOURCE_PARITY_PENDING: ten application services have explicit adapter paths or justified N/A coverage; old RAW is not a source-parity gate. Fresh F4/F5 must validate the new paths before the integrated F1-F5 battery."
 }

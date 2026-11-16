@@ -1,15 +1,40 @@
 # Shared Observation Contract
 
-The experiment intends to hold diagnostic facts constant while varying telemetry representation, context propagation, and cross-signal correlation. Both variants should receive one logical observation from the application boundary; conventional and OpenTelemetry adapters then encode it independently.
+## Objetivo
 
-## Model-visible source policy
+O contrato define pontos semânticos comuns para os dez serviços de aplicação do Online Boutique. Cada completion mede uma operação uma vez e encaminha a mesma duração e o mesmo outcome aos adapters habilitados. O cenário A continua convencional e mantém propagação própria; o cenário B continua usando OpenTelemetry e contexto W3C.
 
-The Common RCA View includes logs only when they are explicitly marked as a Shared Application Event and have an allowlisted `event_name` plus diagnostic severity. Arbitrary stdout, application informational logs, framework/runtime logs, and unmarked errors stay in RAW and are `RAW_AUDIT_ONLY`. Event identity is `service`, canonical severity, `event_name`, `operation`, `outcome`, and `error_type`; rendered message and correlation IDs are not identity fields. The internal `observation_event` marker is removed before model-visible serialization.
+```text
+operation completion
+        ├── adapter convencional (A)
+        └── adapter OpenTelemetry (B)
+```
 
-Metrics are restricted to approved shared semantic concepts. Automatic OTel runtime/library metrics remain RAW-only. A cumulative counter or histogram count with a valid baseline and zero delta is omitted; a missing baseline remains unknown and is never changed to zero. Gauges are not subject to zero-delta omission.
+A variável experimental continua sendo estrutura, padronização, propagação de contexto e correlação entre sinais. O Builder normaliza e compacta os dados; ele não escolhe fatos para fazer A e B parecerem equivalentes.
 
-Logical traces preserve SERVER, CLIENT, and DATASTORE boundaries. B may retain OTel/W3C correlation fields; A does not receive synthetic OTel identifiers.
+## Observation points
 
-## Current static coverage
+| Conceito | Campos do completion | Aplicação |
+|---|---|---|
+| `REQUEST` | service, operation, duration, outcome | Operação recebida por um serviço |
+| `DOWNSTREAM_CALL` | source, target, operation, duration, outcome | Chamada RPC cliente |
+| `DATASTORE_OPERATION` | service, datastore, operation, duration, outcome | Operação de `cartservice` em `redis-cart` |
+| `APPLICATION_EVENT` | event_name, service, severity, operation, outcome e erro opcional | Erro de cobrança e erro de datastore compartilhados |
 
-See [shared observation coverage audit](../../audit/observability-contract/shared-observation-coverage.md) and the machine-readable `service_coverage` in `config/experiment/observation-contract.json`. Several services remain partial, so no new physical validation should run until paired source observations are implemented and tested for all relevant services.
+Os serviços sem uma modalidade recebem `N/A` e justificativa na matriz [shared-observation-coverage.json](../../config/experiment/observation-contract.json). `loadgenerator` não faz parte da telemetria RCA; `redis-cart` é observado pelo adapter de `cartservice`.
+
+## Adapters e tratamento
+
+O adapter A usa métricas convencionais, stdout/logging tradicional, spans customizados e `x-tcc-trace-id`/`x-tcc-span-id`. O adapter B usa instrumentos e APIs OTel, instrumentação gRPC/HTTP e W3C Trace Context. IDs são independentes. B pode carregar `trace_id`/`span_id` em logs; A não recebe correlação sintética.
+
+Eventos de aplicação têm `event_name` estável e marcador técnico interno. O marcador não é model-visible. Mensagem renderizada não é identidade factual. Logs legados, runtime, framework e SDK permanecem no RAW e não viram eventos RCA implicitamente.
+
+## Métricas e sinais automáticos
+
+Os conceitos model-visible aprovados são `request_count`, `request_duration` e `cpu_utilization`. As medições RPC/HTTP e datastore vêm dos boundaries declarados; métricas OTel automáticas duplicadas permanecem audit-only. A utilização de CPU usa a mesma fonte cAdvisor nas consultas Prometheus A e B.
+
+Counters/histogram counts com baseline válido e delta zero são omitidos simetricamente. `missing_baseline` permanece desconhecido e nunca vira zero. Métricas RAW, famílias nativas, SDK metadata e spans automáticos não são apagados.
+
+## Validação
+
+A auditoria estática lista paths de código e `N/A` por serviço. Ela não substitui a source-parity validation de execuções novas. RAW F4/F5 anterior foi produzido antes dos markers atuais e não é gate de source parity. A próxima ação permitida é uma smoke física F4/F5 somente quando a suíte aprovada e a auditoria estática estiverem completas; a bateria F1–F5 depende do resultado dessa smoke. Nenhuma fault foi executada por este documento.

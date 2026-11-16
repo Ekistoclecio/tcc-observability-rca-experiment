@@ -187,20 +187,37 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "datastore": "No direct datastore access; datastore work is observed in cartservice.",
+        "application_events": "No service-specific error event is required by the current fault contract; request outcomes remain shared."
+      },
+      "evidence": [
+        "src/frontend/conventional.go",
+        "src/frontend/otel_telemetry.go",
+        "src/frontend/main.go"
+      ]
     },
     "checkoutservice": {
       "server_request": true,
       "client_downstream": true,
       "datastore": false,
-      "application_events": false,
+      "application_events": true,
       "shared_metric_adapters": [
         "conventional",
         "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "datastore": "No direct datastore access; Redis is observed in cartservice."
+      },
+      "evidence": [
+        "src/checkoutservice/conventional.go",
+        "src/checkoutservice/otel_telemetry.go"
+      ]
     },
     "cartservice": {
       "server_request": true,
@@ -211,7 +228,15 @@
         "conventional",
         "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client; Redis access is declared under DATASTORE."
+      },
+      "evidence": [
+        "src/cartservice/src/ConventionalTelemetry.cs",
+        "src/cartservice/src/Telemetry.cs",
+        "src/cartservice/src/cartstore/RedisCartStore.cs"
+      ]
     },
     "productcatalogservice": {
       "server_request": true,
@@ -219,9 +244,20 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/productcatalogservice/conventional.go",
+        "src/productcatalogservice/otel_telemetry.go",
+        "src/productcatalogservice/server.go"
+      ]
     },
     "currencyservice": {
       "server_request": true,
@@ -232,7 +268,17 @@
         "conventional",
         "opentelemetry"
       ],
-      "status": "implemented"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/currencyservice/conventional-telemetry.js",
+        "src/currencyservice/otel-telemetry.js",
+        "src/currencyservice/server.js"
+      ]
     },
     "paymentservice": {
       "server_request": true,
@@ -243,7 +289,16 @@
         "conventional",
         "opentelemetry"
       ],
-      "status": "implemented"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access."
+      },
+      "evidence": [
+        "src/paymentservice/conventional-telemetry.js",
+        "src/paymentservice/otel-telemetry.js",
+        "src/paymentservice/server.js"
+      ]
     },
     "shippingservice": {
       "server_request": true,
@@ -251,9 +306,20 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/shippingservice/conventional.go",
+        "src/shippingservice/otel_telemetry.go",
+        "src/shippingservice/main.go"
+      ]
     },
     "emailservice": {
       "server_request": true,
@@ -261,9 +327,20 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/emailservice/conventional_telemetry.py",
+        "src/emailservice/otel_telemetry.py",
+        "src/emailservice/email_server.py"
+      ]
     },
     "recommendationservice": {
       "server_request": true,
@@ -271,9 +348,19 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/recommendationservice/conventional_telemetry.py",
+        "src/recommendationservice/otel_telemetry.py",
+        "src/recommendationservice/recommendation_server.py"
+      ]
     },
     "adservice": {
       "server_request": true,
@@ -281,12 +368,23 @@
       "datastore": false,
       "application_events": false,
       "shared_metric_adapters": [
-        "conventional"
+        "conventional",
+        "opentelemetry"
       ],
-      "status": "partial"
+      "status": "COMPLETE_WITH_NA",
+      "na_reasons": {
+        "client_downstream": "No application RPC client.",
+        "datastore": "No direct datastore access.",
+        "application_events": "No service-specific application event is required by the fault contract."
+      },
+      "evidence": [
+        "src/adservice/src/main/java/hipstershop/ConventionalTelemetry.java",
+        "src/adservice/build.gradle",
+        "src/adservice/src/main/java/hipstershop/AdService.java"
+      ]
     }
   },
-  "coverage_status": "partial",
+  "coverage_status": "complete",
   "fault_observation_coverage": {
     "cpu_saturation": {
       "required": [
@@ -327,5 +425,6 @@
       "source_status": "partial",
       "reason": "Cart shared event adapter was changed; paired source observations and current run remain unvalidated."
     }
-  }
+  },
+  "coverage_version": "shared-observation-v1-final-static-review"
 }
