@@ -128,3 +128,7 @@ Validação pre-commit em `2026-11-16`, sem fault: a imagem `tcc-experiment-v2/f
 A consulta observou também `GET /_healthz` em B, enquanto o middleware convencional A exclui esse endpoint. O Dataset o classifica como health check RAW-only; nenhum conteúdo causal é removido.
 
 Esta validação corrige a implementação e a cobertura do Scenario B, mas não substitui uma nova coleta RAW nem as novas validações semânticas F4/F5 após mudança de instrumentação. A coleta histórica anterior à correção permanece válida para os sinais que já registrava, mas não prova cobertura de `http.route` no frontend B.
+
+## Erratum — severidade do erro de `paymentservice/Charge`
+
+A nova validação F4 observou que o call site natural registrava a exceção `Payment charge failed` como `WARN`, embora o desenho v2 exija `paymentservice / Charge / ERROR`. O evento e a exceção eram reais e iguais nos dois cenários; a severidade de origem estava incorreta. O call site foi alterado de `logger.warn` para `logger.error`, sem adicionar uma segunda chamada ou evento. A validação semântica agora exige `ERROR`. A evidência de runtime criada antes desta correção não comprova a severidade final; um build rastreável e uma nova smoke F4 são necessários.

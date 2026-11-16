@@ -48,7 +48,7 @@ class HipsterShopServer {
       const response = charge(call.request);
       callback(null, response);
     } catch (err) {
-      logger.warn({ err }, 'Payment charge failed');
+      logger.error({ err }, 'Payment charge failed');
       callback(err);
     }
   }
