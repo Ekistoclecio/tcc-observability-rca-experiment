@@ -570,7 +570,6 @@ def main() -> int:
         require_sut_ready()
         port_forward = start_port_forward(args.frontend_port)
         report["normal_precondition_probe"] = run_workload(None, args.frontend_port)
-        requested = time.monotonic()
         record = GroundTruth.request(
             f"{args.fault}-stage4-smoke",
             fault_definition["fault_type"],
@@ -584,8 +583,12 @@ def main() -> int:
             utc_now(), confirmation["control_plane_check"], confirmation["evidence"]
         )
         report["control_plane"]["injection"] = confirmation
+        # Measure the configured active period from confirmed injection, not
+        # from the earlier request. This keeps the Ground Truth window long
+        # enough for downstream observations even when injection setup is slow.
+        confirmed_active_started = time.monotonic()
         report["active_probe"] = run_workload(args.fault, args.frontend_port)
-        remaining = args.active_seconds - (time.monotonic() - requested)
+        remaining = args.active_seconds - (time.monotonic() - confirmed_active_started)
         if remaining > 0:
             time.sleep(remaining)
         recovery = recover(args.fault, state)

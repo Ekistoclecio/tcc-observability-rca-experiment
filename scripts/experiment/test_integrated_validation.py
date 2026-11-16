@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from run_integrated_validation import (
     IntegratedRunError,
@@ -32,6 +33,15 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_integrated_runner_rejects_fault_windows_shorter_than_scrape_gate(self):
+        from run_integrated_validation import main
+
+        with patch("sys.argv", ["run_integrated_validation.py", "--output-dir", "/tmp/not-used",
+                                "--active-seconds", "14"]):
+            with self.assertRaises(SystemExit) as raised:
+                main()
+        self.assertEqual(raised.exception.code, 2)
+
     def test_fault_runner_package_entrypoint_imports_without_running_faults(self):
         result = run([sys.executable, "-m", "scripts.experiment.fault_smoke", "--help"], check=False)
         self.assertEqual(result.returncode, 0, result.stderr)

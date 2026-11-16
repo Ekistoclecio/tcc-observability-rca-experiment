@@ -38,6 +38,11 @@ FAULTS = {
     "F4": ("application_exception", "paymentservice/Charge", "operation"),
     "F5": ("datastore_unavailable", "redis-cart", "datastore"),
 }
+PROMETHEUS_CADVISOR_SCRAPE_SECONDS = 5.0
+# A 15-second confirmed fault window spans at least three configured 5-second
+# cAdvisor scrape periods, allowing temporal counter processing to observe a
+# real delta without changing the fault mechanism.
+MIN_FAULT_ACTIVE_SECONDS = 15.0
 
 
 class IntegratedRunError(RuntimeError):
@@ -690,7 +695,7 @@ def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> 
             "hash_list_sha256": hashlib.sha256((output / "hashes.sha256").read_bytes()).hexdigest()}
 
 
-def execute(output: Path, active_seconds: float = 5.0) -> dict[str, Any]:
+def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> dict[str, Any]:
     branch, commit, status = git_state()
     if status.strip():
         raise IntegratedRunError(f"working tree must be clean before battery:\n{status}")
@@ -837,10 +842,11 @@ def execute(output: Path, active_seconds: float = 5.0) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--active-seconds", type=float, default=5.0)
+    parser.add_argument("--active-seconds", type=float, default=MIN_FAULT_ACTIVE_SECONDS)
     args = parser.parse_args()
-    if args.active_seconds < 5:
-        parser.error("active-seconds must be at least five")
+    if args.active_seconds < MIN_FAULT_ACTIVE_SECONDS:
+        parser.error(f"active-seconds must be at least {MIN_FAULT_ACTIVE_SECONDS:g}; "
+                     f"cAdvisor scrape interval is {PROMETHEUS_CADVISOR_SCRAPE_SECONDS:g}s")
     try:
         result = execute(args.output_dir.resolve(), args.active_seconds)
     except (IntegratedRunError, OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:

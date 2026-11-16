@@ -1,40 +1,52 @@
 {
-  "stage": "12-integrated-validation",
-  "attempt_status": "INVALIDATED_BEFORE_FAULT_CONFIRMATION",
-  "last_successful_commit": "e7305f6ad0d22433311b162fd37fb0cdda1cd738",
-  "branch": "experiment-v2",
-  "observed": {
-    "normal_workload": "PASS",
-    "normal_raw_collection": "PASS",
-    "fault_invoked": "F1",
-    "fault_subprocess_returned_json": false,
-    "subprocess_stdout": "empty",
-    "preserved_f1_ground_truth_record": false,
-    "f2_to_f5_started": false,
-    "post_failure_chaos_resources": 0,
-    "post_failure_sut_ready": "11/11"
-  },
-  "expected": "The F1 runner should start, record control-plane Ground Truth, complete injection and recovery, and return JSON before the integrated battery continues.",
-  "first_divergence": "Python subprocess invocation of scripts.experiment.fault_smoke before its main function",
-  "root_cause_status": "PROVEN",
-  "root_cause": "Direct file invocation sets the script directory as the import root, but fault_smoke.py imports scripts.experiment.ground_truth. Running python3 scripts/experiment/fault_smoke.py --help produced ModuleNotFoundError: No module named 'scripts' at line 17, before main or any fault action.",
-  "evidence": [
-    "Read-only help invocation produced the ModuleNotFoundError stack trace.",
-    "Preserved BLOCKED-12-artifacts/F1 directory contains no ground-truth.json or fault report.",
-    "Post-failure Kubernetes query showed no StressChaos or NetworkChaos resources and the SUT was 11/11 Ready."
-  ],
-  "affected_invariant": "Each fault in the frozen integrated run must complete and produce an auditable control-plane record before the run may continue.",
   "affected_files": [
+    "scripts/experiment/fault_smoke.py",
     "scripts/experiment/run_integrated_validation.py",
     "scripts/experiment/test_integrated_validation.py"
   ],
-  "scientific_impact": "The integrated battery is invalid and yields no F1-F5 experimental result. The normal workload/RAW are preserved only as evidence from this failed attempt.",
-  "safe_automatic_correction_possible": true,
-  "recommended_correction": "Invoke the child as python -m scripts.experiment.fault_smoke from the repository root and include subprocess return code/stdout/stderr in JSON parse failures.",
-  "alternative": "Set an explicit repository-root PYTHONPATH while invoking the script path; module invocation is simpler and matches the package import.",
+  "affected_invariant": "F1 RAW/Dataset must expose checkoutservice CPU saturation and request degradation during a confirmed fault window.",
+  "alternative": "Change both Prometheus scrape intervals and redeploy the observability stack; this changes more infrastructure and is unnecessary for the proven timing mismatch.",
+  "branch": "experiment-v2",
+  "evidence": {
+    "chaos_mesh": "Selected and AllInjected true for checkoutservice-568b456645-gbxfs/server; Chaos Daemon recorded stress-ng start at 20:51:35.796Z and kill at 20:51:40.302Z",
+    "confirmed_end": "2026-11-16T20:51:40.492123Z",
+    "confirmed_start": "2026-11-16T20:51:36.926493Z",
+    "confirmed_window_seconds": 3.56563,
+    "dataset_cpu_cores": {
+      "A": 0.0,
+      "B": 0.0
+    },
+    "normal_baseline_cpu_cores": {
+      "A": 0.009623444444444443,
+      "B": 0.009623444444444443
+    },
+    "preserved_artifacts": "docs/experiment/reports/BLOCKED-12-artifacts-1794862330",
+    "prometheus_scrape_interval_seconds": 5,
+    "query_evaluation_step": "1s; repeated evaluation values do not imply new source scrapes",
+    "raw_cpu_counter": "A and B server-container and Pod-cgroup counter values were constant at all four evaluation points inside the confirmed window",
+    "recovery": "StressChaos resource absent; no residual Chaos resources; SUT 11/11 Ready"
+  },
+  "expected": "Confirmed F1 window long enough to include cAdvisor samples and reveal CPU counter delta in A and B.",
+  "faults_applied": [
+    "F1 (confirmed and recovered)"
+  ],
+  "faults_not_started": [
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "first_divergence": "F1 confirmed fault window to Prometheus cAdvisor sampling: the 3.56563-second window was shorter than the configured 5-second scrape interval.",
+  "last_successful_commit": "5ab52334b08d1ef1d93bf17c0dad9c5593c2b236",
+  "llm_invocations": 0,
+  "observed": "F1 AllInjected and stress-ng lifecycle were confirmed; confirmed Ground Truth window was 3.56563 seconds; CPU utilization was 0 in both Datasets versus 0.009623 cores normal baseline.",
   "physical_rerun_required": true,
-  "rerun_scope": "A complete new F1-F5 battery on a new committed revision with rebuilt and redeployed images; do not retry only F1 or combine runs.",
-  "preserved_evidence": "docs/experiment/reports/BLOCKED-12-artifacts/",
-  "working_tree_at_failure": "runner created blocker artifacts; no implementation edits occurred during the physical attempt",
-  "llm_invocations": 0
+  "recommended_correction": "Start active_seconds after injection confirmation and enforce 15 seconds for integrated faults; both Prometheus cAdvisor scrape intervals are configured at 5 seconds.",
+  "root_cause": "PROVEN",
+  "safe_automatic_correction_possible": true,
+  "scientific_impact": "The battery is invalid. F2-F5 were not started and this run cannot contribute results.",
+  "stage": "12-integrated-validation",
+  "status": "INVALIDATED_BLOCKED_F1",
+  "tested_commit": "5ab52334b08d1ef1d93bf17c0dad9c5593c2b236",
+  "working_tree": "local timing correction plus this blocker report and preserved evidence; no new battery has started"
 }
