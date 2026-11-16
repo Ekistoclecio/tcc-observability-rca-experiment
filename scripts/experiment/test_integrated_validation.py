@@ -9,6 +9,7 @@ from run_integrated_validation import (
     IntegratedRunError,
     dataset_evidence,
     fresh_prometheus_instances,
+    reserve_local_port,
     run,
     run_normal_baseline,
     validate_fault_facts,
@@ -35,6 +36,9 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_reserves_ephemeral_local_port_for_prometheus_forward(self):
+        self.assertGreater(reserve_local_port(), 0)
+
     def test_normal_measurement_starts_only_after_warmup_and_fresh_baseline(self):
         warmup = {
             "status": "PASS", "base_url": "http://127.0.0.1:18080",

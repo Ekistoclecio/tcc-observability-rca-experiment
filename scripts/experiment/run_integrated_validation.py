@@ -236,12 +236,6 @@ def run_normal_workload_with_forward(envvars: dict[str, str], env: dict[str, str
             process.stdout.close()
 
 
-def reserve_local_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
-        listener.bind(("127.0.0.1", 0))
-        return int(listener.getsockname()[1])
-
-
 def start_prometheus_forward(envvars: dict[str, str], env: dict[str, str], side: str
                              ) -> tuple[subprocess.Popen[str], Any, int]:
     namespace = f"observability-{side.lower()}"
