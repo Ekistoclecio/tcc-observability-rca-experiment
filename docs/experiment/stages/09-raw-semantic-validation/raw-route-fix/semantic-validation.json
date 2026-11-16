@@ -1,0 +1,923 @@
+{
+  "F4": {
+    "ground_truth": {
+      "execution_eligible": true,
+      "fault_type": "application_exception",
+      "path": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F4/control/ground-truth.json",
+      "root_location": {
+        "kind": "operation",
+        "value": "paymentservice/Charge"
+      },
+      "status": "RECOVERED",
+      "status_check": "PASS"
+    },
+    "scenarios": {
+      "A": {
+        "error_log_count": 1,
+        "error_span_count": 1,
+        "explicit_trace_correlation_present": false,
+        "log_span_correlation": true,
+        "severity": [
+          "warn"
+        ],
+        "severity_semantic": [
+          "WARN"
+        ],
+        "severity_semantics_valid": true
+      },
+      "B": {
+        "error_log_count": 1,
+        "error_span_count": 1,
+        "explicit_trace_correlation_present": true,
+        "log_span_correlation": true,
+        "severity": [
+          "warn"
+        ],
+        "severity_semantic": [
+          "WARN"
+        ],
+        "severity_semantics_valid": true
+      }
+    },
+    "window": {
+      "end": "2026-11-16T19:35:28.227495Z",
+      "manifest_window": {
+        "end": "2026-11-16T19:35:28.227495Z",
+        "start": "2026-11-16T19:35:16.458991Z"
+      },
+      "start": "2026-11-16T19:35:16.458991Z",
+      "status": "PASS"
+    }
+  },
+  "F5": {
+    "ground_truth": {
+      "execution_eligible": true,
+      "fault_type": "datastore_unavailable",
+      "path": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F5/control/ground-truth.json",
+      "root_location": {
+        "kind": "datastore",
+        "value": "redis-cart"
+      },
+      "status": "RECOVERED",
+      "status_check": "PASS"
+    },
+    "scenarios": {
+      "A": {
+        "error_span_count": 5,
+        "operations": [
+          "redis-cart GET",
+          "redis-cart GET/SET"
+        ]
+      },
+      "B": {
+        "error_span_count": 5,
+        "operations": [
+          "GET",
+          "GET SET"
+        ]
+      }
+    },
+    "window": {
+      "end": "2026-11-16T19:37:42.311540Z",
+      "manifest_window": {
+        "end": "2026-11-16T19:37:42.311540Z",
+        "start": "2026-11-16T19:37:06.566351Z"
+      },
+      "start": "2026-11-16T19:37:06.566351Z",
+      "status": "PASS"
+    }
+  },
+  "bundle_provenance": {
+    "F4": {
+      "application_image_source_fingerprint": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+      "collector_git_commit": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+      "collector_script_sha256": "eb4281495ea1d1330b075df5e9265a2eefddd583e8915a2ac949b8e0b16000ce",
+      "window": {
+        "end": "2026-11-16T19:35:28.227495Z",
+        "start": "2026-11-16T19:35:16.458991Z"
+      }
+    },
+    "F5": {
+      "application_image_source_fingerprint": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+      "collector_git_commit": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+      "collector_script_sha256": "eb4281495ea1d1330b075df5e9265a2eefddd583e8915a2ac949b8e0b16000ce",
+      "window": {
+        "end": "2026-11-16T19:37:42.311540Z",
+        "start": "2026-11-16T19:37:06.566351Z"
+      }
+    },
+    "normal": {
+      "application_image_source_fingerprint": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+      "collector_git_commit": "265aa6c",
+      "collector_script_sha256": "eb4281495ea1d1330b075df5e9265a2eefddd583e8915a2ac949b8e0b16000ce",
+      "window": {
+        "end": "2026-11-16T19:32:16.779890Z",
+        "start": "2026-11-16T19:32:11.511865Z"
+      }
+    }
+  },
+  "bundles": {
+    "F4": {
+      "files_verified": 46,
+      "hash_list_sha256": "0d8669ad21984d9fb4b53dfb817762a367759886100849eab46b5e8ffeced99f",
+      "manifest_sha256": "cd86c59ae651529d3c4c8ddaa8d8f15252a2b93c9fc71d39761d5e3e99762935",
+      "root": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F4-bundle",
+      "status": "PASS"
+    },
+    "F5": {
+      "files_verified": 46,
+      "hash_list_sha256": "c52d8e687d661fbdf4600299b82551fe385c64255d48c2e7d26b02bc57ad9ba6",
+      "manifest_sha256": "fd6c868621b3481b8c633a378c9cd5849119c43e0edfc1b09d15ab967afe4402",
+      "root": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F5-bundle",
+      "status": "PASS"
+    },
+    "normal": {
+      "files_verified": 46,
+      "hash_list_sha256": "2f63f3e02923b88ad51ce3de9c6542d29186c79b276e6fbeacf35c3e132893e2",
+      "manifest_sha256": "b5993b81203c989e1559712dd897be868dc704c3f58b69517a1c6285eab6cc10",
+      "root": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/08-raw-smoke/raw-route-fix",
+      "status": "PASS"
+    }
+  },
+  "check_count": 31,
+  "checks": [
+    {
+      "check": "normal.metrics.A.request_count",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "normal.metrics.A.request_duration",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "normal.metrics.A.cpu",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice",
+        "redis-cart"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "redis-cart",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.metrics.B.request_count",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.metrics.B.request_duration",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.metrics.B.cpu",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice",
+        "redis-cart"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "redis-cart",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.A.duplicate_span_snapshots_consistent",
+      "expected": [],
+      "observed": [],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.A.server_service_coverage",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.B.duplicate_span_snapshots_consistent",
+      "expected": [],
+      "observed": [],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.B.server_service_coverage",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "adservice",
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "emailservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice",
+        "shippingservice"
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.server_operation_signature_parity",
+      "expected": "same signatures",
+      "observed": {
+        "only_A": [],
+        "only_B": [
+          [
+            "adservice",
+            "health.v1.Health/Check"
+          ],
+          [
+            "shippingservice",
+            "health.v1.Health/Check"
+          ]
+        ]
+      },
+      "status": "FAIL"
+    },
+    {
+      "check": "normal.traces.client_operation_signature_parity",
+      "expected": "same signatures",
+      "observed": {
+        "only_A": [],
+        "only_B": []
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.checkout_to_payment_client_boundary",
+      "expected": "checkoutservice client operation PaymentService/Charge",
+      "observed": [
+        [
+          "checkoutservice",
+          "hipstershop.PaymentService/Charge"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "normal.traces.cart_to_redis_boundary",
+      "expected": "A and B cartservice client span to redis-cart",
+      "observed": true,
+      "status": "PASS"
+    },
+    {
+      "check": "normal.logs.natural_service_coverage_parity",
+      "expected": "same naturally observed service set; no success log required",
+      "observed": {
+        "A": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "recommendationservice",
+          "shippingservice"
+        ],
+        "B": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "recommendationservice",
+          "shippingservice"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "normal.logs.scenario_a_has_no_explicit_trace_fields",
+      "expected": false,
+      "observed": false,
+      "status": "PASS"
+    },
+    {
+      "check": "normal.logs.scenario_b_correlation_matches_real_spans",
+      "expected": "correlated IDs identify real B trace spans; uncorrelated logs remain allowed",
+      "observed": {
+        "correlated_records": 96,
+        "invalid": []
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "normal.logs.scenario_b_exact_duplicates",
+      "expected": [],
+      "observed": [],
+      "status": "PASS"
+    },
+    {
+      "check": "F4.ground_truth_independent_expected_location",
+      "expected": "application_exception at paymentservice/Charge, recovered and eligible",
+      "observed": {
+        "execution_eligible": true,
+        "fault_type": "application_exception",
+        "path": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F4/control/ground-truth.json",
+        "root_location": {
+          "kind": "operation",
+          "value": "paymentservice/Charge"
+        },
+        "status": "RECOVERED",
+        "status_check": "PASS"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F4.collection_window_matches_control_plane",
+      "expected": "RAW start/end equal confirmed_start/confirmed_end",
+      "observed": {
+        "end": "2026-11-16T19:35:28.227495Z",
+        "manifest_window": {
+          "end": "2026-11-16T19:35:28.227495Z",
+          "start": "2026-11-16T19:35:16.458991Z"
+        },
+        "start": "2026-11-16T19:35:16.458991Z",
+        "status": "PASS"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F4.A.payment_error_log_present",
+      "expected": "Payment charge failed application log",
+      "observed": {
+        "count": 1,
+        "severity": [
+          "warn"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F4.A.payment_charge_error_server_span",
+      "expected": "paymentservice server Charge span with error outcome",
+      "observed": [
+        {
+          "error": true,
+          "operation": "/hipstershop.PaymentService/Charge"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "F4.A.log_has_no_explicit_trace_correlation",
+      "expected": true,
+      "observed": true,
+      "status": "PASS"
+    },
+    {
+      "check": "F4.B.payment_error_log_present",
+      "expected": "Payment charge failed application log",
+      "observed": {
+        "count": 1,
+        "severity": [
+          "warn"
+        ]
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F4.B.payment_charge_error_server_span",
+      "expected": "paymentservice server Charge span with error outcome",
+      "observed": [
+        {
+          "error": true,
+          "operation": "grpc.hipstershop.PaymentService/Charge"
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "F4.B.log_correlation_matches_error_span",
+      "expected": "OTLP trace_id/span_id match paymentservice Charge error span",
+      "observed": true,
+      "status": "PASS"
+    },
+    {
+      "check": "F4.A_B.same_error_event_and_severity",
+      "expected": "same Payment charge failed error/warning fact",
+      "observed": {
+        "A": {
+          "count": 1,
+          "severity": [
+            "WARN"
+          ]
+        },
+        "B": {
+          "count": 1,
+          "severity": [
+            "WARN"
+          ]
+        }
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F5.ground_truth_independent_expected_location",
+      "expected": "datastore_unavailable at redis-cart, recovered and eligible",
+      "observed": {
+        "execution_eligible": true,
+        "fault_type": "datastore_unavailable",
+        "path": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F5/control/ground-truth.json",
+        "root_location": {
+          "kind": "datastore",
+          "value": "redis-cart"
+        },
+        "status": "RECOVERED",
+        "status_check": "PASS"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F5.collection_window_matches_control_plane",
+      "expected": "RAW start/end equal confirmed_start/confirmed_end",
+      "observed": {
+        "end": "2026-11-16T19:37:42.311540Z",
+        "manifest_window": {
+          "end": "2026-11-16T19:37:42.311540Z",
+          "start": "2026-11-16T19:37:06.566351Z"
+        },
+        "start": "2026-11-16T19:37:06.566351Z",
+        "status": "PASS"
+      },
+      "status": "PASS"
+    },
+    {
+      "check": "F5.A.cart_to_redis_error_span",
+      "expected": "cartservice CLIENT/DATASTORE span to redis-cart with error outcome",
+      "observed": [
+        {
+          "error_type": null,
+          "operation": "redis-cart GET",
+          "target": null
+        },
+        {
+          "error_type": null,
+          "operation": "redis-cart GET/SET",
+          "target": null
+        },
+        {
+          "error_type": null,
+          "operation": "redis-cart GET",
+          "target": null
+        },
+        {
+          "error_type": null,
+          "operation": "redis-cart GET",
+          "target": null
+        },
+        {
+          "error_type": null,
+          "operation": "redis-cart GET",
+          "target": null
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "check": "F5.B.cart_to_redis_error_span",
+      "expected": "cartservice CLIENT/DATASTORE span to redis-cart with error outcome",
+      "observed": [
+        {
+          "error_type": "StackExchange.Redis.RedisConnectionException",
+          "operation": "GET",
+          "target": "redis-cart"
+        },
+        {
+          "error_type": "StackExchange.Redis.RedisConnectionException",
+          "operation": "GET SET",
+          "target": "redis-cart"
+        },
+        {
+          "error_type": "StackExchange.Redis.RedisConnectionException",
+          "operation": "GET",
+          "target": "redis-cart"
+        },
+        {
+          "error_type": "StackExchange.Redis.RedisConnectionException",
+          "operation": "GET",
+          "target": "redis-cart"
+        },
+        {
+          "error_type": "StackExchange.Redis.RedisConnectionException",
+          "operation": "GET",
+          "target": "redis-cart"
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "f4_raw": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F4-bundle",
+  "f5_raw": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/09-raw-semantic-validation/raw-route-fix/F5-bundle",
+  "failed_checks": [
+    {
+      "check": "normal.metrics.A.request_count",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "normal.metrics.A.request_duration",
+      "expected": [
+        "frontend",
+        "checkoutservice",
+        "cartservice",
+        "productcatalogservice",
+        "currencyservice",
+        "paymentservice",
+        "shippingservice",
+        "emailservice",
+        "recommendationservice",
+        "adservice"
+      ],
+      "observed": [
+        "cartservice",
+        "checkoutservice",
+        "currencyservice",
+        "frontend",
+        "paymentservice",
+        "productcatalogservice",
+        "recommendationservice"
+      ],
+      "status": "FAIL"
+    },
+    {
+      "check": "normal.traces.server_operation_signature_parity",
+      "expected": "same signatures",
+      "observed": {
+        "only_A": [],
+        "only_B": [
+          [
+            "adservice",
+            "health.v1.Health/Check"
+          ],
+          [
+            "shippingservice",
+            "health.v1.Health/Check"
+          ]
+        ]
+      },
+      "status": "FAIL"
+    }
+  ],
+  "format": "tcc-experiment-v2-raw-semantic-validation-v1",
+  "normal_operation": {
+    "logs": {
+      "natural_service_coverage": {
+        "A": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "recommendationservice",
+          "shippingservice"
+        ],
+        "B": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "recommendationservice",
+          "shippingservice"
+        ]
+      },
+      "record_counts": {
+        "A": 154,
+        "B": 138
+      },
+      "scenario_b_correlated_records": 96,
+      "scenario_b_exact_duplicates": []
+    },
+    "metrics": {
+      "A": {
+        "cpu_sut_and_datastore_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "redis-cart",
+          "shippingservice"
+        ],
+        "cpu_sut_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "shippingservice"
+        ],
+        "metric_series": 180,
+        "request_count_services": [
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice"
+        ],
+        "request_duration_services": [
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice"
+        ]
+      },
+      "B": {
+        "cpu_sut_and_datastore_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "redis-cart",
+          "shippingservice"
+        ],
+        "cpu_sut_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "shippingservice"
+        ],
+        "metric_series": 1695,
+        "request_count_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "shippingservice"
+        ],
+        "request_duration_services": [
+          "adservice",
+          "cartservice",
+          "checkoutservice",
+          "currencyservice",
+          "emailservice",
+          "frontend",
+          "paymentservice",
+          "productcatalogservice",
+          "recommendationservice",
+          "shippingservice"
+        ]
+      }
+    },
+    "raw_only_trace_signatures_b": [
+      [
+        "adservice",
+        "GET /metrics"
+      ],
+      [
+        "adservice",
+        "POST"
+      ],
+      [
+        "currencyservice",
+        "grpc.grpc.health.v1.Health/Check"
+      ],
+      [
+        "emailservice",
+        "/grpc.health.v1.Health/Check"
+      ],
+      [
+        "recommendationservice",
+        "/grpc.health.v1.Health/Check"
+      ]
+    ],
+    "span_signatures": {
+      "client": {
+        "A": 22,
+        "B": 22,
+        "parity": true
+      },
+      "server": {
+        "A": 19,
+        "B": 21,
+        "parity": false
+      }
+    },
+    "trace_conflicts": {
+      "A": [],
+      "B": []
+    },
+    "trace_counts_unique": {
+      "A": 310,
+      "B": 323
+    }
+  },
+  "normal_raw": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/stages/08-raw-smoke/raw-route-fix",
+  "status": "FAIL"
+}

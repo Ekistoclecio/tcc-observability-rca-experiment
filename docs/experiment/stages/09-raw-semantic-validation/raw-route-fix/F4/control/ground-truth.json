@@ -1,0 +1,25 @@
+{
+  "confirmed_end": "2026-11-16T19:35:28.227495Z",
+  "confirmed_start": "2026-11-16T19:35:16.458991Z",
+  "execution_eligible": true,
+  "fault_id": "F4-stage4-smoke",
+  "fault_type": "application_exception",
+  "ineligibility_reason": null,
+  "injection_confirmation": {
+    "control_plane_check": "F4 flag exists in each Ready paymentservice Pod",
+    "evidence": "{\"paymentservice-788bc54994-l7vlh\": true}",
+    "observed_at": "2026-11-16T19:35:16.458991Z"
+  },
+  "recovery_confirmation": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"flags_absent_by_pod\": {\"paymentservice-788bc54994-l7vlh\": false}, \"pods_unchanged\": {\"paymentservice-788bc54994-l7vlh\": {\"restarts\": 0, \"uid\": \"106b201b-1f44-4516-8782-6c64af784562\"}}}",
+    "observed_at": "2026-11-16T19:35:28.227495Z"
+  },
+  "requested_start": "2026-11-16T19:35:15.558370Z",
+  "root_location": {
+    "kind": "operation",
+    "value": "paymentservice/Charge"
+  },
+  "schema_version": "1.0",
+  "status": "RECOVERED"
+}

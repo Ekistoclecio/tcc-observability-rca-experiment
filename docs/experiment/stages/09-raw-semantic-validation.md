@@ -64,3 +64,21 @@ Ground Truth independente define `redis-cart`, status recuperado/elegível; a ja
 | Diferenças críticas de cobertura sem explicação | NONE |
 
 **Gate da Etapa 9: PASS.** A construção do Dataset começa na Etapa 10, usando apenas os bundles corrigidos indicados aqui. O stack do fault hook deve ser removido da projeção model-visible de forma simétrica; nenhum dado RAW pode ser editado. A política operacional continua exigindo somente um cluster Kind relevante ativo.
+
+## Revalidação final após correções de Stage 7
+
+O PASS acima registra a primeira validação semântica, mas seus bundles foram gerados antes das correções posteriores de rota HTTP do `frontend` B e de severidade de `paymentservice/Charge`. Eles permanecem inalterados como histórico e não são a base final do Dataset. A fonte de verdade desta revalidação é o JSON [`09-raw-semantic-validation.json`](09-raw-semantic-validation/09-raw-semantic-validation.json) junto dos novos bundles abaixo, todos coletados com imagens do commit `b790b6639532cedef93e357149ad96b204ab9ec0`, com 10/10 provenance:
+
+| Execução | Bundle final | Janela de observação | Séries A/B | Logs A/B |
+|---|---|---|---:|---:|
+| Normal | [`08-raw-smoke/raw-b790b663`](08-raw-smoke/raw-b790b663/) | `19:50:21.229951Z–19:50:45.780388Z` (workload encerrou às `19:50:25.780388Z`; janela inclui scrape/drain) | 247 / 2.786 | 170 / 149 |
+| F4 | [`raw-b790b663/F4-bundle`](09-raw-semantic-validation/raw-b790b663/F4-bundle/) | `19:51:54.440771Z–19:52:08.833906Z` | 262 / 2.786 | 73 / 64 |
+| F5 | [`raw-b790b663/F5-bundle`](09-raw-semantic-validation/raw-b790b663/F5-bundle/) | `19:53:21.519026Z–19:53:57.742762Z` | 287 / 2.781 | 90 / 48 |
+
+As janelas F4/F5 coincidem exatamente com o `confirmed_start`/`confirmed_end` independente, e os dois control records terminam em `RECOVERED`/elegível. O F4 final contém um log natural `Payment charge failed` com severidade `ERROR` em A e B. O log A não tem IDs de trace/span; os IDs do log B correspondem ao span real de erro `paymentservice/Charge` em Jaeger B. F5 contém cinco spans de erro `cartservice → redis-cart` por cenário.
+
+Durante a revalidação foram identificados dois problemas na verificação, não diferenças causais a esconder: (1) uma consulta limitada à janela de 5,3 segundos do workload encerrava antes de um scrape A de alguns serviços; a consulta histórica foi repetida com janela final após o tempo de drain, sem executar requests adicionais; (2) Jaeger B nomeia spans gRPC de health como `health.v1.Health/Check` e o frontend expõe `GET /_healthz`, formas nativas não reconhecidas pela regra preexistente de health RAW-only. A regra foi corrigida para excluir apenas esses limites de saúde da comparação de operações da aplicação. Os spans permanecem intactos no RAW. Os bundles finais passaram por integridade/read-only e as 31 verificações semânticas passaram. O arquivo JSON desta etapa foi atualizado para apontar exclusivamente para os bundles finais acima.
+
+Esta revalidação resolve também a divergência anterior entre `WARN` e o requisito de F4 `ERROR`: a alteração de origem está documentada no erratum da Etapa 7 e foi construída/deployada como commit rastreável antes da nova smoke. O stacktrace e a localização interna do fault continuam em RAW; a Etapa 10 mantém a regra de não expor caminho do hook no Dataset.
+
+Os bundles exploratórios `raw-route-fix*` foram preservados como registros imutáveis das consultas diagnósticas de 5,3 s, janela ampliada e janela com scrape posterior, além das smokes executadas em `8aa3a022`. Eles explicam a detecção do atraso de scrape e da forma nativa dos health spans. Não são a entrada normativa da Etapa 10; a validação final e os manifests atuais apontam para `raw-b790b663`.

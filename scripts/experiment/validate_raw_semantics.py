@@ -311,9 +311,12 @@ def is_raw_only_trace(span: dict[str, Any]) -> bool:
     tags = span["tags"]
     operation = span["operation"]
     path = tags.get("http.route") or tags.get("url.path")
+    normalized_operation = normalize_operation(operation).lstrip("/")
     if span["kind"] == "server" and (
         operation == "GET /metrics" or path == "/metrics"
-        or normalize_operation(operation).startswith("grpc.health.v1.Health/")
+        or normalized_operation.startswith("grpc.health.v1.Health/")
+        or normalized_operation.startswith("health.v1.Health/")
+        or path == "/_healthz"
     ):
         return True
     return (
@@ -542,7 +545,7 @@ def validate_f4(root: Path, gt_path: Path, checks: Checks) -> dict[str, Any]:
             )
         severity = [record["severity"] for record in payment_logs]
         equivalent_severity = bool(severity) and all(
-            severity_semantic(value) in {"WARN", "ERROR"} for value in severity
+            severity_semantic(value) == "ERROR" for value in severity
         )
         checks.add(f"F4.{side}.payment_error_log_present", bool(payment_logs),
                    {"count": len(payment_logs), "severity": severity}, "Payment charge failed application log")

@@ -1,0 +1,549 @@
+{
+  "application_image_source_fingerprint": "b790b6639532cedef93e357149ad96b204ab9ec0",
+  "collected_at": "2026-11-16T19:54:32.866331Z",
+  "collector_git_commit": "b790b6639532cedef93e357149ad96b204ab9ec0",
+  "collector_script_sha256": "eb4281495ea1d1330b075df5e9265a2eefddd583e8915a2ac949b8e0b16000ce",
+  "control_artifacts": [
+    {
+      "bytes": 20028,
+      "content_type": "application/json",
+      "kind": "workload-control-record",
+      "path": "control/workload.json",
+      "sha256": "197e869e2d10e1819d834d2e406a4f05d4466767c1b8c8541fa38106c2a7601f"
+    }
+  ],
+  "drain_seconds_before_queries": 20.0,
+  "format": "tcc-experiment-v2-raw-collection-v1",
+  "log_counts": {
+    "A": {
+      "adservice": 0,
+      "cartservice": 52,
+      "checkoutservice": 1,
+      "currencyservice": 3,
+      "emailservice": 0,
+      "frontend": 34,
+      "paymentservice": 0,
+      "productcatalogservice": 0,
+      "recommendationservice": 0,
+      "shippingservice": 0
+    },
+    "B": {
+      "adservice": 0,
+      "cartservice": 10,
+      "checkoutservice": 1,
+      "currencyservice": 3,
+      "emailservice": 0,
+      "frontend": 34,
+      "paymentservice": 0,
+      "productcatalogservice": 0,
+      "recommendationservice": 0,
+      "shippingservice": 0
+    }
+  },
+  "native_responses": [
+    {
+      "bytes": 349901,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/metrics.json",
+      "query_kind": "prometheus",
+      "request_url": "http://127.0.0.1:47205/api/v1/query_range?query=%7B__name__%3D~%22.%2B%22%7D&start=1794858801.519026&end=1794858837.742762&step=1s",
+      "sha256": "ce7c1fc27cb3c26f69495157cb11d4472186c48229868a57ed64541908e432de"
+    },
+    {
+      "bytes": 3335671,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/metrics.json",
+      "query_kind": "prometheus",
+      "request_url": "http://127.0.0.1:36319/api/v1/query_range?query=%7B__name__%3D~%22.%2B%22%7D&start=1794858801.519026&end=1794858837.742762&step=1s",
+      "sha256": "1f481a94630649a05857d39010b1f03511161fff482018dde7adabe6924faf27"
+    },
+    {
+      "bytes": 22204,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/frontend.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22frontend%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "694a0c46239cdd6aad6613fd1ccad237e087e155a258ec93b4726f62e8fb4941"
+    },
+    {
+      "bytes": 3147,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/checkoutservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22checkoutservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "b660e20180589558d47fef543a655b23f09807ec1e63321b6e9539d4665684d7"
+    },
+    {
+      "bytes": 13355,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/cartservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22cartservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "b2ddb6bb6d82c4b7821abf1a824784bb393b8bea92678f7f19d9651f507649e1"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/productcatalogservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22productcatalogservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "1eb40a38413ea8835007f975aac3a62635d91562d31e01a73c106cfc7f6a5042"
+    },
+    {
+      "bytes": 3595,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/currencyservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22currencyservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "75610692c9963ae5b4133d721784bdc1d70d1abe961403b4635d523c6cadffd7"
+    },
+    {
+      "bytes": 2676,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/paymentservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22paymentservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "99b7fefed9998ac41096c2e6c8ddd7560ae980356149916edf01aacd32da9464"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/shippingservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22shippingservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "32dfa0881d3b2955abf8d7cb8826623c0af8ca16f09b901bb9b9beadf5ee72a9"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/emailservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22emailservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "506dc2999b8ab0ebc7c3087a49fbed3824e8c6af556a0575a4abea1c03ee7546"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/recommendationservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22recommendationservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "71488accc94b13f92c22b13e393212d650883508679db33c976a4b24b0976390"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/logs/adservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45145/loki/api/v1/query_range?query=%7Bnamespace%3D%22online-boutique%22%2Cservice_name%3D%22adservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "4f7f34fce52b37976a48becb59b88ab82be270692de20dbfb1fd0b03731b0743"
+    },
+    {
+      "bytes": 24428,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/frontend.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22frontend%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "536f9f6b6672ec9f798654630421c59789e17ea62b1ce3c74552b56e6aba6c9d"
+    },
+    {
+      "bytes": 3085,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/checkoutservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22checkoutservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "bee81ea47c6aeaa1cd71a2fbc53b439f2d52013f4df1876e7620785f33d9ce4e"
+    },
+    {
+      "bytes": 16123,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/cartservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22cartservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "91691bdd54a39279fd98862f566b12d5590c8b9417dff28bf042c3713748ba61"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/productcatalogservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22productcatalogservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "5dec6f789e805391394d0d5a0bad9c44df7e2689fdaaae889c192746f799d311"
+    },
+    {
+      "bytes": 5156,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/currencyservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22currencyservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "ba073294bfe391e49d904d61478eb937bf8d1760403e715f81aa50ed040abcdd"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/paymentservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22paymentservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "c7842eea1d45f2e93951e23c78f2cc41c8139e9546b03c47e6abe8988f383912"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/shippingservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22shippingservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "de09aaa5ca3ae08338672e247ac4de85d41685fcdb6e05074395013f65cb08c8"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/emailservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22emailservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "5c20bcb0710957ceb75f61f4decb891b19e0905fd6ebb6f3513284939612030d"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/recommendationservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22recommendationservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "767196d70ff4cddd3a977dc6daa519e370f2aa517a9f03fc7f792cd6e677d0f4"
+    },
+    {
+      "bytes": 2677,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/logs/adservice.json",
+      "query_kind": "loki-logs-by-service",
+      "request_url": "http://127.0.0.1:45535/loki/api/v1/query_range?query=%7Bservice_name%3D%22adservice%22%7D&start=1794858801519025920&end=1794858837742761984&direction=forward&limit=5000",
+      "sha256": "8a7d3b7244aaa9781cb4f7acffbd435473191ae60d4dcc0edd09e48a8a93a641"
+    },
+    {
+      "bytes": 247,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/services.json",
+      "query_kind": "jaeger-service-discovery",
+      "request_url": "http://127.0.0.1:34947/api/services",
+      "sha256": "cec5fe8b3a13956ad34aee3f6b9762c389c2a3d8bac034d00cd5674dfa56560e"
+    },
+    {
+      "bytes": 16092,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/frontend.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=frontend&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "90bbe5b40f5a26c9c3661a8fa4008a195e89b115515b193eadd78cf51cc70601"
+    },
+    {
+      "bytes": 2903,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/checkoutservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=checkoutservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "d1e69f5031546b0d47dc09112c14a362a386df72121e149b997cc6f956a3cef9"
+    },
+    {
+      "bytes": 16092,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/cartservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=cartservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "aa94e5afadd07dc174cd318e1b0d55f08cfecb45126dadf7949af29405206ee9"
+    },
+    {
+      "bytes": 10326,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/productcatalogservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=productcatalogservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "e94d4715196bb78b4a33225a9f3fb0d116cf3cb2fa36a704939b4035cfef1f66"
+    },
+    {
+      "bytes": 10478,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/currencyservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=currencyservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "6195773f00853b7a4428648a9fcaef29e7626a13245c3cb3d7f63e67a999a2f2"
+    },
+    {
+      "bytes": 56,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/paymentservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=paymentservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "14109e31c59ef042cb4c29c6c5b7fa2bf590daeb118de2702ddae67451f637a3"
+    },
+    {
+      "bytes": 56,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/shippingservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=shippingservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "14109e31c59ef042cb4c29c6c5b7fa2bf590daeb118de2702ddae67451f637a3"
+    },
+    {
+      "bytes": 56,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/emailservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=emailservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "14109e31c59ef042cb4c29c6c5b7fa2bf590daeb118de2702ddae67451f637a3"
+    },
+    {
+      "bytes": 56,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/recommendationservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=recommendationservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "14109e31c59ef042cb4c29c6c5b7fa2bf590daeb118de2702ddae67451f637a3"
+    },
+    {
+      "bytes": 56,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetA/traces/adservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:34947/api/traces?service=adservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "14109e31c59ef042cb4c29c6c5b7fa2bf590daeb118de2702ddae67451f637a3"
+    },
+    {
+      "bytes": 324,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/services.json",
+      "query_kind": "jaeger-service-discovery",
+      "request_url": "http://127.0.0.1:37059/api/services",
+      "sha256": "bdd9254e374a49c78947f7891af1fe1cc71209df1d2af415a7ff646182625f00"
+    },
+    {
+      "bytes": 60541,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/frontend.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=frontend&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "8a829bb93dee3ef6493969b5ca489aa40db3723d204fed67f3a15fc9d78ff681"
+    },
+    {
+      "bytes": 17540,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/checkoutservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=checkoutservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "6e6ed648fe907cbfa0e9660a0d39d7ba86552c8bc051f99045064b10957dc4d4"
+    },
+    {
+      "bytes": 62865,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/cartservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=cartservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "909f4bbc1fec405d1cafa4ecb7c1642c4392bd0d3f49936e03234f92a7c41cd2"
+    },
+    {
+      "bytes": 36647,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/productcatalogservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=productcatalogservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "71fb49973a8cf121fb986c7315bda6066e74917e2ffd0b7fc52260380caa45cf"
+    },
+    {
+      "bytes": 39908,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/currencyservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=currencyservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "de0d090252ebc0c024b087c1e2a72c588370bd63cc59856b1db5e580a8bde3b9"
+    },
+    {
+      "bytes": 9519,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/paymentservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=paymentservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "8328ad84d01a596a46905ceec4b712611f9552f096d4294aa5a74190fb3d1033"
+    },
+    {
+      "bytes": 9277,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/shippingservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=shippingservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "c54bbabe2ef22d1e940183cf6450fab858c734348bfa309d8caf0160df1c66c0"
+    },
+    {
+      "bytes": 15592,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/emailservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=emailservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "ff17fab4aafb66e4dad3995eaa3b1773115c76aea85e7a2190d2e8ed3d7ac44a"
+    },
+    {
+      "bytes": 15707,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/recommendationservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=recommendationservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "359f65a0f1ca00c08e333458995a271f071ceac0bbdd1c72ad1ebedcc8f33f44"
+    },
+    {
+      "bytes": 59001,
+      "content_type": "application/json",
+      "http_status": 200,
+      "path": "datasetB/traces/adservice.json",
+      "query_kind": "jaeger-traces-by-service",
+      "request_url": "http://127.0.0.1:37059/api/traces?service=adservice&start=1794858801519026&end=1794858837742762&limit=10000",
+      "sha256": "add66ebc66d06d192276cbdb7fe8a9eaa01a472d8426964fecc7ea9efb46f003"
+    }
+  ],
+  "notes": [
+    "Response bodies are stored as received; no normalization, filtering, or cross-scenario equalization is applied.",
+    "Jaeger stores traces once; service-scoped query responses may overlap. Each native response is retained; overlap is reported, never removed.",
+    "hashes.sha256 includes manifest.json and all raw response files; hashes.sha256 does not hash itself."
+  ],
+  "port_forwards": [
+    {
+      "local_address": "127.0.0.1:47205",
+      "name": "prometheus-a",
+      "namespace": "observability-a",
+      "process_id": 848210,
+      "remote_port": 9090,
+      "service": "prometheus-a",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    },
+    {
+      "local_address": "127.0.0.1:36319",
+      "name": "prometheus-b",
+      "namespace": "observability-b",
+      "process_id": 848224,
+      "remote_port": 9090,
+      "service": "prometheus-b",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    },
+    {
+      "local_address": "127.0.0.1:45145",
+      "name": "loki-a",
+      "namespace": "observability-a",
+      "process_id": 848239,
+      "remote_port": 3100,
+      "service": "loki-a",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    },
+    {
+      "local_address": "127.0.0.1:45535",
+      "name": "loki-b",
+      "namespace": "observability-b",
+      "process_id": 848253,
+      "remote_port": 3100,
+      "service": "loki-b",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    },
+    {
+      "local_address": "127.0.0.1:34947",
+      "name": "jaeger-a",
+      "namespace": "observability-a",
+      "process_id": 848266,
+      "remote_port": 16686,
+      "service": "jaeger-a",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    },
+    {
+      "local_address": "127.0.0.1:37059",
+      "name": "jaeger-b",
+      "namespace": "observability-b",
+      "process_id": 848279,
+      "remote_port": 16686,
+      "service": "jaeger-b",
+      "status": "BOUND_TO_EXPECTED_SERVICE_PORT"
+    }
+  ],
+  "signal_summary": {
+    "A": {
+      "log_entries": 90,
+      "log_streams": 7,
+      "metric_series": 287
+    },
+    "B": {
+      "log_entries": 48,
+      "log_streams": 48,
+      "metric_series": 2781
+    }
+  },
+  "trace_counts": {
+    "A": {
+      "adservice": 0,
+      "cartservice": 5,
+      "checkoutservice": 1,
+      "currencyservice": 3,
+      "emailservice": 0,
+      "frontend": 5,
+      "paymentservice": 0,
+      "productcatalogservice": 3,
+      "recommendationservice": 0,
+      "shippingservice": 0
+    },
+    "B": {
+      "adservice": 10,
+      "cartservice": 12,
+      "checkoutservice": 7,
+      "currencyservice": 10,
+      "emailservice": 13,
+      "frontend": 12,
+      "paymentservice": 7,
+      "productcatalogservice": 10,
+      "recommendationservice": 13,
+      "shippingservice": 10
+    }
+  },
+  "window": {
+    "end": "2026-11-16T19:53:57.742762Z",
+    "start": "2026-11-16T19:53:21.519026Z"
+  },
+  "workload_record": {
+    "bytes": 20028,
+    "path": "control/workload.json",
+    "sha256": "197e869e2d10e1819d834d2e406a4f05d4466767c1b8c8541fa38106c2a7601f"
+  }
+}

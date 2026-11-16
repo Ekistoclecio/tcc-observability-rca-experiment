@@ -1,0 +1,98 @@
+{
+  "commit": "8aa3a022e361f3c8384d7152d0cb20e83e6a671f",
+  "start": "2026-11-16T19:32:11.511865Z",
+  "end": "2026-11-16T19:32:16.779890Z",
+  "summary": {
+    "base_url": "http://127.0.0.1:18080",
+    "configuration": {
+      "arrival_interval_seconds": 1.0,
+      "configured_arrival_rate_flows_per_second": 1.0,
+      "drain_timeout_seconds": 60,
+      "expected_statuses": {},
+      "max_concurrent_flows": 1,
+      "request_timeout_seconds": 10,
+      "steady_flows": 2,
+      "warmup_flows": 0
+    },
+    "finished_at": "2026-11-16T19:32:16.757468Z",
+    "started_at": "2026-11-16T19:32:11.598589Z",
+    "status": "PASS",
+    "steady": [
+      {
+        "flow": 1,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 2.136128,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.210585,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.587508,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.220484,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.577532,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      },
+      {
+        "flow": 2,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 0.459146,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.202246,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.296688,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.199579,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.2074,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "successful_steady_flows": 2,
+    "successful_warmup_flows": 0,
+    "warmup": []
+  }
+}

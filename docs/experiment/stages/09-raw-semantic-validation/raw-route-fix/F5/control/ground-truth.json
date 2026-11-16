@@ -1,0 +1,25 @@
+{
+  "confirmed_end": "2026-11-16T19:37:42.311540Z",
+  "confirmed_start": "2026-11-16T19:37:06.566351Z",
+  "execution_eligible": true,
+  "fault_id": "F5-stage4-smoke",
+  "fault_type": "datastore_unavailable",
+  "ineligibility_reason": null,
+  "injection_confirmation": {
+    "control_plane_check": "Deployment replicas and ready EndpointSlice addresses are zero",
+    "evidence": "{\"desired_replicas\": 0, \"pods\": 0, \"ready_endpoints\": 0, \"ready_replicas\": 0}",
+    "observed_at": "2026-11-16T19:37:06.566351Z"
+  },
+  "recovery_confirmation": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+    "observed_at": "2026-11-16T19:37:42.311540Z"
+  },
+  "requested_start": "2026-11-16T19:37:02.663796Z",
+  "root_location": {
+    "kind": "datastore",
+    "value": "redis-cart"
+  },
+  "schema_version": "1.0",
+  "status": "RECOVERED"
+}

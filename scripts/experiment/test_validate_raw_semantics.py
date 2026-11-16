@@ -70,12 +70,18 @@ class RawSemanticValidationTests(unittest.TestCase):
     def test_classifies_health_metrics_and_exporter_spans_as_raw_only(self):
         health = {"service": "emailservice", "operation": "/grpc.health.v1.Health/Check",
                   "kind": "server", "tags": {}}
+        otel_health = {"service": "shippingservice", "operation": "health.v1.Health/Check",
+                       "kind": "server", "tags": {}}
+        http_health = {"service": "frontend", "operation": "GET /_healthz",
+                       "kind": "server", "tags": {"http.route": "/_healthz"}}
         scrape = {"service": "adservice", "operation": "GET /metrics",
                   "kind": "server", "tags": {"url.path": "/metrics"}}
         exporter = {"service": "adservice", "operation": "POST", "kind": "client",
                     "tags": {"otel.scope.name": "io.opentelemetry.java-http-client",
                              "url.full": "http://jaeger-a.observability-a.svc.cluster.local:9411/api/v2/spans"}}
         self.assertTrue(is_raw_only_trace(health))
+        self.assertTrue(is_raw_only_trace(otel_health))
+        self.assertTrue(is_raw_only_trace(http_health))
         self.assertTrue(is_raw_only_trace(scrape))
         self.assertTrue(is_raw_only_trace(exporter))
 
