@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcc:experiment-v2:rca-input:1.0",
+  "title": "Experiment v2 RCA model input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["id", "signal", "metric", "service", "value"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^ev_[0-9a-f]{20}$"},
+              "signal": {"const": "metric"},
+              "metric": {"enum": ["request_count", "request_duration", "cpu_utilization"]},
+              "service": {"type": "string"},
+              "value": {},
+              "availability": {"enum": ["OBSERVED", "UNKNOWN"]},
+              "reason": {"type": "string"},
+              "unit": {"type": "string"},
+              "operation": {"type": "string"},
+              "outcome": {"enum": ["SUCCESS", "ERROR", "UNKNOWN"]},
+              "target": {"type": "string"},
+              "interval_start": {"type": "string", "format": "date-time"},
+              "interval_end": {"type": "string", "format": "date-time"}
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["id", "signal", "service", "timestamp", "severity", "message"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^ev_[0-9a-f]{20}$"},
+              "signal": {"const": "log"},
+              "service": {"type": "string"},
+              "timestamp": {"type": "string", "format": "date-time"},
+              "severity": {"enum": ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "UNKNOWN"]},
+              "message": {"type": "string"},
+              "trace_id": {"type": "string", "pattern": "^[0-9a-fA-F]{32}$"},
+              "span_id": {"type": "string", "pattern": "^[0-9a-fA-F]{16}$"},
+              "operation": {"type": "string"},
+              "outcome": {"enum": ["SUCCESS", "ERROR", "UNKNOWN"]},
+              "target": {"type": "string"},
+              "attributes": {"type": "object"}
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["id", "signal", "service", "operation", "kind", "timestamp", "duration_ms", "outcome", "trace_id", "span_id"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^ev_[0-9a-f]{20}$"},
+              "signal": {"const": "trace"},
+              "service": {"type": "string"},
+              "operation": {"type": "string"},
+              "kind": {"enum": ["SERVER", "CLIENT", "PRODUCER", "CONSUMER"]},
+              "timestamp": {"type": "string", "format": "date-time"},
+              "duration_ms": {"type": "number", "minimum": 0},
+              "outcome": {"enum": ["SUCCESS", "ERROR", "UNKNOWN"]},
+              "trace_id": {"type": "string", "pattern": "^[0-9a-fA-F]{32}$"},
+              "span_id": {"type": "string", "pattern": "^[0-9a-fA-F]{16}$"},
+              "parent_span_id": {"type": "string"},
+              "target": {"type": "string"},
+              "attributes": {"type": "object"},
+              "error_message": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  }
+}
