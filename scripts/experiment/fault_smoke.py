@@ -369,6 +369,28 @@ def run_workload(fault: str | None, port: int) -> dict[str, Any]:
     return summary
 
 
+def wait_for_normal_workload_recovery(
+    port: int, timeout: float = 60
+) -> dict[str, Any]:
+    attempts = 0
+
+    def probe() -> tuple[bool, Any]:
+        nonlocal attempts
+        attempts += 1
+        try:
+            summary = run_workload(None, port)
+        except FaultSmokeError as exc:
+            return False, {"attempts": attempts, "last_error": str(exc)}
+        return True, {"attempts": attempts, "probe": summary}
+
+    try:
+        return wait_until(probe, "normal workload recovery", timeout=timeout)
+    except FaultSmokeError as exc:
+        raise FaultSmokeError(
+            f"normal workload did not recover after {attempts} attempt(s): {exc}"
+        ) from exc
+
+
 def inject(fault: str, definition: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
     mechanism = definition["mechanism"]
     if fault in {"F1", "F2"}:
@@ -568,7 +590,9 @@ def main() -> int:
             json.dumps(recovery, sort_keys=True),
         )
         report["control_plane"]["recovery"] = recovery
-        report["post_recovery_probe"] = run_workload(None, args.frontend_port)
+        post_recovery = wait_for_normal_workload_recovery(args.frontend_port)
+        report["post_recovery_probe"] = post_recovery["probe"]
+        report["post_recovery_probe_attempts"] = post_recovery["attempts"]
         report["status"] = "PASS"
     except Exception as exc:
         report["error"] = str(exc)

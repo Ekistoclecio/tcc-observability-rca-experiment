@@ -13,6 +13,7 @@ from scripts.experiment.fault_smoke import (
     require_exclusive_environment,
     service_pods,
     target_service_is_fully_unavailable,
+    wait_for_normal_workload_recovery,
 )
 from scripts.experiment.workload import parse_expected_statuses
 
@@ -39,6 +40,19 @@ class FaultSmokeTests(unittest.TestCase):
     )
     def test_empty_endpoint_slice_is_normalized_to_zero(self, _kube_json) -> None:
         self.assertEqual(ready_endpoint_count("paymentservice"), 0)
+
+    @patch("scripts.experiment.fault_smoke.time.sleep")
+    @patch("scripts.experiment.fault_smoke.run_workload")
+    def test_post_recovery_probe_waits_for_transient_grpc_reconnect(
+        self, run_workload_mock, _sleep_mock
+    ) -> None:
+        recovered_probe = {"status": "PASS"}
+        run_workload_mock.side_effect = [
+            FaultSmokeError("temporary unavailable"),
+            recovered_probe,
+        ]
+        result = wait_for_normal_workload_recovery(18080, timeout=5)
+        self.assertEqual(result, {"attempts": 2, "probe": recovered_probe})
 
     def test_fault_matrix_matches_the_five_declared_root_locations(self) -> None:
         faults = json.loads(FAULT_CONFIG.read_text(encoding="utf-8"))["faults"]
