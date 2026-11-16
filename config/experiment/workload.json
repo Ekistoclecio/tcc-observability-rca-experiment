@@ -1,0 +1,8 @@
+{
+  "warmup_flows": 1,
+  "steady_flows": 3,
+  "arrival_interval_seconds": 2.0,
+  "max_concurrent_flows": 2,
+  "request_timeout_seconds": 10,
+  "drain_timeout_seconds": 60
+}
