@@ -19,6 +19,8 @@ const protoLoader = require('@grpc/proto-loader');
 const charge = require('./charge');
 
 const logger = require('./logger')
+const { createConventionalTelemetry } = require('./conventional-telemetry');
+const conventionalTelemetry = createConventionalTelemetry('paymentservice');
 
 class HipsterShopServer {
   constructor(protoRoot, port = HipsterShopServer.PORT) {
@@ -88,7 +90,9 @@ class HipsterShopServer {
     this.server.addService(
       hipsterShopPackage.PaymentService.service,
       {
-        charge: HipsterShopServer.ChargeServiceHandler.bind(this)
+        charge: conventionalTelemetry.wrapUnary(
+          '/hipstershop.PaymentService/Charge',
+          HipsterShopServer.ChargeServiceHandler.bind(this))
       }
     );
 

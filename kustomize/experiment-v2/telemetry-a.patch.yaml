@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-a
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9464"
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: ENABLE_CONVENTIONAL_TELEMETRY
+              value: "1"
+            - name: CONVENTIONAL_METRICS_PORT
+              value: "9464"
+            - name: CONVENTIONAL_ZIPKIN_ENDPOINT
+              value: "http://jaeger-a.observability-a.svc.cluster.local:9411/api/v2/spans"

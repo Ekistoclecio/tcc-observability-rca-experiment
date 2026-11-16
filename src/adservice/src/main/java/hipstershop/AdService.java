@@ -24,6 +24,7 @@ import hipstershop.Demo.AdRequest;
 import hipstershop.Demo.AdResponse;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptors;
 import io.grpc.StatusRuntimeException;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.services.*;
@@ -53,10 +54,11 @@ public final class AdService {
   private void start() throws IOException {
     int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9555"));
     healthMgr = new HealthStatusManager();
+    ConventionalTelemetry conventionalTelemetry = new ConventionalTelemetry("adservice");
 
     server =
         ServerBuilder.forPort(port)
-            .addService(new AdServiceImpl())
+            .addService(ServerInterceptors.intercept(new AdServiceImpl(), conventionalTelemetry))
             .addService(healthMgr.getHealthService())
             .build()
             .start();

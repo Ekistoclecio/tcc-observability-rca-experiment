@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/profiler"
+	"context"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
@@ -38,6 +38,7 @@ const (
 )
 
 var log *logrus.Logger
+var conventional *conventionalServerTelemetry
 
 func init() {
 	log = logrus.New()
@@ -54,13 +55,7 @@ func init() {
 }
 
 func main() {
-	if os.Getenv("DISABLE_TRACING") == "" {
-		log.Info("Tracing enabled, but temporarily unavailable")
-		log.Info("See https://github.com/GoogleCloudPlatform/microservices-demo/issues/422 for more info.")
-		go initTracing()
-	} else {
-		log.Info("Tracing disabled.")
-	}
+	conventional = newConventionalServerTelemetry("shippingservice")
 
 	if os.Getenv("DISABLE_PROFILER") == "" {
 		log.Info("Profiling enabled.")
@@ -80,14 +75,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	var srv *grpc.Server
-	if os.Getenv("DISABLE_STATS") == "" {
-		log.Info("Stats enabled, but temporarily unavailable")
-		srv = grpc.NewServer()
-	} else {
-		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
-	}
+	srv := grpc.NewServer(grpc.UnaryInterceptor(conventional.UnaryServerInterceptor()))
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
 	healthcheck := health.NewServer()

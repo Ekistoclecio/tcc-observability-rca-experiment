@@ -7,9 +7,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using cartservice.cartstore;
 using cartservice.services;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Grpc.Core.Interceptors;
 
 namespace cartservice
 {
@@ -56,7 +58,9 @@ namespace cartservice
             }
 
 
-            services.AddGrpc();
+            services.AddSingleton<ConventionalTelemetry>();
+            services.AddTransient<ConventionalTelemetryInterceptor>();
+            services.AddGrpc(options => options.Interceptors.Add<ConventionalTelemetryInterceptor>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -38,17 +38,12 @@ else {
   });
 }
 
-// Register GRPC OTel Instrumentation for trace propagation
-// regardless of whether tracing is emitted.
-const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-
-registerInstrumentations({
-  instrumentations: [new GrpcInstrumentation()]
-});
-
 if(process.env.ENABLE_TRACING == "1") {
   logger.info("Tracing enabled.")
+
+  const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
+  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+  registerInstrumentations({ instrumentations: [new GrpcInstrumentation()] });
 
   const { resourceFromAttributes } = require('@opentelemetry/resources');
 
@@ -76,6 +71,8 @@ else {
 const path = require('path');
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
+const { createConventionalTelemetry } = require('./conventional-telemetry');
+const conventionalTelemetry = createConventionalTelemetry('currencyservice');
 
 const MAIN_PROTO_PATH = path.join(__dirname, './proto/demo.proto');
 const HEALTH_PROTO_PATH = path.join(__dirname, './proto/grpc/health/v1/health.proto');
@@ -182,7 +179,12 @@ function check (call, callback) {
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   const server = new grpc.Server();
-  server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
+  server.addService(shopProto.CurrencyService.service, {
+    getSupportedCurrencies: conventionalTelemetry.wrapUnary(
+      '/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies),
+    convert: conventionalTelemetry.wrapUnary(
+      '/hipstershop.CurrencyService/Convert', convert)
+  });
   server.addService(healthProto.Health.service, {check});
 
   server.bindAsync(

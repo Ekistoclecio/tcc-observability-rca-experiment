@@ -38,7 +38,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 from logger import getJSONLogger
+from conventional_telemetry import ConventionalTelemetry
 logger = getJSONLogger('recommendationservice-server')
+conventional_telemetry = ConventionalTelemetry('recommendationservice')
 
 def initStackdriverProfiling():
   project_id = None
@@ -107,10 +109,11 @@ if __name__ == "__main__":
         logger.info("Profiler disabled.")
 
     try:
-      grpc_client_instrumentor = GrpcInstrumentorClient()
-      grpc_client_instrumentor.instrument()
-      grpc_server_instrumentor = GrpcInstrumentorServer()
-      grpc_server_instrumentor.instrument()
+      if os.getenv("ENABLE_TRACING") == "1":
+        grpc_client_instrumentor = GrpcInstrumentorClient()
+        grpc_client_instrumentor.instrument()
+        grpc_server_instrumentor = GrpcInstrumentorServer()
+        grpc_server_instrumentor.instrument()
       if os.environ["ENABLE_TRACING"] == "1":
         trace.set_tracer_provider(TracerProvider())
         otel_endpoint = os.getenv("COLLECTOR_SERVICE_ADDR", "localhost:4317")
@@ -132,11 +135,15 @@ if __name__ == "__main__":
     if catalog_addr == "":
         raise Exception('PRODUCT_CATALOG_SERVICE_ADDR environment variable not set')
     logger.info("product catalog address: " + catalog_addr)
-    channel = grpc.insecure_channel(catalog_addr)
+    channel = grpc.intercept_channel(
+        grpc.insecure_channel(catalog_addr),
+        conventional_telemetry.client_interceptor())
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=(conventional_telemetry.server_interceptor(),))
 
     # add class to gRPC server
     service = RecommendationService()

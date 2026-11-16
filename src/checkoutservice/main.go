@@ -47,7 +47,10 @@ const (
 	usdCurrency = "USD"
 )
 
-var log *logrus.Logger
+var (
+	log          *logrus.Logger
+	conventional *conventionalTelemetry
+)
 
 func init() {
 	log = logrus.New()
@@ -87,6 +90,7 @@ type checkoutService struct {
 
 func main() {
 	ctx := context.Background()
+	conventional = newConventionalTelemetry("checkoutservice")
 	if os.Getenv("ENABLE_TRACING") == "1" {
 		log.Info("Tracing enabled.")
 		initTracing()
@@ -131,13 +135,14 @@ func main() {
 
 	var srv *grpc.Server
 
-	// Propagate trace context always
-	otel.SetTextMapPropagator(
-		propagation.NewCompositeTextMapPropagator(
+	// Conventional context is propagated by the A interceptor; W3C propagation is enabled only with OTel.
+	serverOptions := []grpc.ServerOption{grpc.UnaryInterceptor(conventional.UnaryServerInterceptor())}
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{}))
-	srv = grpc.NewServer(
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
-	)
+		serverOptions = append(serverOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	}
+	srv = grpc.NewServer(serverOptions...)
 
 	pb.RegisterCheckoutServiceServer(srv, svc)
 	healthcheck := health.NewServer()
@@ -211,9 +216,14 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
 	_, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
-	*conn, err = grpc.NewClient(addr,
+	options := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
+	}
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		options = append(options, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	}
+	*conn, err = grpc.NewClient(addr, options...)
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}
@@ -357,7 +367,7 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 }
 
 func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, toCurrency string) (*pb.Money, error) {
-	result, err := pb.NewCurrencyServiceClient(cs.currencySvcConn).Convert(context.TODO(), &pb.CurrencyConversionRequest{
+	result, err := pb.NewCurrencyServiceClient(cs.currencySvcConn).Convert(ctx, &pb.CurrencyConversionRequest{
 		From:   from,
 		ToCode: toCurrency})
 	if err != nil {

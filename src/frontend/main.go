@@ -46,6 +46,8 @@ const (
 )
 
 var (
+	conventional *conventionalTelemetry
+
 	whitelistedCurrencies = map[string]bool{
 		"USD": true,
 		"EUR": true,
@@ -103,10 +105,13 @@ func main() {
 	log.Out = os.Stdout
 
 	svc := new(frontendServer)
+	conventional = newConventionalTelemetry("frontend")
 
-	otel.SetTextMapPropagator(
-		propagation.NewCompositeTextMapPropagator(
-			propagation.TraceContext{}, propagation.Baggage{}))
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		otel.SetTextMapPropagator(
+			propagation.NewCompositeTextMapPropagator(
+				propagation.TraceContext{}, propagation.Baggage{}))
+	}
 
 	baseUrl = os.Getenv("BASE_URL")
 
@@ -163,9 +168,12 @@ func main() {
 	r.HandleFunc(baseUrl+"/bot", svc.chatBotHandler).Methods(http.MethodPost)
 
 	var handler http.Handler = r
-	handler = &logHandler{log: log, next: handler}     // add logging
-	handler = ensureSessionID(handler)                 // add session ID
-	handler = otelhttp.NewHandler(handler, "frontend") // add OTel tracing
+	handler = &logHandler{log: log, next: handler} // add logging
+	handler = ensureSessionID(handler)             // add session ID
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		handler = otelhttp.NewHandler(handler, "frontend") // add OTel tracing
+	}
+	handler = conventional.HTTPMiddleware(handler)
 
 	log.Infof("starting server on %s:%s", addr, srvPort)
 	log.Fatal(http.ListenAndServe(addr+":"+srvPort, handler))
@@ -226,9 +234,14 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 	var err error
 	_, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
-	*conn, err = grpc.NewClient(addr,
+	options := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
+	}
+	if os.Getenv("ENABLE_TRACING") == "1" {
+		options = append(options, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+	}
+	*conn, err = grpc.NewClient(addr, options...)
 	if err != nil {
 		panic(errors.Wrapf(err, "grpc: failed to connect %s", addr))
 	}

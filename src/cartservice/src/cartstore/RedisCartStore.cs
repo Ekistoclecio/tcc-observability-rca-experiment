@@ -18,22 +18,27 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Caching.Distributed;
 using Google.Protobuf;
+using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 
 namespace cartservice.cartstore
 {
     public class RedisCartStore : ICartStore
     {
         private readonly IDistributedCache _cache;
+        private readonly ConventionalTelemetry _telemetry;
 
-        public RedisCartStore(IDistributedCache cache)
+        public RedisCartStore(IDistributedCache cache, ConventionalTelemetry telemetry)
         {
             _cache = cache;
+            _telemetry = telemetry;
         }
 
         public async Task AddItemAsync(string userId, string productId, int quantity)
         {
             Console.WriteLine($"AddItemAsync called with userId={userId}, productId={productId}, quantity={quantity}");
-
+            var started = Stopwatch.GetTimestamp();
+            using var span = _telemetry.StartClientSpan("redis-cart GET/SET");
             try
             {
                 Hipstershop.Cart cart;
@@ -58,9 +63,11 @@ namespace cartservice.cartstore
                     }
                 }
                 await _cache.SetAsync(userId, cart.ToByteArray());
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, false);
             }
             catch (Exception ex)
             {
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
@@ -68,14 +75,17 @@ namespace cartservice.cartstore
         public async Task EmptyCartAsync(string userId)
         {
             Console.WriteLine($"EmptyCartAsync called with userId={userId}");
-
+            var started = Stopwatch.GetTimestamp();
+            using var span = _telemetry.StartClientSpan("redis-cart SET");
             try
             {
                 var cart = new Hipstershop.Cart();
                 await _cache.SetAsync(userId, cart.ToByteArray());
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, false);
             }
             catch (Exception ex)
             {
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
@@ -83,7 +93,8 @@ namespace cartservice.cartstore
         public async Task<Hipstershop.Cart> GetCartAsync(string userId)
         {
             Console.WriteLine($"GetCartAsync called with userId={userId}");
-
+            var started = Stopwatch.GetTimestamp();
+            using var span = _telemetry.StartClientSpan("redis-cart GET");
             try
             {
                 // Access the cart from the cache
@@ -91,14 +102,17 @@ namespace cartservice.cartstore
 
                 if (value != null)
                 {
+                    span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, false);
                     return Hipstershop.Cart.Parser.ParseFrom(value);
                 }
 
                 // We decided to return empty cart in cases when user wasn't in the cache before
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, false);
                 return new Hipstershop.Cart();
             }
             catch (Exception ex)
             {
+                span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
         }
