@@ -39,3 +39,15 @@ def getJSONLogger(name):
   logger.setLevel(logging.INFO)
   logger.propagate = False
   return logger
+
+def configure_otel_logging(logger, service_name, endpoint):
+  from opentelemetry.sdk.resources import Resource
+  from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+  from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+  from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+
+  provider = LoggerProvider(resource=Resource.create({"service.name": service_name}))
+  provider.add_log_record_processor(BatchLogRecordProcessor(
+    OTLPLogExporter(endpoint=endpoint, insecure=True)))
+  logger.addHandler(LoggingHandler(level=logging.NOTSET, logger_provider=provider))
+  return provider

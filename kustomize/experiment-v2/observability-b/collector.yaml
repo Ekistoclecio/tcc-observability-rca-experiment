@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-b-config
+data:
+  collector.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    exporters:
+      otlp/jaeger:
+        endpoint: jaeger-b.observability-b.svc.cluster.local:4317
+        tls:
+          insecure: true
+      otlphttp/loki-b:
+        endpoint: http://loki-b.observability-b.svc.cluster.local:3100/otlp
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        namespace: otel
+        send_timestamps: true
+        metric_expiration: 5m
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    service:
+      extensions: [health_check]
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlphttp/loki-b]
+        traces:
+          receivers: [otlp]
+          exporters: [otlp/jaeger]
+        metrics:
+          receivers: [otlp]
+          exporters: [prometheus]
+    processors:
+      batch: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector-b
+  labels:
+    app: otel-collector-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector-b
+  template:
+    metadata:
+      labels:
+        app: otel-collector-b
+    spec:
+      containers:
+        - name: collector
+          image: otel/opentelemetry-collector-contrib:0.123.0
+          args: ["--config=/etc/otelcol-contrib/collector.yaml"]
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+            - name: prometheus
+              containerPort: 8889
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol-contrib
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-b-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector-b
+spec:
+  selector:
+    app: otel-collector-b
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: prometheus
+      port: 8889
+      targetPort: prometheus

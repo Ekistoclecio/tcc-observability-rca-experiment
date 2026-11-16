@@ -28,8 +28,12 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -143,13 +147,13 @@ func main() {
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 	mustMapEnv(&svc.shoppingAssistantSvcAddr, "SHOPPING_ASSISTANT_SERVICE_ADDR")
 
-	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
-	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)
-	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr)
-	mustConnGRPC(ctx, &svc.recommendationSvcConn, svc.recommendationSvcAddr)
-	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
-	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr)
-	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr)
+	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr, true)
+	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr, true)
+	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr, true)
+	mustConnGRPC(ctx, &svc.recommendationSvcConn, svc.recommendationSvcAddr, true)
+	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr, true)
+	mustConnGRPC(ctx, &svc.checkoutSvcConn, svc.checkoutSvcAddr, true)
+	mustConnGRPC(ctx, &svc.adSvcConn, svc.adSvcAddr, true)
 
 	r := mux.NewRouter()
 	r.HandleFunc(baseUrl+"/", svc.homeHandler).Methods(http.MethodGet, http.MethodHead)
@@ -184,7 +188,7 @@ func initStats(log logrus.FieldLogger) {
 
 func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServer) (*sdktrace.TracerProvider, error) {
 	mustMapEnv(&svc.collectorAddr, "COLLECTOR_SERVICE_ADDR")
-	mustConnGRPC(ctx, &svc.collectorConn, svc.collectorAddr)
+	mustConnGRPC(ctx, &svc.collectorConn, svc.collectorAddr, false)
 	exporter, err := otlptracegrpc.New(
 		ctx,
 		otlptracegrpc.WithGRPCConn(svc.collectorConn))
@@ -193,8 +197,20 @@ func initTracing(log logrus.FieldLogger, ctx context.Context, svc *frontendServe
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "frontend"))),
 		sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
+	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(svc.collectorConn))
+	if err != nil {
+		return nil, err
+	}
+	mp := sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "frontend"))),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(5*time.Second))))
+	otel.SetMeterProvider(mp)
+	if err := configureOtelLogging(ctx, svc.collectorAddr, "frontend", log.(*logrus.Logger)); err != nil {
+		return nil, err
+	}
 
 	return tp, err
 }
@@ -230,7 +246,7 @@ func mustMapEnv(target *string, envKey string) {
 	*target = v
 }
 
-func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
+func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string, instrument bool) {
 	var err error
 	_, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -238,7 +254,7 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
 	}
-	if os.Getenv("ENABLE_TRACING") == "1" {
+	if instrument && os.Getenv("ENABLE_TRACING") == "1" {
 		options = append(options, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	}
 	*conn, err = grpc.NewClient(addr, options...)

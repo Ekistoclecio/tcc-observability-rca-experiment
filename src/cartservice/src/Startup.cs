@@ -7,7 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using cartservice.cartstore;
 using cartservice.services;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -32,6 +35,21 @@ namespace cartservice
             string spannerProjectId = Configuration["SPANNER_PROJECT"];
             string spannerConnectionString = Configuration["SPANNER_CONNECTION_STRING"];
             string alloyDBConnectionString = Configuration["ALLOYDB_PRIMARY_IP"];
+
+            if (Configuration["ENABLE_TRACING"] == "1")
+            {
+                services.AddOpenTelemetry()
+                    .ConfigureResource(resource => resource.AddService("cartservice"))
+                    .WithTracing(tracing => tracing
+                        .AddAspNetCoreInstrumentation()
+                        .AddSource("cartservice.redis")
+                        .AddOtlpExporter())
+                    .WithMetrics(metrics => metrics
+                        .AddAspNetCoreInstrumentation()
+                        .AddOtlpExporter())
+                    .WithLogging(logging => logging
+                        .AddOtlpExporter());
+            }
 
             if (!string.IsNullOrEmpty(redisAddress))
             {

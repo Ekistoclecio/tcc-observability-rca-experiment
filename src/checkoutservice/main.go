@@ -37,8 +37,12 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -119,12 +123,12 @@ func main() {
 	mustMapEnv(&svc.emailSvcAddr, "EMAIL_SERVICE_ADDR")
 	mustMapEnv(&svc.paymentSvcAddr, "PAYMENT_SERVICE_ADDR")
 
-	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
-	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)
-	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr)
-	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
-	mustConnGRPC(ctx, &svc.emailSvcConn, svc.emailSvcAddr)
-	mustConnGRPC(ctx, &svc.paymentSvcConn, svc.paymentSvcAddr)
+	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr, true)
+	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr, true)
+	mustConnGRPC(ctx, &svc.cartSvcConn, svc.cartSvcAddr, true)
+	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr, true)
+	mustConnGRPC(ctx, &svc.emailSvcConn, svc.emailSvcAddr, true)
+	mustConnGRPC(ctx, &svc.paymentSvcConn, svc.paymentSvcAddr, true)
 
 	log.Infof("service config: %+v", svc)
 
@@ -167,7 +171,7 @@ func initTracing() {
 	defer cancel()
 
 	mustMapEnv(&collectorAddr, "COLLECTOR_SERVICE_ADDR")
-	mustConnGRPC(ctx, &collectorConn, collectorAddr)
+	mustConnGRPC(ctx, &collectorConn, collectorAddr, false)
 
 	exporter, err := otlptracegrpc.New(
 		ctx,
@@ -177,8 +181,21 @@ func initTracing() {
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "checkoutservice"))),
 		sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
+	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithGRPCConn(collectorConn))
+	if err != nil {
+		log.Warnf("warn: Failed to create metric exporter: %v", err)
+		return
+	}
+	mp := sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(resource.NewWithAttributes("", attribute.String("service.name", "checkoutservice"))),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, sdkmetric.WithInterval(5*time.Second))))
+	otel.SetMeterProvider(mp)
+	if err := configureOtelLogging(ctx, collectorAddr, "checkoutservice", log); err != nil {
+		log.Fatalf("failed to configure OTLP log export: %v", err)
+	}
 
 }
 
@@ -212,7 +229,7 @@ func mustMapEnv(target *string, envKey string) {
 	*target = v
 }
 
-func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
+func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string, instrument bool) {
 	var err error
 	_, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -220,7 +237,7 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(conventional.UnaryClientInterceptor()),
 	}
-	if os.Getenv("ENABLE_TRACING") == "1" {
+	if instrument && os.Getenv("ENABLE_TRACING") == "1" {
 		options = append(options, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	}
 	*conn, err = grpc.NewClient(addr, options...)
@@ -238,7 +255,8 @@ func (cs *checkoutService) Watch(req *healthpb.HealthCheckRequest, ws healthpb.H
 }
 
 func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderRequest) (*pb.PlaceOrderResponse, error) {
-	log.Infof("[PlaceOrder] user_id=%q user_currency=%q", req.UserId, req.UserCurrency)
+	requestLog := log.WithContext(ctx)
+	requestLog.Infof("[PlaceOrder] user_id=%q user_currency=%q", req.UserId, req.UserCurrency)
 
 	orderID, err := uuid.NewUUID()
 	if err != nil {
@@ -263,7 +281,7 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to charge card: %+v", err)
 	}
-	log.Infof("payment went through (transaction_id: %s)", txID)
+	requestLog.Infof("payment went through (transaction_id: %s)", txID)
 
 	shippingTrackingID, err := cs.shipOrder(ctx, req.Address, prep.cartItems)
 	if err != nil {
@@ -281,9 +299,9 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 	}
 
 	if err := cs.sendOrderConfirmation(ctx, req.Email, orderResult); err != nil {
-		log.Warnf("failed to send order confirmation to %q: %+v", req.Email, err)
+		requestLog.Warnf("failed to send order confirmation to %q: %+v", req.Email, err)
 	} else {
-		log.Infof("order confirmation email sent to %q", req.Email)
+		requestLog.Infof("order confirmation email sent to %q", req.Email)
 	}
 	resp := &pb.PlaceOrderResponse{Order: orderResult}
 	return resp, nil

@@ -1,0 +1,148 @@
+{
+  "task": "TCC experiment-v2 — Etapa 7B: spike Pino + OTLP Logs no paymentservice",
+  "status": "SPIKE_CORE_PASS_DUPLICATION_POLICY_REQUIRED",
+  "commit_base": "fdbd151c4e47fc561cd87150ac9e666ef27a5f33",
+  "branch": "experiment-v2",
+  "permanent_commit_created": false,
+  "fault_executed": false,
+  "stage_8_started": false,
+  "working_tree": {
+    "preexisting_stage_7_changes_preserved": true,
+    "spike_source_and_local_collector_changes_restored": true,
+    "spike_reports_added": true,
+    "overall": "DIRTY due to pre-existing Stage 7 changes and requested blocker reports"
+  },
+  "selected_log": {
+    "service": "paymentservice",
+    "file": "src/paymentservice/charge.js",
+    "callsite": "existing Pino logger.info(\"Transaction processed: ...\") in the normal Charge flow",
+    "callsite_changed": false,
+    "endpoint": "gRPC PaymentService/Charge",
+    "active_scenario_b_span": "grpc.hipstershop.PaymentService/Charge",
+    "event": "Transaction processed: visa ending 1111     Amount: USD75.432100000",
+    "test_request_count": 1,
+    "synthetic_experiment_log": false,
+    "manual_second_log_call_for_otlp": false
+  },
+  "runtime_and_packages": {
+    "runtime_node": "24.22.1 (observed in Pod and OTLP resource)",
+    "pino": "10.3.1",
+    "opentelemetry_sdk_node": "0.222.0",
+    "opentelemetry_instrumentation_pino": "0.68.0",
+    "opentelemetry_exporter_logs_otlp_grpc": "0.222.0",
+    "opentelemetry_api": "1.9.1",
+    "instrumentation": "PinoInstrumentation registered before Pino singleton creation; disableLogCorrelation=true",
+    "processor": "BatchLogRecordProcessor({ exporter: OTLPLogExporter })"
+  },
+  "spike_build_provenance": {
+    "classification": "SPIKE / NON-OFFICIAL",
+    "source_fingerprint_sha256": "ebc7b96b23b1053abb673d674a3860d5152480e59b5dabdadeae3bd0282769da",
+    "revision_label": "SPIKE_NON_OFFICIAL_ebc7b96b23b1053a",
+    "image_reference": "docker.io/library/paymentservice:spike-7b-ebc7b96b",
+    "manifest_list_digest": "sha256:5bbb9e1408605692a0ecf900238a29c3d7d71745af8b855ae7256edeb1f6d89f",
+    "local_image_config_id": "sha256:c014c0289bc9aa0a731fccd17d4ac83948523c986f56a97c6d3d15dad73765dc",
+    "running_pod_during_spike": "paymentservice-59d6898876-t95z8",
+    "running_image_id_during_spike": "sha256:c014c0289bc9aa0a731fccd17d4ac83948523c986f56a97c6d3d15dad73765dc",
+    "image_to_pod_match": "PASS (config image ID equals runtime imageID; manifest-list digest is a different digest type)",
+    "spike_images_removed_after_validation": true
+  },
+  "test_window": {
+    "request_timestamp_utc": "2026-11-16T16:44:51.927744500Z",
+    "application_log_timestamp_utc": "2026-11-16T16:44:51.928Z",
+    "loki_timestamp_unix_ns": "1794847491928000000",
+    "endpoint": "PaymentService/Charge",
+    "requests_for_selected_event": 1
+  },
+  "scenario_a": {
+    "application_call_emitted": true,
+    "stdout_sample": {
+      "severity": "info",
+      "name": "paymentservice-charge",
+      "message": "Transaction processed: visa ending 1111     Amount: USD75.432100000"
+    },
+    "stdout_has_trace_id": false,
+    "stdout_has_span_id": false,
+    "loki_received_stdout_event": true,
+    "loki_count_for_selected_message": 1,
+    "severity_semantics": "INFO"
+  },
+  "scenario_b": {
+    "application_call_emitted": true,
+    "otlp_log_received_by_collector": true,
+    "otlp_log_received_by_loki": true,
+    "otlp_record": {
+      "body": "Transaction processed: visa ending 1111     Amount: USD75.432100000",
+      "service_name": "paymentservice",
+      "severity_text": "info",
+      "severity_number": 9,
+      "trace_id": "9fdc48f456db551bf5410e326d1936c4",
+      "span_id": "a14add2444e6efbb",
+      "scope_name": "@opentelemetry/instrumentation-pino",
+      "process_runtime_version": "24.22.1"
+    },
+    "trace_evidence": {
+      "backend": "Jaeger B",
+      "trace_id": "9fdc48f456db551bf5410e326d1936c4",
+      "span_id": "a14add2444e6efbb",
+      "operation": "grpc.hipstershop.PaymentService/Charge",
+      "span_kind": "server",
+      "grpc_status_code": 0
+    },
+    "trace_id_matches_real_trace": true,
+    "span_id_matches_real_active_span": true,
+    "loki_count_for_selected_message": 2,
+    "records_by_source": {
+      "otlp_record_with_trace_context": 1,
+      "promtail_stdout_record_without_trace_context": 1
+    }
+  },
+  "collector_route": {
+    "receiver": "OTLP gRPC receiver at existing Collector B receiver",
+    "pipeline": "logs: otlp receiver -> batch processor -> otlphttp/loki-b exporter",
+    "loki_endpoint": "http://loki-b.observability-b.svc.cluster.local:3100/otlp",
+    "loki_record_context_preserved_as": "trace_id and span_id structured metadata; service_name/severity resource or labels; message as line body",
+    "collector_ready_during_test": true,
+    "collector_config_restored_after_test": true
+  },
+  "duplication": {
+    "status": "DUPLICATION_CONFIRMED",
+    "cause": "Promtail B continued ingesting the paymentservice stdout file while the same Pino call was also exported by the OTLP Logs pipeline to Loki B.",
+    "evidence": "Loki B returned two entries for the same body and timestamp: one OTLP stream with trace_id/span_id and one Promtail stream with filename/stdout labels.",
+    "smallest_final_policy": "Use OTLP as the B application-log source and exclude application stdout files from Promtail B; decide separately whether runtime/infrastructure stdout remains audit-only in another stream."
+  },
+  "scientific_checks": {
+    "one_natural_pino_call_feeds_both_paths": true,
+    "scenario_a_stdout_conventional_without_explicit_correlation": true,
+    "scenario_b_real_explicit_trace_correlation": true,
+    "same_logical_event_in_a_and_b": true,
+    "shared_observation_runtime_abstraction_added": false,
+    "experiment_specific_event_added": false,
+    "second_manual_log_call_added": false,
+    "design_change_required": false
+  },
+  "validation": {
+    "node_check": "PASS",
+    "paymentservice_tests": "3 passed, 0 failed",
+    "git_diff_check_after_restoration": "PASS",
+    "normal_request": "PASS; one benign Charge call",
+    "faults": "none",
+    "llm": "not run"
+  },
+  "spike_only_changes_restored": [
+    "src/paymentservice/index.js",
+    "src/paymentservice/package.json",
+    "src/paymentservice/package-lock.json",
+    "kustomize/experiment-v2/observability-b/collector.yaml (local source and live ConfigMap)"
+  ],
+  "post_spike_runtime_restoration": {
+    "paymentservice_image_reference": "tcc-experiment-v2/paymentservice:f59da69ca86421347d801fd9ce865d88a9349ff9",
+    "paymentservice_runtime_image_id": "sha256:a9f1562fd5a1693b4adae3bf04b94a13dd585735c41e2f35ce19e21d1c9eee87",
+    "paymentservice_ready": true,
+    "collector_b_ready": "1/1",
+    "collector_config": "restored to the pre-spike traces+metrics pipelines; no logs pipeline",
+    "temporary_port_forwards_stopped": true,
+    "spike_image_tags_removed_from_local_docker_and_kind": true
+  },
+  "conclusion": "SPIKE_CORE_PASS_DUPLICATION_POLICY_REQUIRED",
+  "next_scope": "Do not implement other language integrations or start Stage 8 in this task."
+}

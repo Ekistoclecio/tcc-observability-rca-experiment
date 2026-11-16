@@ -14,6 +14,51 @@
  * limitations under the License.
  */
 
+if(process.env.ENABLE_TRACING == "1") {
+  const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
+  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+  const { PinoInstrumentation } = require('@opentelemetry/instrumentation-pino');
+
+  const { resourceFromAttributes } = require('@opentelemetry/resources');
+
+  const { ATTR_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
+
+  const opentelemetry = require('@opentelemetry/sdk-node');
+
+  const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
+  const { OTLPMetricExporter } = require('@opentelemetry/exporter-metrics-otlp-grpc');
+  const { PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
+  const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-grpc');
+  const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
+
+  const collectorUrl = process.env.COLLECTOR_SERVICE_ADDR;
+  const traceExporter = new OTLPTraceExporter({url: collectorUrl});
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter({url: collectorUrl}),
+    exportIntervalMillis: 5000
+  });
+  const logRecordProcessor = new BatchLogRecordProcessor({
+    exporter: new OTLPLogExporter({ url: collectorUrl })
+  });
+  const sdk = new opentelemetry.NodeSDK({
+    resource: resourceFromAttributes({
+      [ ATTR_SERVICE_NAME ]: process.env.OTEL_SERVICE_NAME || 'currencyservice',
+    }),
+    traceExporter: traceExporter,
+    metricReader: metricReader,
+    logRecordProcessors: [logRecordProcessor],
+  });
+
+  registerInstrumentations({
+    instrumentations: [
+      new GrpcInstrumentation(),
+      new PinoInstrumentation({ disableLogCorrelation: true }),
+    ]
+  });
+  sdk.start()
+}
+
+// Pino must be loaded after its OTel instrumentation has been registered.
 const pino = require('pino');
 const logger = pino({
   name: 'currencyservice-server',
@@ -25,47 +70,14 @@ const logger = pino({
   }
 });
 
-if(process.env.DISABLE_PROFILER) {
-  logger.info("Profiler disabled.")
-}
-else {
-  logger.info("Profiler enabled.")
+logger.info(process.env.ENABLE_TRACING == "1" ? "Tracing enabled." : "Tracing disabled.");
+if (process.env.DISABLE_PROFILER) {
+  logger.info("Profiler disabled.");
+} else {
+  logger.info("Profiler enabled.");
   require('@google-cloud/profiler').start({
-    serviceContext: {
-      service: 'currencyservice',
-      version: '1.0.0'
-    }
+    serviceContext: { service: 'currencyservice', version: '1.0.0' }
   });
-}
-
-if(process.env.ENABLE_TRACING == "1") {
-  logger.info("Tracing enabled.")
-
-  const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
-  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-  registerInstrumentations({ instrumentations: [new GrpcInstrumentation()] });
-
-  const { resourceFromAttributes } = require('@opentelemetry/resources');
-
-  const { ATTR_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
-
-  const opentelemetry = require('@opentelemetry/sdk-node');
-
-  const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
-
-  const collectorUrl = process.env.COLLECTOR_SERVICE_ADDR;
-  const traceExporter = new OTLPTraceExporter({url: collectorUrl});
-  const sdk = new opentelemetry.NodeSDK({
-    resource: resourceFromAttributes({
-      [ ATTR_SERVICE_NAME ]: process.env.OTEL_SERVICE_NAME || 'currencyservice',
-    }),
-    traceExporter: traceExporter,
-  });
-
-  sdk.start()
-}
-else {
-  logger.info("Tracing disabled.")
 }
 
 const path = require('path');
@@ -73,6 +85,8 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const { createConventionalTelemetry } = require('./conventional-telemetry');
 const conventionalTelemetry = createConventionalTelemetry('currencyservice');
+const { createOtelMetrics } = require('./otel-metrics');
+const otelMetrics = createOtelMetrics('currencyservice');
 
 const MAIN_PROTO_PATH = path.join(__dirname, './proto/demo.proto');
 const HEALTH_PROTO_PATH = path.join(__dirname, './proto/grpc/health/v1/health.proto');
@@ -180,10 +194,12 @@ function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   const server = new grpc.Server();
   server.addService(shopProto.CurrencyService.service, {
-    getSupportedCurrencies: conventionalTelemetry.wrapUnary(
-      '/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies),
-    convert: conventionalTelemetry.wrapUnary(
-      '/hipstershop.CurrencyService/Convert', convert)
+    getSupportedCurrencies: otelMetrics.wrapUnary(
+      '/hipstershop.CurrencyService/GetSupportedCurrencies', conventionalTelemetry.wrapUnary(
+        '/hipstershop.CurrencyService/GetSupportedCurrencies', getSupportedCurrencies)),
+    convert: otelMetrics.wrapUnary(
+      '/hipstershop.CurrencyService/Convert', conventionalTelemetry.wrapUnary(
+        '/hipstershop.CurrencyService/Convert', convert))
   });
   server.addService(healthProto.Health.service, {check});
 

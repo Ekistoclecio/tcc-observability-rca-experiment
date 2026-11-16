@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adservice
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          startupProbe:
+            grpc:
+              port: 9555
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 24
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Djava.io.tmpdir=/tmp -javaagent:/otel/opentelemetry-javaagent.jar"
+            - name: OTEL_TRACES_EXPORTER
+              value: "otlp"
+            - name: OTEL_METRICS_EXPORTER
+              value: "otlp"
+            - name: OTEL_LOGS_EXPORTER
+              value: "otlp"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "grpc"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "5000"
+          volumeMounts:
+            - name: java-tmp
+              mountPath: /tmp
+      volumes:
+        - name: java-tmp
+          emptyDir: {}

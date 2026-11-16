@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-b
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tcc-prometheus-b
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "nodes/proxy"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tcc-prometheus-b
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tcc-prometheus-b
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-b
+    namespace: observability-b
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-b-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 5s
+    scrape_configs:
+      - job_name: otel-collector-b
+        static_configs:
+          - targets: [otel-collector-b.observability-b.svc.cluster.local:8889]
+      - job_name: sut-cadvisor
+        scheme: https
+        metrics_path: /metrics/cadvisor
+        kubernetes_sd_configs:
+          - role: node
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        tls_config:
+          insecure_skip_verify: true
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_node_address_InternalIP]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:10250
+        metric_relabel_configs:
+          - source_labels: [namespace]
+            action: keep
+            regex: online-boutique
+          - source_labels: [pod]
+            action: keep
+            regex: (frontend|checkoutservice|cartservice|productcatalogservice|currencyservice|paymentservice|shippingservice|emailservice|recommendationservice|adservice|redis-cart)-.*
+          - source_labels: [container]
+            action: drop
+            regex: POD
+          - source_labels: [__name__]
+            action: keep
+            regex: container_cpu_usage_seconds_total
+          - source_labels: [pod]
+            regex: (frontend|checkoutservice|cartservice|productcatalogservice|currencyservice|paymentservice|shippingservice|emailservice|recommendationservice|adservice|redis-cart)-.*
+            target_label: service_name
+            replacement: ${1}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-b
+  labels:
+    app: prometheus-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-b
+  template:
+    metadata:
+      labels:
+        app: prometheus-b
+    spec:
+      serviceAccountName: prometheus-b
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v3.5.0
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=24h
+          ports:
+            - name: http
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+              readOnly: true
+            - name: data
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-b-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-b
+spec:
+  selector:
+    app: prometheus-b
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http

@@ -36,11 +36,14 @@ from opentelemetry.instrumentation.grpc import GrpcInstrumentorClient, GrpcInstr
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
 
-from logger import getJSONLogger
+from logger import configure_otel_logging, getJSONLogger
 from conventional_telemetry import ConventionalTelemetry
+from otel_metrics import configure_metrics
 logger = getJSONLogger('recommendationservice-server')
 conventional_telemetry = ConventionalTelemetry('recommendationservice')
+otel_server_metrics = None
 
 def initStackdriverProfiling():
   project_id = None
@@ -115,16 +118,18 @@ if __name__ == "__main__":
         grpc_server_instrumentor = GrpcInstrumentorServer()
         grpc_server_instrumentor.instrument()
       if os.environ["ENABLE_TRACING"] == "1":
-        trace.set_tracer_provider(TracerProvider())
         otel_endpoint = os.getenv("COLLECTOR_SERVICE_ADDR", "localhost:4317")
+        trace.set_tracer_provider(TracerProvider(resource=Resource.create({"service.name": "recommendationservice"})))
+        otel_server_metrics = configure_metrics(otel_endpoint)
         trace.get_tracer_provider().add_span_processor(
           BatchSpanProcessor(
-              OTLPSpanExporter(
-              endpoint = otel_endpoint,
-              insecure = True
+            OTLPSpanExporter(
+              endpoint=otel_endpoint,
+              insecure=True
             )
           )
         )
+        configure_otel_logging(logger, "recommendationservice", otel_endpoint)
     except (KeyError, DefaultCredentialsError):
         logger.info("Tracing disabled.")
     except Exception as e:
@@ -143,7 +148,9 @@ if __name__ == "__main__":
     # create gRPC server
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=10),
-        interceptors=(conventional_telemetry.server_interceptor(),))
+        interceptors=tuple(
+            ([otel_server_metrics.server_interceptor()] if otel_server_metrics else [])
+            + [conventional_telemetry.server_interceptor()]))
 
     # add class to gRPC server
     service = RecommendationService()

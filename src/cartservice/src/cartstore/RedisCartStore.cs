@@ -20,25 +20,30 @@ using Microsoft.Extensions.Caching.Distributed;
 using Google.Protobuf;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace cartservice.cartstore
 {
     public class RedisCartStore : ICartStore
     {
+        private static readonly ActivitySource OtelActivitySource = new ActivitySource("cartservice.redis");
         private readonly IDistributedCache _cache;
         private readonly ConventionalTelemetry _telemetry;
+        private readonly ILogger<RedisCartStore> _logger;
 
-        public RedisCartStore(IDistributedCache cache, ConventionalTelemetry telemetry)
+        public RedisCartStore(IDistributedCache cache, ConventionalTelemetry telemetry, ILogger<RedisCartStore> logger)
         {
             _cache = cache;
             _telemetry = telemetry;
+            _logger = logger;
         }
 
         public async Task AddItemAsync(string userId, string productId, int quantity)
         {
-            Console.WriteLine($"AddItemAsync called with userId={userId}, productId={productId}, quantity={quantity}");
+            _logger.LogInformation("AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}", userId, productId, quantity);
             var started = Stopwatch.GetTimestamp();
             using var span = _telemetry.StartClientSpan("redis-cart GET/SET");
+            using var otelSpan = StartOtelDatastoreSpan("GET SET");
             try
             {
                 Hipstershop.Cart cart;
@@ -67,6 +72,7 @@ namespace cartservice.cartstore
             }
             catch (Exception ex)
             {
+                MarkOtelDatastoreFailure(otelSpan, ex);
                 span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
@@ -74,9 +80,10 @@ namespace cartservice.cartstore
 
         public async Task EmptyCartAsync(string userId)
         {
-            Console.WriteLine($"EmptyCartAsync called with userId={userId}");
+            _logger.LogInformation("EmptyCartAsync called with userId={UserId}", userId);
             var started = Stopwatch.GetTimestamp();
             using var span = _telemetry.StartClientSpan("redis-cart SET");
+            using var otelSpan = StartOtelDatastoreSpan("SET");
             try
             {
                 var cart = new Hipstershop.Cart();
@@ -85,6 +92,7 @@ namespace cartservice.cartstore
             }
             catch (Exception ex)
             {
+                MarkOtelDatastoreFailure(otelSpan, ex);
                 span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
@@ -92,9 +100,10 @@ namespace cartservice.cartstore
 
         public async Task<Hipstershop.Cart> GetCartAsync(string userId)
         {
-            Console.WriteLine($"GetCartAsync called with userId={userId}");
+            _logger.LogInformation("GetCartAsync called with userId={UserId}", userId);
             var started = Stopwatch.GetTimestamp();
             using var span = _telemetry.StartClientSpan("redis-cart GET");
+            using var otelSpan = StartOtelDatastoreSpan("GET");
             try
             {
                 // Access the cart from the cache
@@ -112,6 +121,7 @@ namespace cartservice.cartstore
             }
             catch (Exception ex)
             {
+                MarkOtelDatastoreFailure(otelSpan, ex);
                 span.CompleteObservation(Stopwatch.GetElapsedTime(started).TotalSeconds, true);
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Can't access cart storage. {ex}"));
             }
@@ -127,6 +137,21 @@ namespace cartservice.cartstore
             {
                 return false;
             }
+        }
+
+        private static Activity StartOtelDatastoreSpan(string operation)
+        {
+            var activity = OtelActivitySource.StartActivity(operation, ActivityKind.Client);
+            activity?.SetTag("db.system.name", "redis");
+            activity?.SetTag("db.operation.name", operation);
+            activity?.SetTag("server.address", "redis-cart");
+            return activity;
+        }
+
+        private static void MarkOtelDatastoreFailure(Activity activity, Exception exception)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+            activity?.SetTag("error.type", exception.GetType().FullName);
         }
     }
 }

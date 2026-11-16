@@ -21,6 +21,8 @@ const charge = require('./charge');
 const logger = require('./logger')
 const { createConventionalTelemetry } = require('./conventional-telemetry');
 const conventionalTelemetry = createConventionalTelemetry('paymentservice');
+const { createOtelMetrics } = require('./otel-metrics');
+const otelMetrics = createOtelMetrics('paymentservice');
 
 class HipsterShopServer {
   constructor(protoRoot, port = HipsterShopServer.PORT) {
@@ -46,7 +48,7 @@ class HipsterShopServer {
       const response = charge(call.request);
       callback(null, response);
     } catch (err) {
-      console.warn(err);
+      logger.warn({ err }, 'Payment charge failed');
       callback(err);
     }
   }
@@ -90,9 +92,10 @@ class HipsterShopServer {
     this.server.addService(
       hipsterShopPackage.PaymentService.service,
       {
-        charge: conventionalTelemetry.wrapUnary(
-          '/hipstershop.PaymentService/Charge',
-          HipsterShopServer.ChargeServiceHandler.bind(this))
+        charge: otelMetrics.wrapUnary(
+          '/hipstershop.PaymentService/Charge', conventionalTelemetry.wrapUnary(
+            '/hipstershop.PaymentService/Charge',
+            HipsterShopServer.ChargeServiceHandler.bind(this)))
       }
     );
 

@@ -17,6 +17,10 @@ ARG BUILDPLATFORM=linux/amd64
 
 FROM --platform=$BUILDPLATFORM eclipse-temurin:25.0.4_7-jdk-noble@sha256:534968c051301957beae735e7ba1db54d99ddecf08746d3b9d4f318cc132dbc3 AS builder
 
+ADD --checksum=sha256:5c48cd48f9907f824214e22f14a28375c92613a94b0cf98381997e0a678220ce \
+    https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.24.0/opentelemetry-javaagent.jar \
+    /otel-javaagent.jar
+
 WORKDIR /app
 
 COPY ["build.gradle", "gradlew", "./"]
@@ -39,6 +43,8 @@ FROM eclipse-temurin:25.0.4_7-jre-alpine@sha256:3137541deb3cac6626b5d9a4a2187bc0
 
 WORKDIR /app
 COPY --from=builder /app .
+COPY --from=builder /otel-javaagent.jar /otel/opentelemetry-javaagent.jar
+RUN chmod 0444 /otel/opentelemetry-javaagent.jar
 
 EXPOSE 9555
 ENTRYPOINT ["/app/build/install/hipstershop/bin/AdService"]

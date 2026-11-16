@@ -16,51 +16,66 @@
 
 'use strict';
 
-const logger = require('./logger')
-
-if (process.env.DISABLE_PROFILER) {
-  logger.info("Profiler disabled.")
-} else {
-  logger.info("Profiler enabled.")
-  require('@google-cloud/profiler').start({
-    serviceContext: {
-      service: 'paymentservice',
-      version: '1.0.0'
-    }
-  });
-}
-
+let logger;
 
 if (process.env.ENABLE_TRACING == "1") {
-  logger.info("Tracing enabled.")
-
   const { resourceFromAttributes } = require('@opentelemetry/resources');
 
   const { ATTR_SERVICE_NAME }= require('@opentelemetry/semantic-conventions');
 
   const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
-  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
   const opentelemetry = require('@opentelemetry/sdk-node');
 
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-otlp-grpc');
+  const { OTLPMetricExporter } = require('@opentelemetry/exporter-metrics-otlp-grpc');
+  const { PeriodicExportingMetricReader } = require('@opentelemetry/sdk-metrics');
+  const { OTLPLogExporter } = require('@opentelemetry/exporter-logs-otlp-grpc');
+  const { BatchLogRecordProcessor } = require('@opentelemetry/sdk-logs');
+  const { PinoInstrumentation } = require('@opentelemetry/instrumentation-pino');
+  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
 
   const collectorUrl = process.env.COLLECTOR_SERVICE_ADDR;
   const traceExporter = new OTLPTraceExporter({url: collectorUrl});
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter({url: collectorUrl}),
+    exportIntervalMillis: 5000
+  });
+  const logExporter = new OTLPLogExporter({ url: collectorUrl });
+  const logRecordProcessor = new BatchLogRecordProcessor({ exporter: logExporter });
 
   const sdk = new opentelemetry.NodeSDK({
     resource: resourceFromAttributes({
       [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'paymentservice',
     }),
     traceExporter: traceExporter,
+    metricReader: metricReader,
+    logRecordProcessors: [logRecordProcessor],
   });
 
   registerInstrumentations({
-    instrumentations: [new GrpcInstrumentation()]
+    instrumentations: [
+      new GrpcInstrumentation(),
+      new PinoInstrumentation({ disableLogCorrelation: true }),
+    ]
   });
 
   sdk.start()
 } else {
-  logger.info("Tracing disabled.")
+  // Instrumentation is disabled for the conventional Scenario A image.
+}
+
+// Load the Pino singleton after instrumentation registration so one logger call
+// is observed by both the conventional stdout destination and OTel Logs.
+logger = require('./logger');
+logger.info(process.env.ENABLE_TRACING == "1" ? "Tracing enabled." : "Tracing disabled.");
+
+if (process.env.DISABLE_PROFILER) {
+  logger.info("Profiler disabled.");
+} else {
+  logger.info("Profiler enabled.");
+  require('@google-cloud/profiler').start({
+    serviceContext: { service: 'paymentservice', version: '1.0.0' }
+  });
 }
 
 
