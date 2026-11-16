@@ -10,11 +10,23 @@ from scripts.experiment.fault_smoke import (
     chaos_manifest,
     require_deployment_provenance,
     require_exclusive_environment,
+    target_service_is_fully_unavailable,
 )
 from scripts.experiment.workload import parse_expected_statuses
 
 
 class FaultSmokeTests(unittest.TestCase):
+    def test_service_unavailability_waits_for_terminating_pods(self) -> None:
+        state = {
+            "desired_replicas": 0,
+            "ready_replicas": 0,
+            "ready_endpoints": 0,
+            "pods": 1,
+        }
+        self.assertFalse(target_service_is_fully_unavailable(state))
+        state["pods"] = 0
+        self.assertTrue(target_service_is_fully_unavailable(state))
+
     def test_fault_matrix_matches_the_five_declared_root_locations(self) -> None:
         faults = json.loads(FAULT_CONFIG.read_text(encoding="utf-8"))["faults"]
         expected = {

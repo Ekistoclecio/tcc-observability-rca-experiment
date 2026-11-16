@@ -128,6 +128,13 @@ def ready_endpoint_count(service: str) -> int:
     )
 
 
+def target_service_is_fully_unavailable(state: dict[str, int]) -> bool:
+    return all(
+        state[field] == 0
+        for field in ("desired_replicas", "ready_replicas", "ready_endpoints", "pods")
+    )
+
+
 def wait_until(
     check: Callable[[], tuple[bool, Any]], description: str, timeout: float = 120
 ) -> Any:
@@ -409,12 +416,13 @@ def inject(fault: str, definition: dict[str, Any]) -> tuple[Any, dict[str, Any]]
                 "desired_replicas": desired_replicas(name),
                 "ready_replicas": ready_replicas(name),
                 "ready_endpoints": ready_endpoint_count(name),
+                "pods": len(service_pods(name)),
             }
-            return all(value == 0 for value in state.values()), state
+            return target_service_is_fully_unavailable(state), state
 
         try:
             evidence = wait_until(
-                unavailable, f"{name} replicas and Service endpoints to reach zero"
+                unavailable, f"{name} Pods, replicas, and Service endpoints to reach zero"
             )
         except Exception:
             recover(fault, {"deployment": name, "replicas": replicas})
