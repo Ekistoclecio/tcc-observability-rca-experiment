@@ -342,6 +342,7 @@ def run_workload(fault: str | None, port: int) -> dict[str, Any]:
     elif fault == "F5":
         expected = [
             "GET:/=500",
+            "GET:/product/OLJCESPC7Z=500",
             "POST:/cart=500",
             "GET:/cart=500",
             "POST:/cart/checkout=500",

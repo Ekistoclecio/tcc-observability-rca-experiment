@@ -124,6 +124,7 @@ class FaultSmokeTests(unittest.TestCase):
             configured,
             [
                 "GET:/=500",
+                "GET:/product/OLJCESPC7Z=500",
                 "POST:/cart=500",
                 "GET:/cart=500",
                 "POST:/cart/checkout=500",
