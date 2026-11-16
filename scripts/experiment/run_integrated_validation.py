@@ -731,9 +731,16 @@ def execute(output: Path, active_seconds: float = 5.0) -> dict[str, Any]:
             fault_work.mkdir()
             gt_path = fault_work / "ground-truth.json"
             report_path = fault_work / "fault-smoke.json"
-            result = run([sys.executable, str(FAULT_RUNNER), "--fault", fault, "--record", str(gt_path),
+            result = run([sys.executable, "-m", "scripts.experiment.fault_smoke",
+                          "--fault", fault, "--record", str(gt_path),
                           "--active-seconds", str(active_seconds)], env=env, check=False)
-            report = json_output(result, f"{fault} fault smoke")
+            try:
+                report = json_output(result, f"{fault} fault smoke")
+            except IntegratedRunError as exc:
+                raise IntegratedRunError(
+                    f"{fault} fault smoke did not return JSON (exit={result.returncode}); "
+                    f"stdout={result.stdout[-2000:]!r}; stderr={result.stderr[-4000:]!r}"
+                ) from exc
             report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
             if result.returncode or report.get("status") != "PASS":
                 raise IntegratedRunError(f"{fault} injection/recovery smoke failed: {report}")

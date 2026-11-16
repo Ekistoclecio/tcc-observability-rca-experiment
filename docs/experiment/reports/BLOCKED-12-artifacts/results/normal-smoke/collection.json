@@ -1,0 +1,23 @@
+{
+  "collection": {
+    "hashes": 46,
+    "output_dir": "/tmp/tcc-experiment-v2-battery-gkrhtlb6/normal-raw",
+    "status": "PASS",
+    "summary": {
+      "A": {
+        "log_entries": 323,
+        "log_streams": 13,
+        "metric_series": 248
+      },
+      "B": {
+        "log_entries": 284,
+        "log_streams": 284,
+        "metric_series": 2822
+      }
+    }
+  },
+  "integrity": {
+    "files_verified": 46,
+    "status": "PASS"
+  }
+}

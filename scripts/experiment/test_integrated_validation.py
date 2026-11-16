@@ -1,11 +1,13 @@
 import unittest
 import json
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 
 from run_integrated_validation import (
     IntegratedRunError,
     dataset_evidence,
+    run,
     validate_fault_facts,
     verify_global_raw_hashes,
     write_hashes,
@@ -30,6 +32,11 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_fault_runner_package_entrypoint_imports_without_running_faults(self):
+        result = run([sys.executable, "-m", "scripts.experiment.fault_smoke", "--help"], check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--fault", result.stdout)
+
     def test_f1_requires_cpu_and_request_duration_above_normal_baseline(self):
         a = [metric("cpu_utilization", "checkoutservice", 0.9),
              metric("request_duration", "checkoutservice", 0.8)]

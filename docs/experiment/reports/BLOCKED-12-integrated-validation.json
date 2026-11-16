@@ -1,0 +1,40 @@
+{
+  "stage": "12-integrated-validation",
+  "attempt_status": "INVALIDATED_BEFORE_FAULT_CONFIRMATION",
+  "last_successful_commit": "e7305f6ad0d22433311b162fd37fb0cdda1cd738",
+  "branch": "experiment-v2",
+  "observed": {
+    "normal_workload": "PASS",
+    "normal_raw_collection": "PASS",
+    "fault_invoked": "F1",
+    "fault_subprocess_returned_json": false,
+    "subprocess_stdout": "empty",
+    "preserved_f1_ground_truth_record": false,
+    "f2_to_f5_started": false,
+    "post_failure_chaos_resources": 0,
+    "post_failure_sut_ready": "11/11"
+  },
+  "expected": "The F1 runner should start, record control-plane Ground Truth, complete injection and recovery, and return JSON before the integrated battery continues.",
+  "first_divergence": "Python subprocess invocation of scripts.experiment.fault_smoke before its main function",
+  "root_cause_status": "PROVEN",
+  "root_cause": "Direct file invocation sets the script directory as the import root, but fault_smoke.py imports scripts.experiment.ground_truth. Running python3 scripts/experiment/fault_smoke.py --help produced ModuleNotFoundError: No module named 'scripts' at line 17, before main or any fault action.",
+  "evidence": [
+    "Read-only help invocation produced the ModuleNotFoundError stack trace.",
+    "Preserved BLOCKED-12-artifacts/F1 directory contains no ground-truth.json or fault report.",
+    "Post-failure Kubernetes query showed no StressChaos or NetworkChaos resources and the SUT was 11/11 Ready."
+  ],
+  "affected_invariant": "Each fault in the frozen integrated run must complete and produce an auditable control-plane record before the run may continue.",
+  "affected_files": [
+    "scripts/experiment/run_integrated_validation.py",
+    "scripts/experiment/test_integrated_validation.py"
+  ],
+  "scientific_impact": "The integrated battery is invalid and yields no F1-F5 experimental result. The normal workload/RAW are preserved only as evidence from this failed attempt.",
+  "safe_automatic_correction_possible": true,
+  "recommended_correction": "Invoke the child as python -m scripts.experiment.fault_smoke from the repository root and include subprocess return code/stdout/stderr in JSON parse failures.",
+  "alternative": "Set an explicit repository-root PYTHONPATH while invoking the script path; module invocation is simpler and matches the package import.",
+  "physical_rerun_required": true,
+  "rerun_scope": "A complete new F1-F5 battery on a new committed revision with rebuilt and redeployed images; do not retry only F1 or combine runs.",
+  "preserved_evidence": "docs/experiment/reports/BLOCKED-12-artifacts/",
+  "working_tree_at_failure": "runner created blocker artifacts; no implementation edits occurred during the physical attempt",
+  "llm_invocations": 0
+}
