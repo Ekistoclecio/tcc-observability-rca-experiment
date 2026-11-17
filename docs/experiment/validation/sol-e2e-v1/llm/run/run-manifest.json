@@ -1,0 +1,65 @@
+{
+  "case_map_private": [
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/002_network_latency_r01/rca-input-A.json",
+      "input_sha256": "e40a90c79de82eb27b88b730b80e2213ad8827af46b1a63a90ec417ceb523b34",
+      "opaque_case_id": "case-03ab5017d137"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/002_network_latency_r01/rca-input-B.json",
+      "input_sha256": "5c6c25978c0749916c2e258953a1e30a777ba02bda7ff4d67112867369d2a5b5",
+      "opaque_case_id": "case-03d968f18489"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/001_cpu_saturation_r01/rca-input-A.json",
+      "input_sha256": "5a4a950fe3d4c3cfe4cf8a1357766c6c0e5ff019fb1ce15666393776a3198b53",
+      "opaque_case_id": "case-30aff686eb1f"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/005_datastore_unavailable_r01/rca-input-B.json",
+      "input_sha256": "9ccb64f5dd5b2526606face7de336c5227e1c9a9a082de0fff76d2c4aa14f92d",
+      "opaque_case_id": "case-60f7fe7d59e5"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/004_application_exception_r01/rca-input-A.json",
+      "input_sha256": "300cab24ea0210987ea96170901424b326d07e29e3254f5a96d29ca3d6fc731e",
+      "opaque_case_id": "case-63a5bee5ffaf"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/003_service_unavailable_r01/rca-input-A.json",
+      "input_sha256": "12489fcb76b1ed2ae8e71bd4844d53e61ea062039ce4755c53480fbbd39fd65a",
+      "opaque_case_id": "case-87514472d86d"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/004_application_exception_r01/rca-input-B.json",
+      "input_sha256": "90e9d7c8df5cd71624067eb13737917dddc7f781bc93a340ab28f16e72bcca77",
+      "opaque_case_id": "case-9456280abd4f"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/003_service_unavailable_r01/rca-input-B.json",
+      "input_sha256": "6fcadc8be0c92b0bfc18427da13cc5350a9d924ad71830c84ef610d5181c004f",
+      "opaque_case_id": "case-a2dff2d11026"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/001_cpu_saturation_r01/rca-input-B.json",
+      "input_sha256": "44eaa50ac6e469fa5449333ee2ba5e4d25288bff3a90ef01d6b39a0c34cf9f44",
+      "opaque_case_id": "case-d19c9e70755c"
+    },
+    {
+      "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/005_datastore_unavailable_r01/rca-input-A.json",
+      "input_sha256": "3028c518adbac77b7e29f4424fea0def18053a2797123fcada942ee53ab69526",
+      "opaque_case_id": "case-d7abd655d793"
+    }
+  ],
+  "created_at": "2026-11-17T18:55:52.016Z",
+  "execution_plan_sha256": "0e4f3a13af29f6c7952e95992e526ac1ee2d147ecaecc3ef946ca6cced5cb30f",
+  "finished_at": "2026-11-17T18:57:44.699Z",
+  "openai_sdk_version": "3.51.0",
+  "prompt_sha256": "2e107e3c7f45b843bdad435f8c233dfe5085f3589c56ddd2bf04da12998fa86b",
+  "protocol_manifest_sha256": "e2de140fe4abab83ea060ca68ac4037a321a52585028b188a108d343e9d971b6",
+  "protocol_version": "llm-rca-sol-e2e-v1",
+  "request_parallelism": 1,
+  "run_id": "llm-rca-sol-e2e-v1-20261117T185552.012631Z",
+  "runner_commit": "0c264780a2b33213ec763e3f48b979bd154e3c7c",
+  "schema_sha256": "00f6a92d2946e1e9d2482eb75e69e7244763562b422d73f35b3cb6b6a3c540c7"
+}

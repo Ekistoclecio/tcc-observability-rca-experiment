@@ -1,0 +1,59 @@
+{
+  "hypotheses": [
+    {
+      "confidence": 0.99,
+      "evidence_ids": [
+        "ev_36bca16d2f5d529bb3a7",
+        "ev_ada630e6d655320dc8d0",
+        "ev_20c36cd3fa87bee1cb2f",
+        "ev_9b6e340b852307765991"
+      ],
+      "explanation": "Payment Charge returned UNAVAILABLE with connection refused, causing checkout HTTP 500. Paymentservice subsequently logged server startup and a successful health check, supporting temporary service unavailability.",
+      "fault_type": "service_unavailable",
+      "location": {
+        "datastore": null,
+        "kind": "service",
+        "operation": null,
+        "peer_service": null,
+        "service": "paymentservice"
+      },
+      "rank": 1
+    },
+    {
+      "confidence": 0.55,
+      "evidence_ids": [
+        "ev_36bca16d2f5d529bb3a7",
+        "ev_ada630e6d655320dc8d0"
+      ],
+      "explanation": "An unavailable payment endpoint on the checkout-to-payment connection could explain the refused TCP connection and failed charge; endpoint-level versus service-wide failure cannot be conclusively distinguished.",
+      "fault_type": "service_unavailable",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "paymentservice",
+        "service": "checkoutservice"
+      },
+      "rank": 2
+    },
+    {
+      "confidence": 0.35,
+      "evidence_ids": [
+        "ev_a166f6bc601053dd856e",
+        "ev_1e074fc1c1f0ce5e6aeb",
+        "ev_3cedc6dd0077f1653252",
+        "ev_b0d3519e538507bf72e8"
+      ],
+      "explanation": "Two Convert calls took approximately 79 ms client-side but less than 1 ms server-side, suggesting transport-path delay. This could explain browsing latency, but not the checkout connection refusal.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "currencyservice",
+        "service": "frontend"
+      },
+      "rank": 3
+    }
+  ]
+}

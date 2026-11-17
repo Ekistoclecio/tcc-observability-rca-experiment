@@ -1,0 +1,66 @@
+{
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-17T18:56:00.030Z",
+      "latency_ms": 8003.947,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-17T18:55:52.026Z"
+    }
+  ],
+  "input_sha256": "9ccb64f5dd5b2526606face7de336c5227e1c9a9a082de0fff76d2c4aa14f92d",
+  "latency_clean": true,
+  "latency_ms": 8007.313,
+  "logical_total_latency_ms": 8007.313,
+  "opaque_case_id": "case-60f7fe7d59e5",
+  "ordinal": 1,
+  "private_source_path": "docs/experiment/validation/sol-e2e-v1/physical/results/005_datastore_unavailable_r01/rca-input-B.json",
+  "request_fingerprint": "ca1bf2494f204a27298b704a22e4c16a3168a3610e1761db611dae13c0c59c0e",
+  "request_finished_at": "2026-11-17T18:56:00.034Z",
+  "request_started_at": "2026-11-17T18:55:52.025Z",
+  "response_metadata": {
+    "api_status": "completed",
+    "created_at": 1794941752.0,
+    "incomplete_details": null,
+    "requested_model": "gpt-6.1-sol",
+    "response_id": "resp_0abcb71b4dc19310016afca338c57487d28436b85cfd0375a0",
+    "returned_model": "gpt-6.1-sol",
+    "service_tier_requested": "default",
+    "service_tier_returned": "default",
+    "usage": {
+      "cache_write_12h_tokens": 0,
+      "cache_write_30m_tokens": 21243,
+      "cache_write_tokens": 21243,
+      "cached_input_tokens": 0,
+      "cost_status": "ESTIMATED",
+      "estimated_cost_usd": "0.0582635",
+      "input_tokens": 21246,
+      "long_context_pricing_applied": false,
+      "output_tokens": 515,
+      "pricing_version": "pricing-sol-v1",
+      "reasoning_tokens": 60,
+      "total_tokens": 21761
+    }
+  },
+  "runner_protocol_version": "llm-rca-sol-e2e-v1",
+  "status": "COMPLETED",
+  "transport_time_ms": 8003.947,
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 21243,
+    "cache_write_tokens": 21243,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0582635",
+    "input_tokens": 21246,
+    "long_context_pricing_applied": false,
+    "output_tokens": 515,
+    "pricing_version": "pricing-sol-v1",
+    "reasoning_tokens": 60,
+    "total_tokens": 21761
+  },
+  "validation": {
+    "status": "PASS"
+  }
+}

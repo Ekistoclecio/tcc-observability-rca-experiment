@@ -1,0 +1,65 @@
+{
+  "hypotheses": [
+    {
+      "confidence": 0.88,
+      "evidence_ids": [
+        "ev_457386708b98ecd684e4",
+        "ev_5d79e58415d8102f48e2",
+        "ev_1ceaedfe1dac657f3dd6",
+        "ev_41774eadb93978d840c6",
+        "ev_acf4b40068f6f06a1842"
+      ],
+      "explanation": "Charge averages 103.2 ms client-side versus 1.1 ms server-side. The traced request has approximately 100 ms before server processing begins, suggesting transport-path delay rather than payment execution; payment succeeds.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "paymentservice",
+        "service": "checkoutservice"
+      },
+      "rank": 1
+    },
+    {
+      "confidence": 0.74,
+      "evidence_ids": [
+        "ev_8f6688b58b56b897508f",
+        "ev_951f4ff71db3f89ba011",
+        "ev_875353c5b814c6616cef",
+        "ev_ab84bc0ba7d255a3664e",
+        "ev_fa0c293597a1b9291659",
+        "ev_975bc0b99bec82fbcf9e"
+      ],
+      "explanation": "Multiple currency RPCs take 72–77 ms client-side while corresponding server spans take about 1 ms. These gaps suggest intermittent transport-path latency contributing to frontend response times, although client scheduling cannot be excluded.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "currencyservice",
+        "service": "frontend"
+      },
+      "rank": 2
+    },
+    {
+      "confidence": 0.63,
+      "evidence_ids": [
+        "ev_36e9bd92baef2940044f",
+        "ev_baf2c967daad591c7e2f",
+        "ev_815270ef7c36bf8ed819",
+        "ev_5454e7ea1f40bba5fd5d",
+        "ev_c404d013992c268a759f"
+      ],
+      "explanation": "ListRecommendations averages 34.9 ms client-side versus 4.8 ms server-side. One cart request spends 80.1 ms in this RPC despite only 5.1 ms of server processing, consistent with transport-path delay; client scheduling remains an alternative.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "recommendationservice",
+        "service": "frontend"
+      },
+      "rank": 3
+    }
+  ]
+}

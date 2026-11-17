@@ -1,0 +1,12 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "directory": "attempt-001",
+      "included_in_pilot_results": false,
+      "runner_commit": "0c264780a2b33213ec763e3f48b979bd154e3c7c",
+      "status": "COMPLETED"
+    }
+  ],
+  "included_in_pilot_results": false
+}

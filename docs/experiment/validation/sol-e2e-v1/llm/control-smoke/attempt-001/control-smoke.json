@@ -1,0 +1,98 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-17T18:55:27.164Z",
+      "latency_ms": 13422.216,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-17T18:55:13.742Z"
+    }
+  ],
+  "execution_plan_sha256": "0e4f3a13af29f6c7952e95992e526ac1ee2d147ecaecc3ef946ca6cced5cb30f",
+  "finished_at": "2026-11-17T18:55:27.168Z",
+  "included_in_pilot_results": false,
+  "input_sha256": "efd7ee2b5aa58b07eab54e61744b153b06d8c17cbf68ec55e6021f2260bf74c8",
+  "kind": "control_compatibility_smoke",
+  "latency_ms": 13425.817,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.25,
+        "evidence_ids": [
+          "evidence-002"
+        ],
+        "explanation": "An extended downstream span is consistent with network latency affecting service-beta requests, but does not distinguish network delay from downstream processing.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "service-beta"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.05,
+        "evidence_ids": [],
+        "explanation": "CPU saturation is a weak possibility; the reported elevated service-level signal is unspecified and provides no direct CPU evidence.",
+        "fault_type": "cpu_saturation",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "service-alpha"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.03,
+        "evidence_ids": [],
+        "explanation": "An availability problem could delay downstream requests, but no failures, timeouts, or availability measurements directly support it.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "service-beta"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "protocol_version": "llm-rca-sol-e2e-v1",
+  "raw_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service\",\"service\":\"service-beta\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.25,\"evidence_ids\":[\"evidence-002\"],\"explanation\":\"An extended downstream span is consistent with network latency affecting service-beta requests, but does not distinguish network delay from downstream processing.\"},{\"rank\":2,\"location\":{\"kind\":\"service\",\"service\":\"service-alpha\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"cpu_saturation\",\"confidence\":0.05,\"evidence_ids\":[],\"explanation\":\"CPU saturation is a weak possibility; the reported elevated service-level signal is unspecified and provides no direct CPU evidence.\"},{\"rank\":3,\"location\":{\"kind\":\"service\",\"service\":\"service-beta\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.03,\"evidence_ids\":[],\"explanation\":\"An availability problem could delay downstream requests, but no failures, timeouts, or availability measurements directly support it.\"}]}",
+  "request_fingerprint": "cce3031b6498cbd16e4b4897965c09887742aabae1b1226a506c00ea3c93113b",
+  "response_metadata": {
+    "api_status": "completed",
+    "created_at": 1794941714.0,
+    "incomplete_details": null,
+    "requested_model": "gpt-6.1-sol",
+    "response_id": "resp_0f8407c99114724d016afca312daf887d291101ef25323d74d",
+    "returned_model": "gpt-6.1-sol",
+    "service_tier_requested": "default",
+    "service_tier_returned": "default",
+    "usage": {
+      "cache_write_12h_tokens": 0,
+      "cache_write_30m_tokens": 0,
+      "cache_write_tokens": 0,
+      "cached_input_tokens": 0,
+      "cost_status": "ESTIMATED",
+      "estimated_cost_usd": "0.00613",
+      "input_tokens": 705,
+      "long_context_pricing_applied": false,
+      "output_tokens": 472,
+      "pricing_version": "pricing-sol-v1",
+      "reasoning_tokens": 227,
+      "total_tokens": 1177
+    }
+  },
+  "runner_commit": "0c264780a2b33213ec763e3f48b979bd154e3c7c",
+  "started_at": "2026-11-17T18:55:13.742Z",
+  "status": "COMPLETED",
+  "validation": {
+    "status": "PASS"
+  }
+}

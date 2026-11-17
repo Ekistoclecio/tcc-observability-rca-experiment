@@ -1,0 +1,67 @@
+{
+  "hypotheses": [
+    {
+      "confidence": 0.79,
+      "evidence_ids": [
+        "ev_36d4b368b4dbcb4b60ea",
+        "ev_a395f903397e08319e30",
+        "ev_46efdbb342fcf3ce374d",
+        "ev_9a6636c1db859dabc6a8",
+        "ev_8f18f8088a34738b95dc",
+        "ev_ecb4727a2d9efa24a291"
+      ],
+      "explanation": "Conversion calls take 93–96 ms client-side while corresponding server spans take about 0.28 ms. Repeated client/server latency gaps suggest transport-path delays contributing to frontend latency; network causation is not confirmed.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "currencyservice",
+        "service": "frontend"
+      },
+      "rank": 1
+    },
+    {
+      "confidence": 0.72,
+      "evidence_ids": [
+        "ev_b878aac1fa9eee5d24a1",
+        "ev_a8e5074270ccea91e28c",
+        "ev_631a300d94ba3314fc02",
+        "ev_89754474920a13edd3c5",
+        "ev_3f3bef4d86f8aeac4331",
+        "ev_5053b13a957cb4db6cf1"
+      ],
+      "explanation": "Two recommendation calls take 79–85 ms at the frontend versus 3.4–3.5 ms server-side. This repeated gap suggests edge latency rather than slow recommendation processing, contributing to cart-page duration.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "recommendationservice",
+        "service": "frontend"
+      },
+      "rank": 2
+    },
+    {
+      "confidence": 0.67,
+      "evidence_ids": [
+        "ev_ae88264fdb20aa4538a0",
+        "ev_6d8500f7b564db2f6911",
+        "ev_cc53246bc0de7feaea6f",
+        "ev_27522410a9ce40c1b2e5",
+        "ev_c224e7a14f5de67789b5",
+        "ev_9d64a411b6567544d736"
+      ],
+      "explanation": "The payment RPC takes 91.9 ms client-side despite a 0.76 ms server span and successful processing. Metrics also show a substantial client/server gap, suggesting transport-path delay that adds to checkout duration.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "paymentservice",
+        "service": "checkoutservice"
+      },
+      "rank": 3
+    }
+  ]
+}
