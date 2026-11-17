@@ -37,3 +37,29 @@ RCA Inputs: 10
 LLM calls: 0
 RCA runs: 0
 ```
+
+## Etapa 13B — execução do piloto
+
+As dependências do executor estão fixadas em `scripts/experiment/llm/requirements.txt`.
+Instale-as em um ambiente virtual antes de executar testes ou o runner. O comando
+`freeze-plan` gera `execution-plan-v1.json`; sua ordem usa somente os hashes dos
+RCA Inputs e seus IDs opacos não entram nos requests.
+
+O runner carrega explicitamente `<raiz-do-repositório>/.env` com
+`python-dotenv` e `override=False`. `.env` precisa estar ignorado e não rastreado
+pelo Git. `preflight`, `freeze-plan` e testes são offline. Os únicos comandos
+que usam rede são `control-smoke` (um RCA Input sintético, fora do piloto) e
+`run` (os dez Inputs congelados). O runner verifica hashes antes de cada caso,
+usa o SDK oficial OpenAI com retries internos desligados e controla até três
+tentativas transitórias por chamada lógica.
+
+Faça commit do runner e deixe a árvore limpa antes da execução real. Em seguida,
+rode `python -m scripts.experiment.llm.runner control-smoke`; somente se o smoke
+terminar com status `COMPLETED`, rode
+`python -m scripts.experiment.llm.runner run`. Os outputs ficam em `pilot-v1/`
+e o smoke fica separado em `control-smoke/`. Não rode evaluator nem carregue
+Ground Truth nesta etapa.
+
+`pricing-v1.json` registra o snapshot do gpt-6-luna para tier padrão e inclui o
+preço documentado de cache write. O custo fica `null` quando os detalhes de
+usage ou do tier efetivo não permitem cálculo correto.

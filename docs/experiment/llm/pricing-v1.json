@@ -1,0 +1,30 @@
+{
+  "pricing_version": "pricing-v1",
+  "source": "https://developers.openai.com/api/docs/pricing",
+  "model_reference": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+  "retrieved_at_utc": "2026-11-17",
+  "provider": "OpenAI",
+  "model": "gpt-6-luna",
+  "service_tier": "default",
+  "billing_mode": "standard",
+  "currency": "USD",
+  "unit": "per_1m_tokens",
+  "short_context_rates": {
+    "input": "0.10",
+    "cached_input": "0.01",
+    "cache_write_30m": "0.125",
+    "cache_write_12h": "0.25",
+    "output": "0.50"
+  },
+  "long_context": {
+    "threshold_input_tokens_exclusive": 272000,
+    "input_and_cache_rate_multiplier": "2",
+    "output_rate_multiplier": "1.5"
+  },
+  "default_prompt_cache_write_ttl": "30m",
+  "notes": [
+    "The request omits prompt_cache_options; GPT-6 models use the documented 30-minute default cache-write lifetime.",
+    "Reasoning tokens are included in output_tokens and are not charged a second time.",
+    "Regional processing or non-default processing tiers are outside this snapshot; cost is null if returned processing metadata indicates such a tier."
+  ]
+}
