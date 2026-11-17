@@ -1,0 +1,44 @@
+{
+  "stage": "12T-finalization-cleanup-validation",
+  "base_tested_commit": "0e1cf33d7d697faa2500e1db02b5b36afe2c989c",
+  "root_cause": {
+    "status": "PROVEN",
+    "classification": "TEMPORARY_RAW_TREE_CLEANUP_PERMISSION_FAILURE",
+    "chain": "read-only temporary RAW directories -> shutil.rmtree -> unlinkat(hashes.sha256) -> EACCES"
+  },
+  "fix": {
+    "scope": "temporary disposable trees only",
+    "directory_permissions_prepared_for_removal": true,
+    "published_artifact_bytes_changed": false,
+    "published_artifact_modes_changed": false,
+    "retry": false,
+    "failure_is_reraised": true,
+    "failure_diagnostics": ["full traceback", "errno", "filename", "cwd", "path stats", "process identity"]
+  },
+  "validation": {
+    "preserve_work_on_error_cleanup_regression": "PASS",
+    "nested_read_only_raw_tree": "PASS",
+    "simulated_cleanup_failure_reraised_without_retry": "PASS",
+    "full_finalization_smoke": "PASS",
+    "results_hash_entries": 1081,
+    "audit_hash_entries": 27,
+    "source_fixture_bytes_and_modes_unchanged": true,
+    "success_stage_published_last": true,
+    "scripts_experiment_tests": "81 PASS",
+    "tests_experiment_tests": "32 PASS",
+    "py_compile": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "stress_100_runs": {
+    "required": false,
+    "previous_attempt": "STOPPED_BEFORE_FULL_FINALIZATION",
+    "reason": "STRESS_HARNESS_DEPENDENCY_UNCONFIGURED: KIND_BIN was not set",
+    "used_as_failure_of_cleanup_fix": false
+  },
+  "faults_executed": false,
+  "official_battery_started": false,
+  "official_battery_status": "NOT_STARTED",
+  "results_published": false,
+  "teste_published": false,
+  "llm_invocations": 0
+}

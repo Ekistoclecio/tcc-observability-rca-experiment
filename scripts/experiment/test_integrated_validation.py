@@ -7,12 +7,16 @@ from unittest.mock import patch
 
 from run_integrated_validation import (
     IntegratedRunError,
+    PreserveWorkOnError,
     dataset_evidence,
     external_inventory_paths,
     finalize_results,
     fresh_prometheus_instances,
     hash_inventory,
+    observe_filesystem,
     package_global_raw,
+    publish_finalization,
+    remove_temporary_tree,
     reserve_local_port,
     run,
     run_normal_baseline,
@@ -385,6 +389,176 @@ class IntegratedValidationTests(unittest.TestCase):
             self.assertNotIn("hashes.sha256", outer_paths)
             declared = {entry["path"] for entry in json.loads((output / "manifest.json").read_text())["artifacts"]}
             self.assertIn("fault/raw/hashes.sha256", declared)
+
+    def test_filesystem_diagnostic_preserves_and_reraises_original_permission_error(self):
+        import run_integrated_validation as runner
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = root / "teste/hashes.sha256"
+            path.parent.mkdir()
+            path.write_text("hash list\n")
+            events = []
+            error = PermissionError(13, "Permission denied", str(path))
+            old_events = runner.FINALIZATION_EVENTS
+            runner.FINALIZATION_EVENTS = events
+            try:
+                with self.assertRaises(PermissionError) as caught:
+                    observe_filesystem("read audit root hash manifest", path, lambda: (_ for _ in ()).throw(error))
+            finally:
+                runner.FINALIZATION_EVENTS = old_events
+
+            self.assertIs(caught.exception, error)
+            self.assertEqual(len(events), 1)
+            event = events[0]
+            self.assertEqual(event["status"], "FAIL")
+            self.assertEqual(event["exception_type"], "PermissionError")
+            self.assertEqual(event["errno"], 13)
+            self.assertEqual(event["before"]["absolute_path"], str(path.resolve()))
+            self.assertEqual(event["before"]["cwd"], str(Path.cwd()))
+            self.assertTrue(event["before"]["is_file"])
+            self.assertIn("PermissionError", event["traceback"])
+            self.assertIn("uid", event["before"]["process"])
+
+    def test_finalization_stage_success_is_published_after_packages_and_json_is_last(self):
+        import run_integrated_validation as runner
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scratch = root / "scratch"
+            scratch.mkdir()
+            for name in ("results", "teste"):
+                package = scratch / name
+                package.mkdir()
+                (package / "evidence.json").write_text('{"status":"PASS"}\n')
+                write_hashes(package)
+            publication_root = root / "experiment"
+            (publication_root / "stages").mkdir(parents=True)
+            real_replace = runner.os.replace
+            calls = []
+
+            def ordered_replace(source, target):
+                calls.append(Path(target).name)
+                return real_replace(source, target)
+
+            with patch("run_integrated_validation.os.replace", side_effect=ordered_replace):
+                result = publish_finalization(
+                    scratch, publication_root,
+                    {"tested_commit": "test-sha"}, {},
+                    {"files_hashed": 1, "results_files_hashed": 1, "bytes": 128},
+                )
+
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(verify_hash_manifest(publication_root / "results"), 1)
+            self.assertEqual(verify_hash_manifest(publication_root / "teste"), 1)
+            self.assertEqual(calls[-1], "12-final-experiment-validation.json")
+            stage = json.loads((publication_root / "stages/12-final-experiment-validation.json").read_text())
+            self.assertEqual(stage["overall"], "SUCCESS")
+            self.assertFalse(scratch.exists())
+
+    def test_finalization_failure_does_not_publish_stage_success(self):
+        import run_integrated_validation as runner
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scratch = root / "scratch"
+            scratch.mkdir()
+            for name in ("results", "teste"):
+                package = scratch / name
+                package.mkdir()
+                (package / "evidence.json").write_text("evidence\n")
+                write_hashes(package)
+            publication_root = root / "experiment"
+            stages = publication_root / "stages"
+            stages.mkdir(parents=True)
+            real_verify = verify_hash_manifest
+
+            def fail_published_results(path):
+                if Path(path) == publication_root / "results":
+                    raise PermissionError(13, "Permission denied", "hashes.sha256")
+                return real_verify(path)
+
+            with patch("run_integrated_validation.verify_hash_manifest", side_effect=fail_published_results):
+                with self.assertRaises(PermissionError):
+                    publish_finalization(
+                        scratch, publication_root, {"tested_commit": "test-sha"}, {},
+                        {"files_hashed": 1, "results_files_hashed": 1, "bytes": 128},
+                    )
+
+            self.assertFalse((stages / "12-final-experiment-validation.json").exists())
+            self.assertFalse((stages / "12-final-experiment-validation.md").exists())
+
+    def test_temporary_cleanup_removes_raw_read_only_tree_without_changing_file_bytes(self):
+        import hashlib
+
+        manager = PreserveWorkOnError()
+        root = manager.__enter__()
+        try:
+            raw = root / "raw/datasetA/traces/frontend"
+            raw.mkdir(parents=True)
+            manifest = raw / "hashes.sha256"
+            chunk = raw / "chunk-000000.json"
+            manifest.write_bytes(b"immutable manifest bytes\n")
+            chunk.write_bytes(b'{"native":"response"}\n')
+            original = {
+                manifest.relative_to(root).as_posix():
+                    (hashlib.sha256(manifest.read_bytes()).hexdigest(), manifest.stat().st_mode & 0o7777),
+                chunk.relative_to(root).as_posix():
+                    (hashlib.sha256(chunk.read_bytes()).hexdigest(), chunk.stat().st_mode & 0o7777),
+            }
+            for directory in (raw, raw.parent, raw.parent.parent, root / "raw"):
+                directory.chmod(0o555)
+            import run_integrated_validation as runner
+            real_rmtree = runner.shutil.rmtree
+            observed_before_delete = {}
+
+            def capture_modes_then_remove(path):
+                for relative, (expected_digest, expected_mode) in original.items():
+                    candidate = Path(path) / relative
+                    observed_before_delete[relative] = (
+                        hashlib.sha256(candidate.read_bytes()).hexdigest(),
+                        candidate.stat().st_mode & 0o7777,
+                    )
+                return real_rmtree(path)
+
+            with patch("run_integrated_validation.shutil.rmtree", side_effect=capture_modes_then_remove):
+                self.assertEqual(manager.__exit__(None, None, None), False)
+            self.assertFalse(root.exists())
+            self.assertEqual(observed_before_delete, original)
+        except BaseException as exc:
+            if root.exists():
+                try:
+                    remove_temporary_tree(root)
+                except BaseException:
+                    pass
+            raise
+
+    def test_temporary_cleanup_preserves_fatal_removal_error_without_retry(self):
+        import run_integrated_validation as runner
+
+        manager = PreserveWorkOnError()
+        root = manager.__enter__()
+        (root / "raw").mkdir()
+        error = PermissionError(13, "Permission denied", "hashes.sha256")
+        events = []
+        previous_events = runner.FINALIZATION_EVENTS
+        previous_failure = runner.LAST_FINALIZATION_FAILURE
+        runner.FINALIZATION_EVENTS = events
+        try:
+            with patch("run_integrated_validation.shutil.rmtree", side_effect=error) as remove:
+                with self.assertRaises(PermissionError) as caught:
+                    manager.__exit__(None, None, None)
+            self.assertIs(caught.exception, error)
+            self.assertEqual(remove.call_count, 1)
+            self.assertEqual(events[-1]["operation"], "remove disposable temporary tree")
+            self.assertEqual(events[-1]["exception_type"], "PermissionError")
+            self.assertIn("PermissionError", events[-1]["traceback"])
+            self.assertEqual(runner.LAST_FINALIZATION_FAILURE["errno"], 13)
+        finally:
+            runner.FINALIZATION_EVENTS = previous_events
+            runner.LAST_FINALIZATION_FAILURE = previous_failure
+            if root.exists():
+                remove_temporary_tree(root)
 
     def test_f4_requires_error_log_and_real_b_log_span_correlation(self):
         log_a = {"signal": "log", "service": "paymentservice", "message": "Payment charge failed",

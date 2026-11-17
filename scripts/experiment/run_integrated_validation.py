@@ -10,9 +10,11 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
+import traceback
 import time
 import urllib.error
 import urllib.request
@@ -61,6 +63,102 @@ class IntegratedRunError(RuntimeError):
 
 
 LAST_WORK_DIR: Path | None = None
+FINALIZATION_EVENTS: list[dict[str, Any]] | None = None
+LAST_FINALIZATION_FAILURE: dict[str, Any] | None = None
+PUBLISHED_FINAL_PATHS: list[Path] = []
+FINALIZATION_SCRATCH: Path | None = None
+FINALIZATION_TEMP_PATHS: list[Path] = []
+
+
+def filesystem_snapshot(path: Path | str) -> dict[str, Any]:
+    raw = os.fspath(path)
+    candidate = Path(path)
+    try:
+        cwd = os.getcwd()
+    except OSError as exc:
+        cwd = f"<unavailable: {exc!r}>"
+    absolute = candidate if candidate.is_absolute() else Path(cwd) / candidate
+    try:
+        resolved_absolute = str(absolute.resolve(strict=False))
+    except OSError as exc:
+        resolved_absolute = f"<unavailable: {exc!r}>"
+    result: dict[str, Any] = {
+        "raw_path": raw,
+        "absolute_path": resolved_absolute,
+        "cwd": cwd,
+    }
+    for key, check in (("exists", candidate.exists), ("is_file", candidate.is_file),
+                       ("is_dir", candidate.is_dir), ("is_symlink", candidate.is_symlink)):
+        try:
+            result[key] = check()
+        except OSError as exc:
+            result[key] = {"error": repr(exc), "errno": exc.errno}
+    for key, target in (("stat", candidate), ("parent_stat", candidate.parent)):
+        try:
+            stat_result = target.stat()
+            result[key] = {
+                "path": str(target.resolve(strict=False)),
+                "mode": oct(stat_result.st_mode & 0o7777),
+                "uid": stat_result.st_uid,
+                "gid": stat_result.st_gid,
+                "size": stat_result.st_size,
+            }
+        except OSError as exc:
+            result[key] = {"path": str(target), "error": repr(exc), "errno": exc.errno}
+    process = {}
+    for key, getter in (("uid", getattr(os, "getuid", None)),
+                        ("euid", getattr(os, "geteuid", None)),
+                        ("gid", getattr(os, "getgid", None)),
+                        ("egid", getattr(os, "getegid", None)),
+                        ("groups", getattr(os, "getgroups", None))):
+        if getter is None:
+            process[key] = None if key != "groups" else []
+            continue
+        try:
+            process[key] = getter()
+        except OSError as exc:
+            process[key] = {"error": repr(exc), "errno": exc.errno}
+    result["process"] = process
+    return result
+
+
+def observe_filesystem(operation: str, path: Path, action):
+    """Record hash-manifest filesystem operations without changing their behavior."""
+    global FINALIZATION_EVENTS
+    if (FINALIZATION_EVENTS is None or
+            (path.name != "hashes.sha256" and not operation.startswith("publish"))):
+        return action()
+    started_ns = time.time_ns()
+    event: dict[str, Any] = {
+        "operation": operation,
+        "timestamp_before_ns": started_ns,
+        "before": filesystem_snapshot(path),
+    }
+    try:
+        result = action()
+    except BaseException as exc:
+        event.update({
+            "status": "FAIL",
+            "timestamp_after_ns": time.time_ns(),
+            "elapsed_ns": time.time_ns() - started_ns,
+            "exception_type": type(exc).__name__,
+            "exception_repr": repr(exc),
+            "errno": getattr(exc, "errno", None),
+            "filename": getattr(exc, "filename", None),
+            "filename2": getattr(exc, "filename2", None),
+            "traceback": traceback.format_exc(),
+            "after": filesystem_snapshot(path),
+        })
+        FINALIZATION_EVENTS.append(event)
+        raise
+    event.update({
+        "status": "PASS",
+        "timestamp_after_ns": time.time_ns(),
+        "elapsed_ns": time.time_ns() - started_ns,
+        "after": filesystem_snapshot(path),
+    })
+    FINALIZATION_EVENTS.append(event)
+    return result
 
 
 class PreserveWorkOnError:
@@ -74,8 +172,47 @@ class PreserveWorkOnError:
 
     def __exit__(self, exc_type, exc, traceback) -> bool:
         if exc_type is None:
-            shutil.rmtree(self.path)
+            remove_temporary_tree(self.path)
         return False
+
+
+def remove_temporary_tree(path: Path) -> None:
+    """Delete only a disposable work tree, including immutable RAW subdirectories."""
+    global FINALIZATION_EVENTS, LAST_FINALIZATION_FAILURE
+    started_ns = time.time_ns()
+    try:
+        if path.is_symlink():
+            raise IntegratedRunError(f"refusing to recursively remove a symlinked temporary tree: {path}")
+        if not path.exists():
+            return
+        for directory, child_dirs, _ in os.walk(path, topdown=True, followlinks=False):
+            candidates = [Path(directory)] + [Path(directory) / name for name in child_dirs]
+            for candidate in candidates:
+                if candidate.is_symlink():
+                    continue
+                mode = stat.S_IMODE(candidate.stat().st_mode)
+                wanted = mode | stat.S_IWUSR | stat.S_IXUSR
+                if wanted != mode:
+                    os.chmod(candidate, wanted)
+        shutil.rmtree(path)
+    except BaseException as exc:
+        failure = {
+            "operation": "remove disposable temporary tree",
+            "path": filesystem_snapshot(path),
+            "timestamp_before_ns": started_ns,
+            "timestamp_after_ns": time.time_ns(),
+            "elapsed_ns": time.time_ns() - started_ns,
+            "exception_type": type(exc).__name__,
+            "exception_repr": repr(exc),
+            "errno": getattr(exc, "errno", None),
+            "filename": getattr(exc, "filename", None),
+            "filename2": getattr(exc, "filename2", None),
+            "traceback": traceback.format_exc(),
+        }
+        LAST_FINALIZATION_FAILURE = failure
+        if FINALIZATION_EVENTS is not None:
+            FINALIZATION_EVENTS.append({**failure, "status": "FAIL"})
+        raise
 
 
 def utc_now() -> datetime:
@@ -689,7 +826,7 @@ def external_inventory_paths(root: Path) -> list[Path]:
 def hash_inventory(root: Path) -> list[dict[str, Any]]:
     entries = []
     for path in external_inventory_paths(root):
-        data = path.read_bytes()
+        data = observe_filesystem("read inventory member", path, path.read_bytes)
         entries.append({"path": path.relative_to(root).as_posix(), "sha256": hashlib.sha256(data).hexdigest(),
                         "bytes": len(data)})
     return entries
@@ -700,7 +837,11 @@ def verify_hash_manifest(root: Path) -> int:
     if not hash_path.is_file():
         raise IntegratedRunError(f"missing hash manifest: {hash_path}")
     expected = {}
-    for line in hash_path.read_text(encoding="utf-8").splitlines():
+    hash_text = observe_filesystem(
+        "read external hash manifest", hash_path,
+        lambda: hash_path.read_text(encoding="utf-8"),
+    )
+    for line in hash_text.splitlines():
         digest, relative = line.split("  ", 1)
         expected[relative] = digest
     actual = {path.relative_to(root).as_posix(): path for path in external_inventory_paths(root)}
@@ -711,7 +852,9 @@ def verify_hash_manifest(root: Path) -> int:
             f"missing={sorted(expected.keys() - actual.keys())}"
         )
     mismatches = [relative for relative, path in actual.items()
-                  if hashlib.sha256(path.read_bytes()).hexdigest() != expected[relative]]
+                  if hashlib.sha256(observe_filesystem(
+                      "verify inventory member", path, path.read_bytes
+                  )).hexdigest() != expected[relative]]
     if mismatches:
         raise IntegratedRunError(f"artifact hashes mismatch under {root}: {mismatches}")
     return len(expected)
@@ -859,18 +1002,22 @@ def dataset_and_input_chain(result_root: Path, fault_dir: str, fault: str, side:
 def write_hashes(root: Path) -> list[str]:
     lines = []
     for path in external_inventory_paths(root):
-        lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}")
-    (root / "hashes.sha256").write_text("\n".join(lines) + "\n")
+        data = observe_filesystem("read member while writing hash manifest", path, path.read_bytes)
+        lines.append(f"{hashlib.sha256(data).hexdigest()}  {path.relative_to(root).as_posix()}")
+    hash_path = root / "hashes.sha256"
+    observe_filesystem(
+        "write external hash manifest", hash_path,
+        lambda: hash_path.write_text("\n".join(lines) + "\n"),
+    )
     return lines
 
 
 def create_audit_package(results: Path, execution: dict[str, Any], fault_results: dict[str, Any],
-                         semantic: dict[str, Any], provenance: dict[str, Any]) -> dict[str, Any]:
-    audit = EXPERIMENT / "teste"
-    stage_md = EXPERIMENT / "stages/12-final-experiment-validation.md"
-    stage_json = EXPERIMENT / "stages/12-final-experiment-validation.json"
-    if audit.exists() or stage_md.exists() or stage_json.exists():
-        raise IntegratedRunError("final audit package or stage record already exists; refusing overwrite")
+                         semantic: dict[str, Any], provenance: dict[str, Any],
+                         audit_path: Path | None = None) -> dict[str, Any]:
+    audit = audit_path or EXPERIMENT / "teste"
+    if audit.exists() or audit.is_symlink():
+        raise IntegratedRunError(f"audit package output already exists; refusing overwrite: {audit}")
     (audit / "faults").mkdir(parents=True)
     (audit / "samples").mkdir()
     (audit / "validation").mkdir()
@@ -958,7 +1105,9 @@ def create_audit_package(results: Path, execution: dict[str, Any], fault_results
     (audit / "deployment-provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
     shutil.copy2(results / "semantic-validation.json", audit / "validation/semantic-coverage.json")
     shutil.copy2(results / "fault-validation.json", audit / "validation/fault-coverage.json")
-    results_hashes = (results / "hashes.sha256").read_bytes()
+    results_hash_path = results / "hashes.sha256"
+    results_hashes = observe_filesystem("read results root hash manifest", results_hash_path,
+                                        results_hash_path.read_bytes)
     (audit / "validation/artifact-integrity.json").write_text(json.dumps({
         "status": "PASS",
         "results_manifest_sha256": hashlib.sha256((results / "manifest.json").read_bytes()).hexdigest(),
@@ -1020,36 +1169,11 @@ def create_audit_package(results: Path, execution: dict[str, Any], fault_results
     package_size = sum(path.stat().st_size for path in audit.rglob("*") if path.is_file())
     if package_size > 25 * 1024 * 1024:
         raise IntegratedRunError(f"independent audit package exceeds preferred 25 MiB target: {package_size}")
-    final_record = {
-        "tested_commit": execution["tested_commit"], "branch": "experiment-v2",
-        "overall": "SUCCESS", "stages": {str(i): "PASS" for i in range(1, 13)},
-        "faults": {fault: item["evidence"] for fault, item in fault_results.items()},
-        "scientific_invariants": {"same_physical_execution": True, "diagnostic_coverage": True,
-                                  "backend_isolation": True, "ground_truth_independent": True,
-                                  "deployment_provenance": True, "raw_to_dataset_provenance": True,
-                                  "dataset_to_rca_input_provenance": True,
-                                  "experiment_metadata_leakage": False,
-                                  "post_hoc_parity_fabrication": False},
-        "results": "docs/experiment/results/", "audit_package": "docs/experiment/teste/",
-        "audit_package_bytes": package_size, "audit_hash_entries": len(package_hashes),
-        "llm_invocations": 0,
-    }
-    stage_json = EXPERIMENT / "stages/12-final-experiment-validation.json"
-    stage_md = EXPERIMENT / "stages/12-final-experiment-validation.md"
-    stage_json.parent.mkdir(parents=True, exist_ok=True)
-    stage_json.write_text(json.dumps(final_record, indent=2, sort_keys=True) + "\n")
-    stage_md.write_text(
-        "# Etapa 12 — validação integrada F1–F5\n\n"
-        f"**SUCCESS.** Bateria executada no commit `{execution['tested_commit']}`; nenhuma chamada de LLM foi feita.\n\n"
-        f"- Resultados completos e RAW: [`results/`](../results/).\n"
-        f"- Pacote independente: [`teste/`](../teste/), {package_size} bytes, hashes verificados.\n"
-        "- F1–F5: fault confirmada pelo control plane, recuperação/cleanup, RAW, Dataset e RCA Input validados.\n"
-        "- A/B observaram a mesma execução; os sinais nativos foram preservados, sem equalização post-hoc.\n"
-        "- Ground Truth ficou fora dos RCA Inputs; proveniência e hashes foram verificados.\n"
-        "- O histórico em `reports/` conserva blockers/incidentes reais das etapas de desenvolvimento.\n"
-    )
+    audit_hash_path = audit / "hashes.sha256"
+    audit_hash_bytes = observe_filesystem("read audit root hash manifest", audit_hash_path,
+                                          audit_hash_path.read_bytes)
     return {"status": "PASS", "path": str(audit), "bytes": package_size,
-            "files_hashed": len(package_hashes), "hashes_sha256": hashlib.sha256((audit / "hashes.sha256").read_bytes()).hexdigest()}
+            "files_hashed": len(package_hashes), "hashes_sha256": hashlib.sha256(audit_hash_bytes).hexdigest()}
 
 
 def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> dict[str, Any]:
@@ -1068,16 +1192,124 @@ def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> 
         verify_hash_manifest(publish_staging)
         if output.exists() or output.is_symlink():
             raise IntegratedRunError(f"results output appeared during publication: {output}")
-        os.replace(publish_staging, output)
+        observe_filesystem("publish results directory", output,
+                           lambda: os.replace(publish_staging, output))
     finally:
         if publish_staging.exists():
-            shutil.rmtree(publish_staging)
+            remove_temporary_tree(publish_staging)
+    manifest_hash_path = output / "manifest.json"
+    root_hash_path = output / "hashes.sha256"
     return {"status": "PASS", "results": str(output), "files_hashed": len(lines),
-            "manifest_sha256": hashlib.sha256((output / "manifest.json").read_bytes()).hexdigest(),
-            "hash_list_sha256": hashlib.sha256((output / "hashes.sha256").read_bytes()).hexdigest()}
+            "manifest_sha256": hashlib.sha256(manifest_hash_path.read_bytes()).hexdigest(),
+            "hash_list_sha256": hashlib.sha256(observe_filesystem(
+                "read published results root hash manifest", root_hash_path, root_hash_path.read_bytes
+            )).hexdigest()}
+
+
+def final_stage_record(execution: dict[str, Any], fault_results: dict[str, Any],
+                       audit: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    record = {
+        "tested_commit": execution["tested_commit"], "branch": "experiment-v2",
+        "overall": "SUCCESS", "stages": {str(i): "PASS" for i in range(1, 13)},
+        "faults": {fault: item["evidence"] for fault, item in fault_results.items()},
+        "scientific_invariants": {"same_physical_execution": True, "diagnostic_coverage": True,
+                                  "backend_isolation": True, "ground_truth_independent": True,
+                                  "deployment_provenance": True, "raw_to_dataset_provenance": True,
+                                  "dataset_to_rca_input_provenance": True,
+                                  "experiment_metadata_leakage": False,
+                                  "post_hoc_parity_fabrication": False},
+        "results": "docs/experiment/results/", "audit_package": "docs/experiment/teste/",
+        "audit_package_bytes": audit["bytes"], "audit_hash_entries": audit["files_hashed"],
+        "llm_invocations": 0,
+    }
+    markdown = (
+        "# Etapa 12 — validação integrada F1–F5\n\n"
+        f"**SUCCESS.** Bateria executada no commit `{execution['tested_commit']}`; nenhuma chamada de LLM foi feita.\n\n"
+        "- Resultados completos e RAW: [`results/`](../results/).\n"
+        f"- Pacote independente: [`teste/`](../teste/), {audit['bytes']} bytes, hashes verificados.\n"
+        "- F1–F5: fault confirmada pelo control plane, recuperação/cleanup, RAW, Dataset e RCA Input validados.\n"
+        "- A/B observaram a mesma execução; os sinais nativos foram preservados, sem equalização post-hoc.\n"
+        "- Ground Truth ficou fora dos RCA Inputs; proveniência e hashes foram verificados.\n"
+        "- O histórico em `reports/` conserva blockers/incidentes reais das etapas de desenvolvimento.\n"
+    )
+    return record, markdown
+
+
+def publish_finalization(scratch: Path, publication_root: Path, execution: dict[str, Any],
+                         fault_results: dict[str, Any], audit: dict[str, Any]) -> dict[str, Any]:
+    """Publish only after both packages pass their inventories; stage SUCCESS is last."""
+    results = publication_root / "results"
+    teste = publication_root / "teste"
+    stages = publication_root / "stages"
+    stage_md = stages / "12-final-experiment-validation.md"
+    stage_json = stages / "12-final-experiment-validation.json"
+    if any(path.exists() or path.is_symlink() for path in (results, teste, stage_md, stage_json)):
+        raise IntegratedRunError("canonical result, audit, or SUCCESS stage path already exists")
+
+    scratch_results = scratch / "results"
+    scratch_teste = scratch / "teste"
+    if verify_hash_manifest(scratch_results) != len((scratch_results / "hashes.sha256").read_text().splitlines()):
+        raise IntegratedRunError("results hash inventory count changed before publication")
+    if verify_hash_manifest(scratch_teste) != audit["files_hashed"]:
+        raise IntegratedRunError("audit package hash inventory count changed before publication")
+
+    record, markdown = final_stage_record(execution, fault_results, audit)
+    stage_json_tmp: Path | None = None
+    stage_md_tmp: Path | None = None
+    try:
+        observe_filesystem("publish results directory", results,
+                           lambda: os.replace(scratch_results, results))
+        PUBLISHED_FINAL_PATHS.append(results)
+        observe_filesystem("publish audit package directory", teste,
+                           lambda: os.replace(scratch_teste, teste))
+        PUBLISHED_FINAL_PATHS.append(teste)
+        result_count = verify_hash_manifest(results)
+        audit_count = verify_hash_manifest(teste)
+        if result_count != audit["results_files_hashed"] or audit_count != audit["files_hashed"]:
+            raise IntegratedRunError("published result/audit inventory differs from verified temporary packages")
+
+        stages.mkdir(parents=True, exist_ok=True)
+        json_fd, json_name = tempfile.mkstemp(prefix=".12-final-success-", suffix=".json", dir=stages)
+        os.close(json_fd)
+        stage_json_tmp = Path(json_name)
+        FINALIZATION_TEMP_PATHS.append(stage_json_tmp)
+        md_fd, md_name = tempfile.mkstemp(prefix=".12-final-success-", suffix=".md", dir=stages)
+        os.close(md_fd)
+        stage_md_tmp = Path(md_name)
+        FINALIZATION_TEMP_PATHS.append(stage_md_tmp)
+        stage_json_tmp.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
+        stage_md_tmp.write_text(markdown)
+
+        # No operation that can fail is allowed after the JSON SUCCESS marker.
+        remove_temporary_tree(scratch)
+        observe_filesystem("publish stage SUCCESS markdown", stage_md,
+                           lambda: os.replace(stage_md_tmp, stage_md))
+        PUBLISHED_FINAL_PATHS.append(stage_md)
+        observe_filesystem("publish stage SUCCESS JSON", stage_json,
+                           lambda: os.replace(stage_json_tmp, stage_json))
+        return {"status": "PASS", "results": str(results), "teste": str(teste),
+                "results_hash_entries": result_count, "teste_hash_entries": audit_count,
+                "stage_json": str(stage_json)}
+    except BaseException as exc:
+        global LAST_FINALIZATION_FAILURE
+        LAST_FINALIZATION_FAILURE = {
+            "exception_type": type(exc).__name__, "exception_repr": repr(exc),
+            "errno": getattr(exc, "errno", None), "filename": getattr(exc, "filename", None),
+            "filename2": getattr(exc, "filename2", None), "traceback": traceback.format_exc(),
+            "cwd": os.getcwd(), "events": list(FINALIZATION_EVENTS or []),
+            "published_paths": [str(path) for path in PUBLISHED_FINAL_PATHS],
+        }
+        raise
 
 
 def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> dict[str, Any]:
+    global FINALIZATION_EVENTS, LAST_FINALIZATION_FAILURE, FINALIZATION_SCRATCH
+    global PUBLISHED_FINAL_PATHS, FINALIZATION_TEMP_PATHS
+    FINALIZATION_EVENTS = []
+    LAST_FINALIZATION_FAILURE = None
+    FINALIZATION_SCRATCH = None
+    PUBLISHED_FINAL_PATHS = []
+    FINALIZATION_TEMP_PATHS = []
     branch, commit, status = git_state()
     if status.strip():
         raise IntegratedRunError(f"working tree must be clean before battery:\n{status}")
@@ -1089,6 +1321,7 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
     env = os.environ.copy()
     env.setdefault("KIND_BIN", "kind")
     env.setdefault("KUBECTL_BIN", "kubectl")
+    finalization_inputs: dict[str, Any] | None = None
     with PreserveWorkOnError() as work:
         staging = work / "results"
         staging.mkdir()
@@ -1210,14 +1443,36 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
                      "semantic_validation_status": semantic["status"], "llm_invocations": 0}
         (staging / "execution.json").write_text(json.dumps(execution, indent=2, sort_keys=True) + "\n")
         (staging / "fault-validation.json").write_text(json.dumps(fault_results, indent=2, sort_keys=True) + "\n")
-        integrity = finalize_results(staging, output, execution)
-        audit = create_audit_package(output, execution, fault_results, semantic,
-                                     preflight_report["deployment_provenance"])
-        return {"status": "PASS", "tested_commit": commit, "faults": fault_results,
-                "normal_raw": str(output / "normal-smoke/raw"),
-                "global_raw": str(output / "global-raw"),
-                "semantic_validation": str(output / "semantic-validation.json"),
-                "integrity": integrity, "audit_package": audit}
+        scratch = Path(tempfile.mkdtemp(prefix=".12-finalization-", dir=EXPERIMENT))
+        FINALIZATION_SCRATCH = scratch
+        staged_results = scratch / "results"
+        integrity = finalize_results(staging, staged_results, execution)
+        audit = create_audit_package(staged_results, execution, fault_results, semantic,
+                                     preflight_report["deployment_provenance"],
+                                     audit_path=scratch / "teste")
+        audit["results_files_hashed"] = verify_hash_manifest(staged_results)
+        finalization_inputs = {
+            "scratch": scratch,
+            "execution": execution,
+            "fault_results": fault_results,
+            "audit": audit,
+            "result": {"status": "PASS", "tested_commit": commit, "faults": fault_results,
+                       "normal_raw": str(output / "normal-smoke/raw"),
+                       "global_raw": str(output / "global-raw"),
+                       "semantic_validation": str(output / "semantic-validation.json"),
+                       "integrity": integrity, "audit_package": audit},
+        }
+
+    if finalization_inputs is None:
+        raise IntegratedRunError("integrated execution did not prepare final artifacts")
+    published = publish_finalization(
+        finalization_inputs["scratch"], EXPERIMENT, finalization_inputs["execution"],
+        finalization_inputs["fault_results"], finalization_inputs["audit"],
+    )
+    FINALIZATION_SCRATCH = None
+    result = finalization_inputs["result"]
+    result["final_publication"] = published
+    return result
 
 
 def main() -> int:
@@ -1235,13 +1490,52 @@ def main() -> int:
         report_md = reports / "BLOCKED-12-integrated-validation.md"
         report_json = reports / "BLOCKED-12-integrated-validation.json"
         evidence_path = None
+        filename = getattr(exc, "filename", None)
+        filename2 = getattr(exc, "filename2", None)
+        exception_context: dict[str, Any] = {
+            "exception_type": type(exc).__name__, "exception_repr": repr(exc),
+            "errno": getattr(exc, "errno", None), "filename": filename, "filename2": filename2,
+            "traceback": traceback.format_exc(), "cwd": os.getcwd(),
+            "path_snapshots": [filesystem_snapshot(value) for value in (filename, filename2) if value],
+            "process": filesystem_snapshot(Path.cwd())["process"],
+            "events": list(FINALIZATION_EVENTS or []),
+            "published_paths": [str(path) for path in PUBLISHED_FINAL_PATHS],
+            "temporary_paths": [str(path) for path in FINALIZATION_TEMP_PATHS],
+        }
+        if LAST_FINALIZATION_FAILURE:
+            exception_context["operation_failure"] = LAST_FINALIZATION_FAILURE
         try:
             reports.mkdir(parents=True, exist_ok=True)
             if LAST_WORK_DIR and LAST_WORK_DIR.exists():
                 evidence_path = reports / "BLOCKED-12-artifacts"
                 if evidence_path.exists():
-                    evidence_path = reports / f"BLOCKED-12-artifacts-{int(time.time())}"
+                    evidence_path = reports / f"BLOCKED-12-artifacts-{time.time_ns()}"
+                try:
+                    (LAST_WORK_DIR / "finalization-diagnostics.json").write_text(
+                        json.dumps(exception_context, indent=2, sort_keys=True) + "\n"
+                    )
+                except Exception as diagnostic_error:
+                    exception_context["diagnostic_write_error"] = repr(diagnostic_error)
                 shutil.copytree(LAST_WORK_DIR, evidence_path, copy_function=shutil.copy2)
+            if FINALIZATION_SCRATCH and FINALIZATION_SCRATCH.exists():
+                if evidence_path is None:
+                    evidence_path = reports / f"BLOCKED-12-artifacts-{time.time_ns()}"
+                    evidence_path.mkdir(parents=True, exist_ok=False)
+                shutil.copytree(FINALIZATION_SCRATCH, evidence_path / "finalization-scratch")
+            partial_root = evidence_path / "published-attempt" if evidence_path else None
+            if partial_root:
+                for path in PUBLISHED_FINAL_PATHS:
+                    if path.exists() or path.is_symlink():
+                        destination = partial_root / path.relative_to(EXPERIMENT)
+                        destination.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.move(str(path), str(destination))
+                for path in FINALIZATION_TEMP_PATHS:
+                    if path.exists() or path.is_symlink():
+                        destination = partial_root / "temporary" / path.name
+                        destination.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.move(str(path), str(destination))
+            if FINALIZATION_SCRATCH and FINALIZATION_SCRATCH.exists():
+                remove_temporary_tree(FINALIZATION_SCRATCH)
             branch, commit, status = git_state()
             detail = {
                 "stage": "12-integrated-validation",
@@ -1259,6 +1553,9 @@ def main() -> int:
                 "physical_rerun_required": True,
                 "working_tree": status,
                 "branch": branch,
+                "exception": exception_context,
+                "canonical_results_present": (EXPERIMENT / "results").exists(),
+                "canonical_teste_present": (EXPERIMENT / "teste").exists(),
             }
             report_json.write_text(json.dumps(detail, indent=2, sort_keys=True) + "\n")
             report_md.write_text(
@@ -1268,6 +1565,7 @@ def main() -> int:
                 f"- Esperado: {detail['expected']}.\n"
                 "- Primeira divergência: gate integrado; consulte a evidência preservada.\n"
                 "- Root cause: UNKNOWN; não foi aplicada correção automática.\n"
+                f"- Exceção: `{detail['exception']['exception_type']}`; traceback completo no JSON.\n"
                 f"- Evidência: `{detail['evidence']}`.\n"
                 f"- Relatório estruturado: `{report_json.relative_to(ROOT)}`.\n"
                 f"- Working tree: `{status or 'CLEAN'}`.\n"
