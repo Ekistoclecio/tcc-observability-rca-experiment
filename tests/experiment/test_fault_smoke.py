@@ -8,9 +8,14 @@ from scripts.experiment.fault_smoke import (
     FAULT_CONFIG,
     FaultSmokeError,
     chaos_manifest,
+    active_target_sets,
+    parse_classifier_packets,
+    parse_ipset_blocks,
+    parse_netem_stats,
     ready_endpoint_count,
     require_deployment_provenance,
     require_exclusive_environment,
+    resolve_service_cluster_ip_target,
     run_workload,
     service_pods,
     target_service_is_fully_unavailable,
@@ -86,7 +91,7 @@ class FaultSmokeTests(unittest.TestCase):
             {"app": "checkoutservice"},
         )
 
-    def test_f2_targets_only_checkoutservice_to_paymentservice_edge(self) -> None:
+    def test_f2_targets_only_checkoutservice_to_dynamically_resolved_service_vip(self) -> None:
         definition = {
             "mechanism": {
                 "latency_ms": 100,
@@ -95,16 +100,86 @@ class FaultSmokeTests(unittest.TestCase):
                 "failsafe_duration": "2m",
             }
         }
-        manifest = chaos_manifest("F2", definition)
+        manifest = chaos_manifest(
+            "F2", definition, f2_external_target="10.96.106.113:50051"
+        )
         self.assertEqual(manifest["kind"], "NetworkChaos")
         self.assertEqual(manifest["spec"]["selector"]["labelSelectors"], {"app": "checkoutservice"})
-        self.assertEqual(
-            manifest["spec"]["target"]["selector"]["labelSelectors"],
-            {"app": "paymentservice"},
-        )
+        self.assertEqual(manifest["spec"]["externalTargets"], ["10.96.106.113:50051"])
+        self.assertNotIn("target", manifest["spec"])
+        self.assertEqual(manifest["spec"]["direction"], "to")
         self.assertEqual(manifest["spec"]["delay"], {
             "latency": "100ms", "correlation": "100", "jitter": "0ms"
         })
+
+    def test_f2_manifest_requires_resolved_external_target(self) -> None:
+        definition = {"mechanism": {"latency_ms": 100, "correlation_percent": 100,
+                                    "jitter_ms": 0, "failsafe_duration": "2m"}}
+        with self.assertRaises(FaultSmokeError):
+            chaos_manifest("F2", definition)
+
+    @patch("scripts.experiment.fault_smoke.kube_json")
+    def test_f2_target_resolves_service_cluster_ip_and_port_dynamically(self, kube_json_mock) -> None:
+        kube_json_mock.return_value = {"spec": {
+            "clusterIP": "10.96.106.113",
+            "ports": [{"port": 50051, "protocol": "TCP"}],
+        }}
+        self.assertEqual(resolve_service_cluster_ip_target("paymentservice", 50051),
+                         "10.96.106.113:50051")
+        kube_json_mock.assert_called_once_with(
+            "-n", "online-boutique", "get", "service", "paymentservice", "-o", "json"
+        )
+
+    @patch("scripts.experiment.fault_smoke.kube_json")
+    def test_f2_rejects_missing_or_headless_service_cluster_ip(self, kube_json_mock) -> None:
+        for cluster_ip in (None, "", "None"):
+            with self.subTest(cluster_ip=cluster_ip):
+                kube_json_mock.return_value = {"spec": {"clusterIP": cluster_ip, "ports": []}}
+                with self.assertRaises(FaultSmokeError):
+                    resolve_service_cluster_ip_target("paymentservice", 50051)
+
+    @patch("scripts.experiment.fault_smoke.kube_json")
+    def test_f2_rejects_invalid_service_ip_or_missing_tcp_port(self, kube_json_mock) -> None:
+        kube_json_mock.return_value = {"spec": {
+            "clusterIP": "not-an-ip", "ports": [{"port": 50051, "protocol": "TCP"}],
+        }}
+        with self.assertRaises(FaultSmokeError):
+            resolve_service_cluster_ip_target("paymentservice", 50051)
+        kube_json_mock.return_value = {"spec": {
+            "clusterIP": "10.96.106.113", "ports": [{"port": 50052, "protocol": "TCP"}],
+        }}
+        with self.assertRaises(FaultSmokeError):
+            resolve_service_cluster_ip_target("paymentservice", 50051)
+
+    def test_f2_network_counter_parsers_select_exact_vip_rule_and_netem(self) -> None:
+        ipsets = parse_ipset_blocks("""Name: vip_port
+Type: hash:net,port
+Members:
+10.96.106.113,tcp:50051
+
+Name: parent
+Type: list:set
+Members:
+vip_port
+""")
+        self.assertEqual([item["name"] for item in ipsets], ["vip_port", "parent"])
+        ipsets.extend([
+            {"name": "vip_port_old", "type": "hash:net,port",
+             "members": ["10.96.106.113,tcp:50051"]},
+            {"name": "parent-old", "type": "list:set", "members": ["vip_port_old"]},
+        ])
+        self.assertEqual(active_target_sets(
+            ipsets,
+            "Chain TC-TABLES-0\n 5 458 CLASSIFY 0 -- * eth0 0.0.0.0/0 0.0.0.0/0 "
+            "match-set parent dst,dst CLASSIFY set 1:4\n",
+            "10.96.106.113,tcp:50051")[1], "parent")
+        self.assertEqual(parse_classifier_packets(
+            "Chain TC-TABLES-0\n 5 458 CLASSIFY 0 -- * eth0 0.0.0.0/0 0.0.0.0/0 "
+            "match-set parent dst,dst CLASSIFY set 1:4\n", "parent"), 5)
+        self.assertEqual(parse_netem_stats(
+            "qdisc prio 1: root\nqdisc netem 5: parent 1:4 limit 1000 delay 100ms\n"
+            " Sent 528 bytes 5 pkt (dropped 0, overlimits 0 requeues 0)\n", 100),
+            {"bytes": 528, "packets": 5})
 
     def test_expected_statuses_are_explicit_and_scoped_by_request(self) -> None:
         parsed = parse_expected_statuses(

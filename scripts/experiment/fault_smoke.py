@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import ipaddress
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import time
@@ -49,6 +51,7 @@ CLUSTER = ENV["KIND_CLUSTER_NAME"]
 CONTEXT = f"kind-{CLUSTER}"
 KIND = os.environ.get("KIND_BIN", "kind")
 KUBECTL = os.environ.get("KUBECTL_BIN", "kubectl")
+DOCKER = os.environ.get("DOCKER_BIN", "docker")
 
 
 def command(
@@ -126,6 +129,220 @@ def ready_endpoint_count(service: str) -> int:
         for endpoint in (item.get("endpoints") or [])
         if endpoint.get("conditions", {}).get("ready") is not False
     )
+
+
+def parse_ipset_blocks(output: str) -> list[dict[str, Any]]:
+    blocks = re.split(r"(?m)(?=^Name: )", output)
+    parsed = []
+    for block in blocks:
+        name = re.search(r"(?m)^Name: (\S+)", block)
+        if not name:
+            continue
+        set_type = re.search(r"(?m)^Type: (\S+)", block)
+        members = re.search(r"(?ms)^Members:\s*\n(.*)", block)
+        parsed.append({
+            "name": name.group(1),
+            "type": set_type.group(1) if set_type else None,
+            "members": [line.strip() for line in (members.group(1).splitlines() if members else []) if line.strip()],
+        })
+    return parsed
+
+
+def parse_classifier_packets(output: str, set_name: str) -> int:
+    matches = []
+    for line in output.splitlines():
+        if f"match-set {set_name} " not in line or "CLASSIFY set 1:4" not in line:
+            continue
+        fields = line.split()
+        if len(fields) >= 2 and fields[0].isdigit() and fields[1].isdigit():
+            matches.append(int(fields[0]))
+    if len(matches) != 1:
+        raise FaultSmokeError(
+            f"expected one TC classifier for ipset {set_name}, found {len(matches)}"
+        )
+    return matches[0]
+
+
+def active_target_sets(
+    ipsets: list[dict[str, Any]], classifier_output: str, expected_member: str
+) -> tuple[dict[str, Any], str]:
+    referenced = {
+        match.group(1)
+        for line in classifier_output.splitlines()
+        if "CLASSIFY set 1:4" in line
+        for match in [re.search(r"match-set (\S+) ", line)]
+        if match
+    }
+    candidates = []
+    for parent_name in referenced:
+        parent = next((item for item in ipsets if item["name"] == parent_name
+                       and item["type"] == "list:set"), None)
+        if parent is None:
+            continue
+        candidates.extend(
+            (port_set, parent_name)
+            for port_set in ipsets
+            if port_set["type"] == "hash:net,port"
+            and expected_member in port_set["members"]
+            and port_set["name"] in parent["members"]
+        )
+    if len(candidates) != 1:
+        raise FaultSmokeError(
+            f"F2 must have one active VIP/port target ipset and classifier; "
+            f"candidates={[(item[0]['name'], item[1]) for item in candidates]}"
+        )
+    return candidates[0]
+
+
+def parse_netem_stats(output: str, latency_ms: int) -> dict[str, int]:
+    blocks = re.split(r"(?m)(?=^qdisc )", output)
+    matches = []
+    for block in blocks:
+        if not re.search(rf"^qdisc netem \S+ .*delay {latency_ms}ms(?:\s|$)", block, re.M):
+            continue
+        sent = re.search(r"Sent\s+(\d+) bytes\s+(\d+) pkt", block)
+        if not sent:
+            raise FaultSmokeError("netem qdisc has no parseable packet statistics")
+        matches.append({"bytes": int(sent.group(1)), "packets": int(sent.group(2))})
+    if len(matches) != 1:
+        raise FaultSmokeError(
+            f"expected one netem qdisc configured for {latency_ms}ms, found {len(matches)}"
+        )
+    return matches[0]
+
+
+def checkout_netns_context() -> dict[str, Any]:
+    pods = service_pods("checkoutservice")
+    pod = next((item for item in pods if item.get("status", {}).get("phase") == "Running"), None)
+    if pod is None:
+        raise FaultSmokeError("checkoutservice has no Running Pod for network confirmation")
+    node = pod.get("spec", {}).get("nodeName")
+    container = next(
+        (item for item in pod.get("status", {}).get("containerStatuses", [])
+         if item.get("name") == CONTAINER and item.get("containerID")),
+        None,
+    )
+    if not node or container is None:
+        raise FaultSmokeError("checkoutservice Pod lacks node/container identity")
+    container_id = container["containerID"].split("://", 1)[-1]
+    inspected = command([DOCKER, "exec", node, "crictl", "inspect", container_id])
+    try:
+        process_id = int(json.loads(inspected.stdout).get("info", {}).get("pid", 0))
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        raise FaultSmokeError("cannot resolve checkoutservice host PID through CRI") from exc
+    if process_id <= 0:
+        raise FaultSmokeError("CRI returned an invalid checkoutservice host PID")
+    daemons = kube_json("-n", "chaos-mesh", "get", "pods", "-o", "json").get("items", [])
+    daemon = next((item for item in daemons
+                   if item.get("metadata", {}).get("name", "").startswith("chaos-daemon-")
+                   and item.get("spec", {}).get("nodeName") == node
+                   and item.get("status", {}).get("phase") == "Running"), None)
+    if daemon is None:
+        raise FaultSmokeError(f"no Running Chaos Daemon on checkoutservice node {node}")
+    return {"pod": pod["metadata"]["name"], "node": node,
+            "container_id": container_id, "pid": process_id,
+            "chaos_daemon": daemon["metadata"]["name"]}
+
+
+def checkout_netns_command(context: dict[str, Any], *args: str) -> str:
+    result = kube(
+        "-n", "chaos-mesh", "exec", context["chaos_daemon"], "--",
+        "nsenter", "-t", str(context["pid"]), "-n", "--", *args,
+        check=False,
+    )
+    if result.returncode:
+        raise FaultSmokeError(
+            f"network namespace command failed ({' '.join(args)}): {result.stderr.strip()}"
+        )
+    return result.stdout
+
+
+def f2_network_snapshot(state: dict[str, Any]) -> dict[str, Any]:
+    context = checkout_netns_context()
+    ipset_names = checkout_netns_command(context, "ipset", "list", "-name").split()
+    ipsets = []
+    for name in ipset_names:
+        output = checkout_netns_command(context, "ipset", "list", name)
+        ipsets.extend(parse_ipset_blocks(output))
+    target = state["external_target"]
+    address, port_text = target.rsplit(":", 1)
+    expected_member = f"{address},tcp:{port_text}"
+    classifier = checkout_netns_command(context, "iptables", "-nvxL", "TC-TABLES-0")
+    port_set, parent_name = active_target_sets(ipsets, classifier, expected_member)
+    classifier_packets = parse_classifier_packets(classifier, parent_name)
+    qdisc = checkout_netns_command(context, "tc", "-s", "qdisc", "show", "dev", "eth0")
+    netem = parse_netem_stats(qdisc, state["latency_ms"])
+    chaos_output = checkout_netns_command(context, "iptables", "-nvxL", "CHAOS-OUTPUT")
+    first_rule = next((line.split() for line in chaos_output.splitlines()
+                       if line.strip() and line.strip()[0].isdigit()), None)
+    return {
+        "observed_at": utc_now(),
+        "network_context": context,
+        "external_target": target,
+        "ipset": {"name": port_set["name"], "member": expected_member,
+                  "classifier_parent": parent_name},
+        "classifier_packets": classifier_packets,
+        "netem": netem,
+        "chaos_output_packets": int(first_rule[0]) if first_rule else 0,
+    }
+
+
+def confirm_f2_network_effect(
+    state: dict[str, Any], port: int, before: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    probe = run_workload("F2", port)
+    after = f2_network_snapshot(state)
+    deltas = {
+        "classifier_packets": after["classifier_packets"] - before["classifier_packets"],
+        "netem_packets": after["netem"]["packets"] - before["netem"]["packets"],
+        "netem_bytes": after["netem"]["bytes"] - before["netem"]["bytes"],
+    }
+    if deltas["classifier_packets"] <= 0 or deltas["netem_packets"] <= 0:
+        raise FaultSmokeError(f"F2 real-traffic confirmation failed: deltas={deltas}")
+    return probe, {
+        "control_plane_check": "F2 ClusterIP:port ipset classifier and netem packet counters increased",
+        "evidence": {"external_target": state["external_target"], "before": before,
+                     "after": after, "deltas": deltas,
+                     "confirmation_probe_excluded_from_measurement_window": True},
+    }
+
+
+def verify_f2_network_recovered(state: dict[str, Any]) -> dict[str, Any]:
+    def cleaned() -> tuple[bool, Any]:
+        context = checkout_netns_context()
+        qdisc = checkout_netns_command(
+            context, "tc", "-s", "qdisc", "show", "dev", "eth0"
+        )
+        chaos_output = checkout_netns_command(context, "iptables", "-nvxL", "CHAOS-OUTPUT")
+        classifier = checkout_netns_command(context, "iptables", "-nvxL", "TC-TABLES-0")
+        latency_ms = state["latency_ms"]
+        active_netem = bool(re.search(
+            rf"(?m)^qdisc netem \S+ .*delay {latency_ms}ms(?:\s|$)", qdisc
+        ))
+        hook_active = any(
+            line.strip().startswith(tuple("0123456789")) and "TC-TABLES-0" in line
+            for line in chaos_output.splitlines()
+        )
+        chain_refs = re.search(r"(?m)^Chain TC-TABLES-0 \((\d+) references\)", classifier)
+        classifier_referenced = chain_refs is None or int(chain_refs.group(1)) != 0
+        ipset_names = checkout_netns_command(context, "ipset", "list", "-name").split()
+        address, port_text = state["external_target"].rsplit(":", 1)
+        expected_member = f"{address},tcp:{port_text}"
+        orphaned_sets = [
+            item["name"] for name in ipset_names
+            for item in parse_ipset_blocks(
+                checkout_netns_command(context, "ipset", "list", name)
+            )
+            if expected_member in item["members"]
+        ]
+        evidence = {"network_context": context, "active_netem": active_netem,
+                    "chaos_output_hook_active": hook_active,
+                    "classifier_chain_referenced": classifier_referenced,
+                    "orphaned_inert_target_ipsets": orphaned_sets}
+        return not active_netem and not hook_active and not classifier_referenced, evidence
+
+    evidence = wait_until(cleaned, "F2 netem and target matcher cleanup", timeout=30)
+    return {**evidence, "active_network_fault_state_removed": True}
 
 
 def target_service_is_fully_unavailable(state: dict[str, int]) -> bool:
@@ -207,7 +424,29 @@ def chaos_condition(item: dict[str, Any], condition: str) -> bool:
     )
 
 
-def chaos_manifest(fault: str, definition: dict[str, Any]) -> dict[str, Any]:
+def resolve_service_cluster_ip_target(service: str, port: int) -> str:
+    """Resolve a Service VIP just before injection; never fall back to Pod IPs."""
+    item = kube_json("-n", NAMESPACE, "get", "service", service, "-o", "json")
+    cluster_ip = item.get("spec", {}).get("clusterIP")
+    if not isinstance(cluster_ip, str) or not cluster_ip or cluster_ip == "None":
+        raise FaultSmokeError(f"Service {service} has no usable ClusterIP: {cluster_ip!r}")
+    try:
+        parsed = ipaddress.ip_address(cluster_ip)
+    except ValueError as exc:
+        raise FaultSmokeError(f"Service {service} has invalid ClusterIP: {cluster_ip!r}") from exc
+    # Chaos Mesh 2.8.6's validated implementation path for this experiment uses
+    # the IPv4 ipset/tc matcher demonstrated by the controlled Option A run.
+    if parsed.version != 4:
+        raise FaultSmokeError(f"Service {service} ClusterIP must be IPv4 for this F2 matcher")
+    ports = item.get("spec", {}).get("ports") or []
+    if not any(value.get("port") == port and value.get("protocol", "TCP") == "TCP" for value in ports):
+        raise FaultSmokeError(f"Service {service} does not expose TCP port {port}")
+    return f"{parsed}:{port}"
+
+
+def chaos_manifest(
+    fault: str, definition: dict[str, Any], *, f2_external_target: str | None = None
+) -> dict[str, Any]:
     mechanism = definition["mechanism"]
     selector = {
         "namespaces": [NAMESPACE],
@@ -227,19 +466,15 @@ def chaos_manifest(fault: str, definition: dict[str, Any]) -> dict[str, Any]:
             "duration": mechanism["failsafe_duration"],
         }
     elif fault == "F2":
+        if not f2_external_target:
+            raise FaultSmokeError("F2 requires a dynamically resolved Service ClusterIP target")
         kind = "NetworkChaos"
         spec = {
             "action": "delay",
             "mode": "all",
             "selector": selector,
             "direction": "to",
-            "target": {
-                "mode": "all",
-                "selector": {
-                    "namespaces": [NAMESPACE],
-                    "labelSelectors": {"app": "paymentservice"},
-                },
-            },
+            "externalTargets": [f2_external_target],
             "delay": {
                 "latency": f"{mechanism['latency_ms']}ms",
                 "correlation": str(mechanism["correlation_percent"]),
@@ -403,7 +638,10 @@ def inject(fault: str, definition: dict[str, Any]) -> tuple[Any, dict[str, Any]]
         active = chaos_items()
         if active:
             raise FaultSmokeError("pre-existing Chaos Mesh resources must be absent")
-        manifest = chaos_manifest(fault, definition)
+        f2_target = None
+        if fault == "F2":
+            f2_target = resolve_service_cluster_ip_target("paymentservice", 50051)
+        manifest = chaos_manifest(fault, definition, f2_external_target=f2_target)
         command(
             [KUBECTL, "--context", CONTEXT, "apply", "-f", "-"],
             input_text=json.dumps(manifest),
@@ -424,9 +662,13 @@ def inject(fault: str, definition: dict[str, Any]) -> tuple[Any, dict[str, Any]]
         except Exception:
             recover(fault, {"kind": kind, "name": name, "namespace": namespace})
             raise
-        return {"kind": kind, "name": name, "namespace": namespace}, {
+        state = {"kind": kind, "name": name, "namespace": namespace}
+        if fault == "F2":
+            state["external_target"] = f2_target
+            state["latency_ms"] = mechanism["latency_ms"]
+        return state, {
             "control_plane_check": "Chaos Mesh Selected and AllInjected conditions",
-            "evidence": json.dumps(evidence, sort_keys=True),
+            "evidence": json.dumps({"conditions": evidence, "external_target": f2_target}, sort_keys=True),
         }
 
     if fault in {"F3", "F5"}:
@@ -500,7 +742,10 @@ def recover(fault: str, state: Any) -> dict[str, Any]:
                 raise FaultSmokeError(result.stderr.strip())
             return False, {"resource_absent": False}
 
-        return wait_until(absent, "Chaos Mesh resource cleanup")
+        result = wait_until(absent, "Chaos Mesh resource cleanup")
+        if fault == "F2":
+            result["network_recovery"] = verify_f2_network_recovered(state)
+        return result
 
     if fault in {"F3", "F5"}:
         name = state["deployment"]
@@ -579,6 +824,22 @@ def main() -> int:
         )
         state, confirmation = inject(args.fault, fault_definition)
         injected = True
+        if args.fault == "F2":
+            # This single ordinary checkout is control-plane confirmation only.
+            # Start the model-visible fault window after its packet counters prove
+            # that the exact ClusterIP:port matcher and netem processed traffic.
+            before = f2_network_snapshot(state)
+            confirmation_probe, network_confirmation = confirm_f2_network_effect(
+                state, args.frontend_port, before
+            )
+            report["fault_confirmation_probe"] = confirmation_probe
+            confirmation = {
+                "control_plane_check": network_confirmation["control_plane_check"],
+                "evidence": json.dumps({
+                    "chaos_mesh": confirmation,
+                    "network_effect": network_confirmation["evidence"],
+                }, sort_keys=True),
+            }
         record.confirm_injection(
             utc_now(), confirmation["control_plane_check"], confirmation["evidence"]
         )
