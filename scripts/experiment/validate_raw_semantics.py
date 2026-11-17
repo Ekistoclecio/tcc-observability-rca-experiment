@@ -12,6 +12,9 @@ import re
 import sys
 from typing import Any
 
+from collect_raw import (trace_chunk_paths, validate_trace_artifact_references,
+                         validate_trace_window_coverage)
+
 
 SERVICES = (
     "frontend",
@@ -91,6 +94,17 @@ def verify_raw_bundle(root: Path) -> dict[str, Any]:
     for directory in (root, *[item for item in root.rglob("*") if item.is_dir()]):
         if directory.stat().st_mode & 0o222:
             raise ValidationError(f"RAW directory is writable: {directory}")
+    if manifest.get("jaeger_query_strategy"):
+        window = manifest.get("window", {})
+        try:
+            validate_trace_window_coverage(
+                manifest.get("trace_queries", []),
+                int(window["jaeger_start_us"]), int(window["jaeger_end_us"]),
+                manifest.get("trace_query_attempts", []),
+            )
+            validate_trace_artifact_references(root, manifest, expected)
+        except (KeyError, TypeError, ValueError, RuntimeError) as exc:
+            raise ValidationError(f"Jaeger trace query coverage is invalid: {exc}") from exc
     return {
         "root": str(root),
         "manifest_sha256": sha256((root / "manifest.json").read_bytes()),
@@ -180,9 +194,7 @@ def trace_spans(root: Path, scenario: str) -> tuple[dict[tuple[str, str], dict[s
     spans: dict[tuple[str, str], dict[str, Any]] = {}
     conflicts: list[str] = []
     trace_dir = root / f"dataset{scenario}" / "traces"
-    for path in sorted(trace_dir.glob("*.json")):
-        if path.name == "services.json":
-            continue
+    for path in trace_chunk_paths(root, scenario):
         response = read_json(path)
         if response.get("errors"):
             raise ValidationError(f"Jaeger response errors in {path}: {response['errors']}")
@@ -251,7 +263,7 @@ def severity_semantic(value: str) -> str:
 
 def log_records(root: Path, scenario: str) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
-    for path in sorted((root / f"dataset{scenario}" / "logs").glob("*.json")):
+    for path in sorted((root / f"dataset{scenario}" / "logs").rglob("*.json")):
         response = read_json(path)
         if response.get("status") not in (None, "success"):
             raise ValidationError(f"Loki {scenario} status is {response.get('status')} in {path}")

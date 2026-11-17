@@ -17,7 +17,15 @@ spec:
       containers:
         - name: jaeger
           image: jaegertracing/all-in-one:1.76.0
+          args:
+            - --badger.ephemeral=false
+            - --badger.directory-value=/badger/data
+            - --badger.directory-key=/badger/key
+            - --badger.span-store-ttl=168h0m0s
+            - --badger.consistency=true
           env:
+            - name: SPAN_STORAGE_TYPE
+              value: badger
             - name: COLLECTOR_ZIPKIN_HOST_PORT
               value: :9411
           ports:
@@ -29,13 +37,23 @@ spec:
             httpGet:
               path: /
               port: query
+          volumeMounts:
+            - name: trace-storage
+              mountPath: /badger
           resources:
             requests:
               cpu: 50m
-              memory: 96Mi
+              memory: 128Mi
             limits:
               cpu: 300m
-              memory: 256Mi
+              memory: 512Mi
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+      volumes:
+        - name: trace-storage
+          persistentVolumeClaim:
+            claimName: jaeger-a-traces
 ---
 apiVersion: v1
 kind: Service
@@ -51,3 +69,15 @@ spec:
     - name: zipkin
       port: 9411
       targetPort: zipkin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jaeger-a-traces
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi

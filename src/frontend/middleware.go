@@ -82,6 +82,11 @@ func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	lh.next.ServeHTTP(rr, r)
 }
 
+func requestLogger(r *http.Request) logrus.FieldLogger {
+	entry := r.Context().Value(ctxKeyLog{}).(*logrus.Entry)
+	return entry.WithContext(r.Context())
+}
+
 func ensureSessionID(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var sessionID string

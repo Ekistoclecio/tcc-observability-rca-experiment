@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import ipaddress
 import json
@@ -13,6 +13,9 @@ from pathlib import Path
 import re
 import sys
 from typing import Any
+
+from collect_raw import (trace_chunk_paths, validate_trace_artifact_references,
+                         validate_trace_window_coverage)
 
 
 SERVICES = {
@@ -94,11 +97,30 @@ def verify_bundle(root: Path) -> tuple[dict[str, Any], dict[str, str]]:
     for directory in (root, *(item for item in root.rglob("*") if item.is_dir())):
         if directory.stat().st_mode & 0o222:
             raise BuildError(f"RAW directory is writable: {directory}")
+    if manifest.get("jaeger_query_strategy"):
+        window = manifest.get("window", {})
+        try:
+            validate_trace_window_coverage(
+                manifest.get("trace_queries", []),
+                int(window["jaeger_start_us"]), int(window["jaeger_end_us"]),
+                manifest.get("trace_query_attempts", []),
+            )
+            validate_trace_artifact_references(root, manifest, expected)
+        except (KeyError, TypeError, ValueError, RuntimeError) as exc:
+            raise BuildError(f"Jaeger trace query coverage is invalid: {exc}") from exc
     return manifest, expected
 
 
 def iso_time(epoch_seconds: float) -> str:
     return datetime.fromtimestamp(epoch_seconds, timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def iso_time_ns(epoch_nanoseconds: int) -> str:
+    seconds, nanos = divmod(epoch_nanoseconds, 1_000_000_000)
+    instant = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(
+        seconds=seconds, microseconds=nanos // 1_000
+    )
+    return instant.strftime("%Y-%m-%dT%H:%M:%S.%f") + f"{nanos % 1_000:03d}Z"
 
 
 def source_ref(relative: str, digest: str, pointer: str) -> dict[str, str]:
@@ -449,7 +471,8 @@ def build_logs(root: Path, side: str, hash_map: dict[str, str],
                provenance: dict[str, list[dict[str, str]]]) -> list[dict[str, Any]]:
     output: list[dict[str, Any]] = []
     log_dir = root / f"dataset{side}" / "logs"
-    for path in sorted(log_dir.glob("*.json")):
+    paths = sorted(path for path in log_dir.rglob("*.json") if path.is_file())
+    for path in paths:
         relative = path.relative_to(root).as_posix()
         response = read_json(path)
         if response.get("status") not in (None, "success"):
@@ -464,8 +487,8 @@ def build_logs(root: Path, side: str, hash_map: dict[str, str],
                     raise BuildError(f"invalid Loki entry at {relative} stream {stream_index}")
                 timestamp, line = str(pair[0]), str(pair[1])
                 try:
-                    timestamp_iso = iso_time(int(timestamp) / 1_000_000_000)
-                except ValueError as exc:
+                    timestamp_iso = iso_time_ns(int(timestamp))
+                except (TypeError, ValueError, OverflowError) as exc:
                     raise BuildError(f"invalid Loki timestamp {timestamp!r} in {relative}") from exc
                 message = extract_message(line)
                 message = remove_stack_trace(message)
@@ -569,9 +592,7 @@ def build_traces(root: Path, side: str, hash_map: dict[str, str],
                  provenance: dict[str, list[dict[str, str]]], excluded: dict[str, Any]) -> list[dict[str, Any]]:
     records: dict[tuple[str, str], tuple[dict[str, Any], list[dict[str, str]]]] = {}
     trace_dir = root / f"dataset{side}" / "traces"
-    for path in sorted(trace_dir.glob("*.json")):
-        if path.name == "services.json":
-            continue
+    for path in trace_chunk_paths(root, side):
         relative = path.relative_to(root).as_posix()
         response = read_json(path)
         if response.get("errors"):

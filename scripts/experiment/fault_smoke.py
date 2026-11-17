@@ -211,8 +211,14 @@ def parse_netem_stats(output: str, latency_ms: int) -> dict[str, int]:
     return matches[0]
 
 
-def checkout_netns_context() -> dict[str, Any]:
-    pods = service_pods("checkoutservice")
+def checkout_netns_context(
+    kubectl_bin: str = KUBECTL,
+    context_name: str = CONTEXT,
+    docker_bin: str = DOCKER,
+) -> dict[str, Any]:
+    pods = command([kubectl_bin, "--context", context_name, "-n", NAMESPACE,
+                    "get", "pods", "-l", "app=checkoutservice", "-o", "json"]).stdout
+    pods = json.loads(pods).get("items", [])
     pod = next((item for item in pods if item.get("status", {}).get("phase") == "Running"), None)
     if pod is None:
         raise FaultSmokeError("checkoutservice has no Running Pod for network confirmation")
@@ -225,14 +231,16 @@ def checkout_netns_context() -> dict[str, Any]:
     if not node or container is None:
         raise FaultSmokeError("checkoutservice Pod lacks node/container identity")
     container_id = container["containerID"].split("://", 1)[-1]
-    inspected = command([DOCKER, "exec", node, "crictl", "inspect", container_id])
+    inspected = command([docker_bin, "exec", node, "crictl", "inspect", container_id])
     try:
         process_id = int(json.loads(inspected.stdout).get("info", {}).get("pid", 0))
     except (json.JSONDecodeError, TypeError, ValueError) as exc:
         raise FaultSmokeError("cannot resolve checkoutservice host PID through CRI") from exc
     if process_id <= 0:
         raise FaultSmokeError("CRI returned an invalid checkoutservice host PID")
-    daemons = kube_json("-n", "chaos-mesh", "get", "pods", "-o", "json").get("items", [])
+    daemons_result = command([kubectl_bin, "--context", context_name, "-n",
+                              "chaos-mesh", "get", "pods", "-o", "json"])
+    daemons = json.loads(daemons_result.stdout).get("items", [])
     daemon = next((item for item in daemons
                    if item.get("metadata", {}).get("name", "").startswith("chaos-daemon-")
                    and item.get("spec", {}).get("nodeName") == node
@@ -244,17 +252,57 @@ def checkout_netns_context() -> dict[str, Any]:
             "chaos_daemon": daemon["metadata"]["name"]}
 
 
-def checkout_netns_command(context: dict[str, Any], *args: str) -> str:
-    result = kube(
-        "-n", "chaos-mesh", "exec", context["chaos_daemon"], "--",
+def checkout_netns_command(
+    context: dict[str, Any], *args: str,
+    kubectl_bin: str = KUBECTL,
+    context_name: str = CONTEXT,
+) -> str:
+    result = command(
+        [kubectl_bin, "--context", context_name, "-n", "chaos-mesh",
+         "exec", context["chaos_daemon"], "--",
         "nsenter", "-t", str(context["pid"]), "-n", "--", *args,
-        check=False,
+        ], check=False,
     )
     if result.returncode:
         raise FaultSmokeError(
             f"network namespace command failed ({' '.join(args)}): {result.stderr.strip()}"
         )
     return result.stdout
+
+
+def verify_checkout_network_effect_absent(
+    kubectl_bin: str = KUBECTL,
+    context_name: str = CONTEXT,
+    docker_bin: str = DOCKER,
+) -> dict[str, Any]:
+    """Prove no active Chaos output rules or netem qdisc remain on checkout."""
+    netns = checkout_netns_context(kubectl_bin, context_name, docker_bin)
+    iptables = checkout_netns_command(
+        netns, "iptables-save", "-c", kubectl_bin=kubectl_bin, context_name=context_name
+    )
+    active_chaos_rules = [
+        line.strip() for line in iptables.splitlines()
+        if line.startswith("-A ") and (
+            "-A CHAOS-OUTPUT " in line or " -j CHAOS-OUTPUT" in line
+        )
+    ]
+    qdisc = checkout_netns_command(
+        netns, "tc", "-s", "qdisc", "show", "dev", "eth0",
+        kubectl_bin=kubectl_bin, context_name=context_name,
+    )
+    netem_qdiscs = [line.strip() for line in qdisc.splitlines()
+                    if line.lstrip().startswith("qdisc netem ")]
+    if active_chaos_rules or netem_qdiscs:
+        raise FaultSmokeError(
+            "active checkout network fault effect remains: "
+            f"iptables={active_chaos_rules}, netem={netem_qdiscs}"
+        )
+    return {
+        "checkout_pod": netns["pod"],
+        "active_chaos_iptables_rules": active_chaos_rules,
+        "netem_qdiscs": netem_qdiscs,
+        "status": "PASS",
+    }
 
 
 def f2_network_snapshot(state: dict[str, Any]) -> dict[str, Any]:

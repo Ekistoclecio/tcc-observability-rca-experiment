@@ -24,8 +24,10 @@ from collect_raw import (
     readiness,
     request_bytes,
     reserve_local_port,
+    trace_chunk_paths,
     wait_for_forward,
 )
+from scripts.experiment.fault_smoke import verify_checkout_network_effect_absent
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,6 +86,13 @@ def time_text(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def datetime_from_epoch_ns(value: int) -> datetime:
+    seconds, nanos = divmod(value, 1_000_000_000)
+    return datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(
+        seconds=seconds, microseconds=nanos // 1_000
+    )
+
+
 def parse_time(value: str) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
@@ -139,13 +148,30 @@ def run_script(path: Path, *arguments: str, output_path: Path | None = None,
     return value
 
 
-def check_no_residual_fault_state(kubectl: str, context: str, namespace: str) -> None:
+def check_no_residual_fault_state(kubectl: str, context: str, namespace: str) -> dict[str, Any]:
     chaos = run([kubectl, "--context", context, "get", "stresschaos,networkchaos",
                  "--all-namespaces", "-o", "json"], check=False)
     if chaos.returncode:
         raise IntegratedRunError(f"cannot inspect Chaos Mesh state: {chaos.stderr.strip()}")
     if json.loads(chaos.stdout).get("items"):
         raise IntegratedRunError("residual StressChaos/NetworkChaos resource exists")
+    pod_network = run([kubectl, "--context", context, "get", "podnetworkchaos",
+                       "--all-namespaces", "-o", "json"], check=False)
+    if pod_network.returncode:
+        raise IntegratedRunError(f"cannot inspect PodNetworkChaos state: {pod_network.stderr.strip()}")
+    pod_network_items = json.loads(pod_network.stdout).get("items", [])
+    nonempty_pod_network = [
+        f"{item.get('metadata', {}).get('namespace')}/{item.get('metadata', {}).get('name')}"
+        for item in pod_network_items if item.get("spec")
+    ]
+    if nonempty_pod_network:
+        raise IntegratedRunError(
+            f"PodNetworkChaos resources contain active configuration: {nonempty_pod_network}"
+        )
+    try:
+        network_effect = verify_checkout_network_effect_absent(kubectl, context)
+    except Exception as exc:
+        raise IntegratedRunError(f"cannot prove checkout network fault cleanup: {exc}") from exc
     pods = json_output(run([kubectl, "--context", context, "-n", namespace,
                             "get", "pods", "-l", "app=paymentservice", "-o", "json"]),
                        "paymentservice Pods").get("items", [])
@@ -158,6 +184,82 @@ def check_no_residual_fault_state(kubectl: str, context: str, namespace: str) ->
                       'test ! -e /tmp/tcc-faults/payment-charge-exception'], check=False)
         if result.returncode:
             raise IntegratedRunError(f"F4 flag is present or unreadable in {name}")
+    return {
+        "stresschaos_networkchaos_count": 0,
+        "podnetworkchaos_count": len(pod_network_items),
+        "empty_podnetworkchaos_objects": nonempty_pod_network == [],
+        "checkout_network_effect": network_effect,
+        "f4_flags_absent": True,
+    }
+
+
+def check_jaeger_persistence(kubectl: str, context: str) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for side in ("a", "b"):
+        namespace = f"observability-{side}"
+        name = f"jaeger-{side}"
+        deployment = json_output(run([
+            kubectl, "--context", context, "-n", namespace,
+            "get", "deployment", name, "-o", "json",
+        ]), f"{name} deployment")
+        template = deployment["spec"]["template"]["spec"]
+        container = next((item for item in template.get("containers", [])
+                          if item.get("name") == "jaeger"), None)
+        if container is None:
+            raise IntegratedRunError(f"{name} container is missing")
+        env = {item["name"]: item.get("value") for item in container.get("env", [])}
+        args = container.get("args", [])
+        claim = f"jaeger-{side}-traces"
+        if env.get("SPAN_STORAGE_TYPE") != "badger":
+            raise IntegratedRunError(f"{name} is not configured for Badger storage")
+        required_args = {
+            "--badger.ephemeral=false",
+            "--badger.directory-value=/badger/data",
+            "--badger.directory-key=/badger/key",
+            "--badger.span-store-ttl=168h0m0s",
+            "--badger.consistency=true",
+        }
+        if not required_args.issubset(set(args)):
+            raise IntegratedRunError(f"{name} Badger args differ from the frozen config: {args}")
+        if not any(volume.get("name") == "trace-storage"
+                   and volume.get("persistentVolumeClaim", {}).get("claimName") == claim
+                   for volume in template.get("volumes", [])):
+            raise IntegratedRunError(f"{name} does not use its dedicated PVC {claim}")
+        if not any(mount.get("name") == "trace-storage" and mount.get("mountPath") == "/badger"
+                   for mount in container.get("volumeMounts", [])):
+            raise IntegratedRunError(f"{name} Badger directory is not mounted persistently")
+        memory = container.get("resources", {}).get("limits", {}).get("memory")
+        if memory != "512Mi":
+            raise IntegratedRunError(f"{name} memory limit is unexpected: {memory}")
+        pvc = json_output(run([
+            kubectl, "--context", context, "-n", namespace,
+            "get", "pvc", claim, "-o", "json",
+        ]), f"{claim} PVC")
+        if pvc.get("status", {}).get("phase") != "Bound":
+            raise IntegratedRunError(f"{claim} is not Bound: {pvc.get('status', {}).get('phase')}")
+        requested = pvc.get("spec", {}).get("resources", {}).get("requests", {}).get("storage")
+        if requested != "1Gi":
+            raise IntegratedRunError(f"{claim} has unexpected capacity request: {requested}")
+        pod_status = json_output(run([
+            kubectl, "--context", context, "-n", namespace,
+            "get", "pods", "-l", f"app={name}", "-o", "json",
+        ]), f"{name} pods")
+        ready_pods = [pod for pod in pod_status.get("items", [])
+                      if pod.get("status", {}).get("phase") == "Running"
+                      and all(status.get("ready") for status in
+                              pod.get("status", {}).get("containerStatuses", []))]
+        if len(ready_pods) != 1:
+            raise IntegratedRunError(f"{name} does not have exactly one Ready Pod")
+        result[side.upper()] = {
+            "storage": "badger",
+            "pvc": claim,
+            "pvc_phase": "Bound",
+            "capacity": requested,
+            "memory_limit": memory,
+            "pod": ready_pods[0]["metadata"]["name"],
+            "restart_count": ready_pods[0]["status"]["containerStatuses"][0].get("restartCount", 0),
+        }
+    return result
 
 
 def preflight(output: Path, branch: str, commit: str, envvars: dict[str, str]) -> dict[str, Any]:
@@ -193,9 +295,13 @@ def preflight(output: Path, branch: str, commit: str, envvars: dict[str, str]) -
     checks["deployment_provenance"] = {"status": "PASS", "services": 10}
     cluster = envvars["KIND_CLUSTER_NAME"]
     context = f"kind-{cluster}"
-    check_no_residual_fault_state(env.get("KUBECTL_BIN", "kubectl"), context,
-                                  envvars["SUT_NAMESPACE"])
-    checks["residual_fault_state"] = {"status": "PASS", "chaos": 0, "f4_flags": 0}
+    checks["jaeger_persistence"] = check_jaeger_persistence(
+        env.get("KUBECTL_BIN", "kubectl"), context
+    )
+    checks["residual_fault_state"] = check_no_residual_fault_state(
+        env.get("KUBECTL_BIN", "kubectl"), context, envvars["SUT_NAMESPACE"]
+    )
+    checks["residual_fault_state"]["status"] = "PASS"
     return {"branch": branch, "tested_commit": commit, "working_tree_clean": True,
             "checks": checks, "deployment_provenance": provenance}
 
@@ -414,21 +520,41 @@ def run_normal_baseline(envvars: dict[str, str], env: dict[str, str],
 
 
 def collect(raw: Path, start: str, end: str, record: Path, commit: str,
-            envvars: dict[str, str], env: dict[str, str]) -> dict[str, Any]:
+            envvars: dict[str, str], env: dict[str, str],
+            start_ns: int | None = None, end_ns: int | None = None) -> dict[str, Any]:
     args = [sys.executable, str(COLLECTOR), "--output-dir", str(raw), "--start", start,
             "--end", end, "--context", f"kind-{envvars['KIND_CLUSTER_NAME']}",
             "--collector-commit", commit, "--application-image-source-fingerprint", commit,
             "--workload-record", str(record), "--step", "1s", "--limit", "5000",
             "--trace-limit", "10000", "--drain-seconds", "20"]
+    if (start_ns is None) != (end_ns is None):
+        raise IntegratedRunError("exact RAW bounds must include both start_ns and end_ns")
+    if start_ns is not None and end_ns is not None:
+        args.extend(["--start-ns", str(start_ns), "--end-ns", str(end_ns)])
     result = run(args, env=env)
     report = json_output(result, "RAW collector")
+    trace_query_diagnostics = []
+    for line in result.stderr.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if event.get("event") in {
+            "raw_backend_query", "TRACE_QUERY_START", "TRACE_QUERY_COMPLETE", "TRACE_QUERY_FAILED",
+            "LOKI_QUERY_START", "LOKI_QUERY_COMPLETE", "LOKI_QUERY_SATURATED", "LOKI_QUERY_FAILED",
+        }:
+            trace_query_diagnostics.append(event)
     if report.get("status") != "PASS":
         raise IntegratedRunError(f"RAW collection failed: {report}")
     verify = run([sys.executable, str(COLLECTOR), "--verify-existing", str(raw)], env=env)
     verification = json_output(verify, "RAW integrity verifier")
     if verification.get("status") != "PASS":
         raise IntegratedRunError(f"RAW integrity failed: {verification}")
-    return {"collection": report, "integrity": verification}
+    return {
+        "collection": report,
+        "integrity": verification,
+        "query_diagnostics": trace_query_diagnostics,
+    }
 
 
 def build_dataset(raw: Path, destination: Path, env: dict[str, str]) -> dict[str, Any]:
@@ -655,7 +781,7 @@ def package_global_raw(global_raw: Path, staging: Path) -> int:
 
 
 def raw_log_sample(bundle: Path, side: str, predicate) -> dict[str, Any] | None:
-    for path in sorted((bundle / f"dataset{side}" / "logs").glob("*.json")):
+    for path in sorted((bundle / f"dataset{side}" / "logs").rglob("*.json")):
         response = json.loads(path.read_text(encoding="utf-8"))
         for stream in response.get("data", {}).get("result", []):
             for timestamp, line in stream.get("values", []):
@@ -667,9 +793,7 @@ def raw_log_sample(bundle: Path, side: str, predicate) -> dict[str, Any] | None:
 
 
 def raw_trace_sample(bundle: Path, side: str, predicate) -> dict[str, Any] | None:
-    for path in sorted((bundle / f"dataset{side}" / "traces").glob("*.json")):
-        if path.name == "services.json":
-            continue
+    for path in trace_chunk_paths(bundle, side):
         response = json.loads(path.read_text(encoding="utf-8"))
         for trace in response.get("data", []):
             for span in trace.get("spans", []):
@@ -966,7 +1090,8 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
         preflight_report = preflight(work / "preflight", branch, commit, envvars)
         (staging / "preflight.json").write_text(json.dumps(preflight_report, indent=2, sort_keys=True) + "\n")
 
-        start_time = utc_now()
+        global_start_ns = time.time_ns()
+        start_time = datetime_from_epoch_ns(global_start_ns)
         normal_record = work / "normal-workload.json"
         normal_summary = run_normal_baseline(envvars, env, normal_record)
         normal_start = normal_summary["measurement_started_at"]
@@ -1049,14 +1174,16 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
             raise IntegratedRunError(f"RAW semantic validation failed: {semantic}")
         shutil.copy2(semantic_path, staging / "semantic-validation.json")
 
-        global_end = utc_now()
+        global_end_ns = time.time_ns()
+        global_end = datetime_from_epoch_ns(global_end_ns)
         control_workload = work / "battery-workloads.json"
         control_workload.write_text(json.dumps({"normal": normal_summary,
                                                 "faults": {key: value["evidence"] for key, value in fault_results.items()}},
                                                indent=2, sort_keys=True) + "\n")
         global_raw = work / "global-raw"
         global_collection = collect(global_raw, time_text(start_time), time_text(global_end),
-                                    control_workload, commit, envvars, env)
+                                    control_workload, commit, envvars, env,
+                                    start_ns=global_start_ns, end_ns=global_end_ns)
         (staging / "global-collection.json").write_text(json.dumps(global_collection, indent=2, sort_keys=True) + "\n")
         package_global_raw(global_raw, staging)
         (staging / "README.md").write_text(
@@ -1070,6 +1197,8 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
         tested_end = utc_now()
         execution = {"tested_commit": commit, "branch": branch,
                      "experiment_start": time_text(start_time), "experiment_end": time_text(tested_end),
+                     "experiment_start_ns": str(global_start_ns),
+                     "experiment_end_ns": str(global_end_ns),
                      "fault_order": list(FAULTS), "workload_configuration": normal_summary["configuration"],
                      "deployment_provenance_status": "PASS", "normal_workload_status": "PASS",
                      "faults": {key: value["status"] for key, value in fault_results.items()},

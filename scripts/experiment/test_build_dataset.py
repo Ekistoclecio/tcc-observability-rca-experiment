@@ -137,12 +137,20 @@ class DatasetBuilderTests(unittest.TestCase):
                               "service_instance_id": "ephemeral-instance"}
                 metrics_name = "metrics.json"
                 (base / metrics_name).write_text(json.dumps({"status": "success", "data": {"result": metric_rows}}))
-                (base / "logs" / "paymentservice.json").write_text(json.dumps({"status": "success", "data": {
+                (base / "logs" / "paymentservice" / "chunk-000000.json").parent.mkdir(parents=True)
+                (base / "logs" / "paymentservice" / "chunk-000000.json").write_text(json.dumps({"status": "success", "data": {
                     "result": [{"stream": labels, "values": [[str(int(end * 1_000_000_000)), line]]}]}}))
-                (base / "traces" / "paymentservice.json").write_text(json.dumps({"data": [{
+                trace_response = json.dumps({"data": [{
                     "traceID": span["traceID"], "spans": [span],
                     "processes": {"p": {"serviceName": "paymentservice"}},
-                }]}))
+                }]})
+                chunk_dir = base / "traces" / "paymentservice"
+                chunk_dir.mkdir(parents=True)
+                # Inclusive temporal queries may return the same full trace in
+                # adjacent chunks. Keep both RAW sources and verify the logical
+                # union carries both provenance references.
+                (chunk_dir / "chunk-000000.json").write_text(trace_response)
+                (chunk_dir / "chunk-000001.json").write_text(trace_response)
             root.mkdir(exist_ok=True)
             (root / "manifest.json").write_text(json.dumps(manifest, sort_keys=True))
             files = sorted(p for p in root.rglob("*") if p.is_file())
@@ -169,6 +177,12 @@ class DatasetBuilderTests(unittest.TestCase):
             dataset_b = json.loads((out_a / "dataset-B.json").read_text())
             self.assertNotIn("fault-hook", json.dumps(dataset_a).lower())
             self.assertNotIn("fault-hook", json.dumps(dataset_b).lower())
+            trace_fact_a = next(fact for fact in dataset_a["facts"] if fact["signal"] == "trace")
+            trace_sources_a = json.loads((out_a / "provenance.json").read_text())[
+                "evidence_sources"]["A"][trace_fact_a["id"]]
+            self.assertEqual(len(trace_sources_a), 2)
+            self.assertEqual({Path(source["raw_file"]).name for source in trace_sources_a},
+                             {"chunk-000000.json", "chunk-000001.json"})
             log_a = next(fact for fact in dataset_a["facts"] if fact["signal"] == "log")
             log_b = next(fact for fact in dataset_b["facts"] if fact["signal"] == "log")
             self.assertNotIn("trace_id", log_a)
