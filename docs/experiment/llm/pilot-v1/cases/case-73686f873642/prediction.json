@@ -1,0 +1,57 @@
+{
+  "hypotheses": [
+    {
+      "confidence": 0.97,
+      "evidence_ids": [
+        "ev_4074cfab752277627afc",
+        "ev_caad6830b071b0f94e09",
+        "ev_459a1b13941d34869e9f"
+      ],
+      "explanation": "Checkout’s payment call failed with gRPC UNAVAILABLE and an explicit connection-refused error; the PaymentService server-start log appears later.",
+      "fault_type": "service_unavailable",
+      "location": {
+        "datastore": null,
+        "kind": "service",
+        "operation": null,
+        "peer_service": null,
+        "service": "paymentservice"
+      },
+      "rank": 1
+    },
+    {
+      "confidence": 0.82,
+      "evidence_ids": [
+        "ev_caad6830b071b0f94e09",
+        "ev_4074cfab752277627afc"
+      ],
+      "explanation": "The checkout-to-payment RPC could not connect, returning UNAVAILABLE with connection refused.",
+      "fault_type": "service_unavailable",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "paymentservice",
+        "service": "checkoutservice"
+      },
+      "rank": 2
+    },
+    {
+      "confidence": 0.58,
+      "evidence_ids": [
+        "ev_45c91562ea60d33aa004",
+        "ev_a9c3dbd519781fd0fe06",
+        "ev_4074cfab752277627afc"
+      ],
+      "explanation": "PlaceOrder failed and surfaced as an INTERNAL RPC error and frontend HTTP 500 after its payment call failed.",
+      "fault_type": "application_exception",
+      "location": {
+        "datastore": null,
+        "kind": "operation",
+        "operation": "hipstershop.CheckoutService/PlaceOrder",
+        "peer_service": null,
+        "service": "checkoutservice"
+      },
+      "rank": 3
+    }
+  ]
+}

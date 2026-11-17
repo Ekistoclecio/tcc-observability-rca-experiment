@@ -1,0 +1,66 @@
+{
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-17T17:33:42.830Z",
+      "latency_ms": 12098.149,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-17T17:33:30.732Z"
+    }
+  ],
+  "input_sha256": "ed80d0eb94eec10dd7e06028c75eabd2f96d7f24a49572e7ae933ae6a5b0aa8a",
+  "latency_clean": true,
+  "latency_ms": 12099.676,
+  "logical_total_latency_ms": 12099.676,
+  "opaque_case_id": "case-9da44646915b",
+  "ordinal": 7,
+  "private_source_path": "docs/experiment/results/001_cpu_saturation_r01/rca-input-A.json",
+  "request_fingerprint": "92a4a04a8d1ce274393103cfb5e6c53002a893cd271db4e853c85faef2f117db",
+  "request_finished_at": "2026-11-17T17:33:42.831Z",
+  "request_started_at": "2026-11-17T17:33:30.720Z",
+  "response_metadata": {
+    "api_status": "completed",
+    "created_at": 1794936811.0,
+    "incomplete_details": null,
+    "requested_model": "gpt-6-luna",
+    "response_id": "resp_009e4b5d6f5a4cbd016afc8feb2b2887d2933351cd7e1e46b3",
+    "returned_model": "gpt-6-luna",
+    "service_tier_requested": "default",
+    "service_tier_returned": "default",
+    "usage": {
+      "cache_write_12h_tokens": 0,
+      "cache_write_30m_tokens": 32845,
+      "cache_write_tokens": 32845,
+      "cached_input_tokens": 0,
+      "cost_status": "ESTIMATED",
+      "estimated_cost_usd": "0.004656925",
+      "input_tokens": 32848,
+      "long_context_pricing_applied": false,
+      "output_tokens": 1102,
+      "pricing_version": "pricing-v1",
+      "reasoning_tokens": 546,
+      "total_tokens": 33950
+    }
+  },
+  "runner_protocol_version": "llm-rca-pilot-v1",
+  "status": "COMPLETED",
+  "transport_time_ms": 12098.149,
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 32845,
+    "cache_write_tokens": 32845,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004656925",
+    "input_tokens": 32848,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1102,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 546,
+    "total_tokens": 33950
+  },
+  "validation": {
+    "status": "PASS"
+  }
+}

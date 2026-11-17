@@ -1,0 +1,59 @@
+{
+  "hypotheses": [
+    {
+      "confidence": 0.98,
+      "evidence_ids": [
+        "ev_552ed6b6c8ce07a5f88e",
+        "ev_1e7682ee0c367972bafc"
+      ],
+      "explanation": "The Charge operation returns gRPC INTERNAL and logs “Payment charge failed,” directly failing the checkout payment.",
+      "fault_type": "application_exception",
+      "location": {
+        "datastore": null,
+        "kind": "operation",
+        "operation": "hipstershop.PaymentService/Charge",
+        "peer_service": null,
+        "service": "paymentservice"
+      },
+      "rank": 1
+    },
+    {
+      "confidence": 0.78,
+      "evidence_ids": [
+        "ev_107cdf8d00ad31ed24a2",
+        "ev_e1020008182411a06c82",
+        "ev_1f0d709b0b0c88c61f39",
+        "ev_f14f27d79192d9460b9c"
+      ],
+      "explanation": "PlaceOrder returns an error and propagates the failed payment charge, producing the checkout request failure.",
+      "fault_type": "application_exception",
+      "location": {
+        "datastore": null,
+        "kind": "operation",
+        "operation": "hipstershop.CheckoutService/PlaceOrder",
+        "peer_service": null,
+        "service": "checkoutservice"
+      },
+      "rank": 2
+    },
+    {
+      "confidence": 0.36,
+      "evidence_ids": [
+        "ev_07c7e5a2ecd61a81cc03",
+        "ev_8983a600dd15d81c5292",
+        "ev_a72fcf7fed7426635e76",
+        "ev_e92c93f822e439ee67bf"
+      ],
+      "explanation": "Some frontend-to-currency Convert calls take roughly 79–93 ms while the corresponding currencyservice spans take under 1 ms, suggesting latency on the service edge.",
+      "fault_type": "network_latency",
+      "location": {
+        "datastore": null,
+        "kind": "service_edge",
+        "operation": null,
+        "peer_service": "currencyservice",
+        "service": "frontend"
+      },
+      "rank": 3
+    }
+  ]
+}
