@@ -1,0 +1,59 @@
+{
+  "accuracy_at_1": 1,
+  "accuracy_at_3": 1,
+  "cached_input_tokens": 0,
+  "case_id": "case-03ab5017d137",
+  "estimated_cost_usd": 0.0894135,
+  "fault_instance": "002_network_latency_r01",
+  "fault_label": "F2",
+  "fault_type_accuracy": 1,
+  "ground_truth": {
+    "fault_type": "network_latency",
+    "location": {
+      "datastore": null,
+      "kind": "service_edge",
+      "operation": null,
+      "peer_service": "paymentservice",
+      "service": "checkoutservice"
+    }
+  },
+  "ground_truth_path": "docs/experiment/validation/sol-e2e-v1/physical/results/002_network_latency_r01/ground-truth.json",
+  "ground_truth_sha256": "a8a9c19edf6a95fd1c630e3f3004050c0e1d49978c4e896997c2d1cdf39ebbeb",
+  "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/002_network_latency_r01/rca-input-A.json",
+  "input_sha256": "e40a90c79de82eb27b88b730b80e2213ad8827af46b1a63a90ec417ceb523b34",
+  "input_tokens": 33270,
+  "latency_clean": true,
+  "latency_ms": 10874.941,
+  "location_accuracy": 1,
+  "output_tokens": 624,
+  "physical_fault_id": "F2-stage4-smoke",
+  "prediction_path": "docs/experiment/validation/sol-e2e-v1/llm/run/cases/case-03ab5017d137/prediction.json",
+  "prediction_sha256": "4fa4d57a8778cd293c487255f7662418c8d9f4e51eb6f72a87fbd989405cfcb6",
+  "rank_1_correct": true,
+  "rank_of_correct_hypothesis": 1,
+  "ranked_match_details": [
+    {
+      "diagnosis_correct": true,
+      "fault_type_correct": true,
+      "location_correct": true,
+      "rank": 1
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": true,
+      "location_correct": false,
+      "rank": 2
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 3
+    }
+  ],
+  "reasoning_tokens": 125,
+  "reciprocal_rank": 1.0,
+  "request_fingerprint": "958c63afcee86e4894f1c29790e5a14e0b799575ce14917f6ea94824ea82a3b1",
+  "total_tokens": 33894,
+  "treatment": "A"
+}

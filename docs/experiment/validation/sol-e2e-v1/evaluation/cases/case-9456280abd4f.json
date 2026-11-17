@@ -1,0 +1,59 @@
+{
+  "accuracy_at_1": 0,
+  "accuracy_at_3": 0,
+  "cached_input_tokens": 0,
+  "case_id": "case-9456280abd4f",
+  "estimated_cost_usd": 0.1111135,
+  "fault_instance": "004_application_exception_r01",
+  "fault_label": "F4",
+  "fault_type_accuracy": 1,
+  "ground_truth": {
+    "fault_type": "application_exception",
+    "location": {
+      "datastore": null,
+      "kind": "operation",
+      "operation": "Charge",
+      "peer_service": null,
+      "service": "paymentservice"
+    }
+  },
+  "ground_truth_path": "docs/experiment/validation/sol-e2e-v1/physical/results/004_application_exception_r01/ground-truth.json",
+  "ground_truth_sha256": "20eae2c80e52b09fad72c270374c2c0285189d4bada219d321a7034160a62dbe",
+  "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/004_application_exception_r01/rca-input-B.json",
+  "input_sha256": "90e9d7c8df5cd71624067eb13737917dddc7f781bc93a340ab28f16e72bcca77",
+  "input_tokens": 42138,
+  "latency_clean": true,
+  "latency_ms": 9019.314,
+  "location_accuracy": 0,
+  "output_tokens": 577,
+  "physical_fault_id": "F4-stage4-smoke",
+  "prediction_path": "docs/experiment/validation/sol-e2e-v1/llm/run/cases/case-9456280abd4f/prediction.json",
+  "prediction_sha256": "d58493ce37b49ddd67fee1ff4cef5ae912d89df447dc7b677e5e1e4ae9bdf489",
+  "rank_1_correct": false,
+  "rank_of_correct_hypothesis": null,
+  "ranked_match_details": [
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": true,
+      "location_correct": false,
+      "rank": 1
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 2
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 3
+    }
+  ],
+  "reasoning_tokens": 78,
+  "reciprocal_rank": 0.0,
+  "request_fingerprint": "c7e5cfe306af871bb320144cc9e2752076a3b0d53d0ef587fe10a2d5300d0bba",
+  "total_tokens": 42715,
+  "treatment": "B"
+}

@@ -1,0 +1,59 @@
+{
+  "accuracy_at_1": 0,
+  "accuracy_at_3": 0,
+  "cached_input_tokens": 0,
+  "case_id": "case-d19c9e70755c",
+  "estimated_cost_usd": 0.1180135,
+  "fault_instance": "001_cpu_saturation_r01",
+  "fault_label": "F1",
+  "fault_type_accuracy": 0,
+  "ground_truth": {
+    "fault_type": "cpu_saturation",
+    "location": {
+      "datastore": null,
+      "kind": "service",
+      "operation": null,
+      "peer_service": null,
+      "service": "checkoutservice"
+    }
+  },
+  "ground_truth_path": "docs/experiment/validation/sol-e2e-v1/physical/results/001_cpu_saturation_r01/ground-truth.json",
+  "ground_truth_sha256": "19a83e449267945af8a79fdef4a002a7a8a9aeda5e33c550374623aad4d044f8",
+  "input_path": "docs/experiment/validation/sol-e2e-v1/physical/results/001_cpu_saturation_r01/rca-input-B.json",
+  "input_sha256": "44eaa50ac6e469fa5449333ee2ba5e4d25288bff3a90ef01d6b39a0c34cf9f44",
+  "input_tokens": 44574,
+  "latency_clean": true,
+  "latency_ms": 10765.383,
+  "location_accuracy": 0,
+  "output_tokens": 658,
+  "physical_fault_id": "F1-stage4-smoke",
+  "prediction_path": "docs/experiment/validation/sol-e2e-v1/llm/run/cases/case-d19c9e70755c/prediction.json",
+  "prediction_sha256": "f463d408fa8a4a4afb782868dd98d2fdb4fa07689e3efbbbe1685994edc6bffe",
+  "rank_1_correct": false,
+  "rank_of_correct_hypothesis": null,
+  "ranked_match_details": [
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 1
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 2
+    },
+    {
+      "diagnosis_correct": false,
+      "fault_type_correct": false,
+      "location_correct": false,
+      "rank": 3
+    }
+  ],
+  "reasoning_tokens": 96,
+  "reciprocal_rank": 0.0,
+  "request_fingerprint": "84f01644ad021d66f5acdce0199f671e22844ab8c64519a976a478271045f7f6",
+  "total_tokens": 45232,
+  "treatment": "B"
+}

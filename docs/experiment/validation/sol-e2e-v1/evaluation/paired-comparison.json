@@ -1,0 +1,355 @@
+{
+  "aggregate_delta_B_minus_A": {
+    "accuracy_at_1": 0.0,
+    "accuracy_at_3": 0.0,
+    "fault_type_accuracy": 0.0,
+    "location_accuracy": 0.0,
+    "max_latency_ms": -1225.334,
+    "mean_cached_input_tokens_per_case": 0.0,
+    "mean_estimated_cost_usd_per_case": 0.0253075,
+    "mean_input_tokens_per_case": 10304.6,
+    "mean_latency_ms": -1734.3416,
+    "mean_output_tokens_per_case": -45.4,
+    "mean_reasoning_tokens_per_case": -53.0,
+    "mean_total_tokens_per_case": 10259.2,
+    "median_latency_ms": -2135.505,
+    "median_total_tokens_per_case": 11865.0,
+    "min_latency_ms": -936.897,
+    "reciprocal_rank": 0.0,
+    "total_cached_input_tokens": 0.0,
+    "total_estimated_cost_usd": 0.1265375,
+    "total_input_tokens": 51523.0,
+    "total_output_tokens": -227.0,
+    "total_reasoning_tokens": -265.0,
+    "total_tokens": 51296.0
+  },
+  "delta_convention": "B - A",
+  "faults": {
+    "F1-stage4-smoke": {
+      "fault_label": "F1",
+      "metrics": {
+        "accuracy_at_1": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "accuracy_at_3": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "cached_input_tokens": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "estimated_cost_usd": {
+          "A": 0.0890585,
+          "B": 0.1180135,
+          "delta_B_minus_A": 0.028955
+        },
+        "fault_type_accuracy": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "input_tokens": {
+          "A": 32972,
+          "B": 44574,
+          "delta_B_minus_A": 11602.0
+        },
+        "latency_ms": {
+          "A": 11412.634,
+          "B": 10765.383,
+          "delta_B_minus_A": -647.251
+        },
+        "location_accuracy": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "output_tokens": {
+          "A": 663,
+          "B": 658,
+          "delta_B_minus_A": -5.0
+        },
+        "reasoning_tokens": {
+          "A": 98,
+          "B": 96,
+          "delta_B_minus_A": -2.0
+        },
+        "reciprocal_rank": {
+          "A": 0.0,
+          "B": 0.0,
+          "delta_B_minus_A": 0.0
+        },
+        "total_tokens": {
+          "A": 33635,
+          "B": 45232,
+          "delta_B_minus_A": 11597.0
+        }
+      }
+    },
+    "F2-stage4-smoke": {
+      "fault_label": "F2",
+      "metrics": {
+        "accuracy_at_1": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "accuracy_at_3": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "cached_input_tokens": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "estimated_cost_usd": {
+          "A": 0.0894135,
+          "B": 0.119376,
+          "delta_B_minus_A": 0.0299625
+        },
+        "fault_type_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "input_tokens": {
+          "A": 33270,
+          "B": 45287,
+          "delta_B_minus_A": 12017.0
+        },
+        "latency_ms": {
+          "A": 10874.941,
+          "B": 9429.197,
+          "delta_B_minus_A": -1445.744
+        },
+        "location_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "output_tokens": {
+          "A": 624,
+          "B": 616,
+          "delta_B_minus_A": -8.0
+        },
+        "reasoning_tokens": {
+          "A": 125,
+          "B": 77,
+          "delta_B_minus_A": -48.0
+        },
+        "reciprocal_rank": {
+          "A": 1.0,
+          "B": 1.0,
+          "delta_B_minus_A": 0.0
+        },
+        "total_tokens": {
+          "A": 33894,
+          "B": 45903,
+          "delta_B_minus_A": 12009.0
+        }
+      }
+    },
+    "F3-stage4-smoke": {
+      "fault_label": "F3",
+      "metrics": {
+        "accuracy_at_1": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "accuracy_at_3": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "cached_input_tokens": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "estimated_cost_usd": {
+          "A": 0.076386,
+          "B": 0.105541,
+          "delta_B_minus_A": 0.029155
+        },
+        "fault_type_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "input_tokens": {
+          "A": 27991,
+          "B": 40185,
+          "delta_B_minus_A": 12194.0
+        },
+        "latency_ms": {
+          "A": 11947.542,
+          "B": 9277.129,
+          "delta_B_minus_A": -2670.413
+        },
+        "location_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "output_tokens": {
+          "A": 641,
+          "B": 508,
+          "delta_B_minus_A": -133.0
+        },
+        "reasoning_tokens": {
+          "A": 182,
+          "B": 83,
+          "delta_B_minus_A": -99.0
+        },
+        "reciprocal_rank": {
+          "A": 1.0,
+          "B": 1.0,
+          "delta_B_minus_A": 0.0
+        },
+        "total_tokens": {
+          "A": 28632,
+          "B": 40693,
+          "delta_B_minus_A": 12061.0
+        }
+      }
+    },
+    "F4-stage4-smoke": {
+      "fault_label": "F4",
+      "metrics": {
+        "accuracy_at_1": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "accuracy_at_3": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "cached_input_tokens": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "estimated_cost_usd": {
+          "A": 0.081826,
+          "B": 0.1111135,
+          "delta_B_minus_A": 0.0292875
+        },
+        "fault_type_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "input_tokens": {
+          "A": 30223,
+          "B": 42138,
+          "delta_B_minus_A": 11915.0
+        },
+        "latency_ms": {
+          "A": 11990.717,
+          "B": 9019.314,
+          "delta_B_minus_A": -2971.403
+        },
+        "location_accuracy": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "output_tokens": {
+          "A": 627,
+          "B": 577,
+          "delta_B_minus_A": -50.0
+        },
+        "reasoning_tokens": {
+          "A": 181,
+          "B": 78,
+          "delta_B_minus_A": -103.0
+        },
+        "reciprocal_rank": {
+          "A": 0.0,
+          "B": 0.0,
+          "delta_B_minus_A": 0.0
+        },
+        "total_tokens": {
+          "A": 30850,
+          "B": 42715,
+          "delta_B_minus_A": 11865.0
+        }
+      }
+    },
+    "F5-stage4-smoke": {
+      "fault_label": "F5",
+      "metrics": {
+        "accuracy_at_1": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "accuracy_at_3": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "cached_input_tokens": {
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
+        },
+        "estimated_cost_usd": {
+          "A": 0.049086,
+          "B": 0.0582635,
+          "delta_B_minus_A": 0.0091775
+        },
+        "fault_type_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "input_tokens": {
+          "A": 17451,
+          "B": 21246,
+          "delta_B_minus_A": 3795.0
+        },
+        "latency_ms": {
+          "A": 8944.21,
+          "B": 8007.313,
+          "delta_B_minus_A": -936.897
+        },
+        "location_accuracy": {
+          "A": 1,
+          "B": 1,
+          "delta_B_minus_A": 0.0
+        },
+        "output_tokens": {
+          "A": 546,
+          "B": 515,
+          "delta_B_minus_A": -31.0
+        },
+        "reasoning_tokens": {
+          "A": 73,
+          "B": 60,
+          "delta_B_minus_A": -13.0
+        },
+        "reciprocal_rank": {
+          "A": 1.0,
+          "B": 1.0,
+          "delta_B_minus_A": 0.0
+        },
+        "total_tokens": {
+          "A": 17997,
+          "B": 21761,
+          "delta_B_minus_A": 3764.0
+        }
+      }
+    }
+  },
+  "unit": "same physical fault execution"
+}
