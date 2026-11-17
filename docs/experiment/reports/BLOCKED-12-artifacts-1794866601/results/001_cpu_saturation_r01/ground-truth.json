@@ -1,0 +1,25 @@
+{
+  "confirmed_end": "2026-11-16T22:01:42.119820Z",
+  "confirmed_start": "2026-11-16T22:01:26.699867Z",
+  "execution_eligible": true,
+  "fault_id": "F1-stage4-smoke",
+  "fault_type": "cpu_saturation",
+  "ineligibility_reason": null,
+  "injection_confirmation": {
+    "control_plane_check": "Chaos Mesh Selected and AllInjected conditions",
+    "evidence": "{\"conditions\": [{\"status\": \"True\", \"type\": \"AllInjected\"}, {\"status\": \"False\", \"type\": \"AllRecovered\"}, {\"status\": \"False\", \"type\": \"Paused\"}, {\"status\": \"True\", \"type\": \"Selected\"}], \"experiment\": {\"containerRecords\": [{\"events\": [{\"operation\": \"Apply\", \"timestamp\": \"2026-11-16T22:01:25Z\", \"type\": \"Succeeded\"}], \"id\": \"online-boutique/checkoutservice-cdcd46fc5-pghzw/server\", \"injectedCount\": 1, \"phase\": \"Injected\", \"recoveredCount\": 0, \"selectorKey\": \".\"}], \"desiredPhase\": \"Run\"}, \"instances\": {\"online-boutique/checkoutservice-cdcd46fc5-pghzw/server\": {\"memoryStartTime\": \"1970-01-01T00:00:00Z\", \"startTime\": \"2026-11-16T22:01:24Z\", \"uid\": \"113887\"}}}",
+    "observed_at": "2026-11-16T22:01:26.699867Z"
+  },
+  "recovery_confirmation": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"resource_absent\": true}",
+    "observed_at": "2026-11-16T22:01:42.119820Z"
+  },
+  "requested_start": "2026-11-16T22:01:24.897079Z",
+  "root_location": {
+    "kind": "service",
+    "value": "checkoutservice"
+  },
+  "schema_version": "1.0",
+  "status": "RECOVERED"
+}

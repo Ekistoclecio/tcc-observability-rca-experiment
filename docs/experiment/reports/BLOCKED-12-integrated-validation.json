@@ -1,40 +1,48 @@
 {
   "affected_files": [
-    "kustomize/experiment-v2/telemetry-b.patch.yaml",
-    "scripts/experiment/run_integrated_validation.py",
-    "scripts/experiment/test_integrated_validation.py",
-    "scripts/experiment/workload.py",
-    "src/checkoutservice/main.go",
-    "src/checkoutservice/otel_logging.go",
-    "src/currencyservice/server.js",
-    "src/emailservice/email_server.py",
-    "src/emailservice/logger.py",
-    "src/emailservice/otel_metrics.py",
-    "src/frontend/main.go",
-    "src/frontend/otel_logging.go",
-    "src/paymentservice/index.js",
-    "src/productcatalogservice/otel_logging.go",
-    "src/productcatalogservice/server.go",
-    "src/recommendationservice/logger.py",
-    "src/recommendationservice/otel_metrics.py",
-    "src/recommendationservice/recommendation_server.py",
-    "src/shippingservice/main.go",
-    "src/shippingservice/otel_logging.go"
+    "docs/experiment/reports/BLOCKED-12-integrated-validation.md",
+    "docs/experiment/reports/BLOCKED-12-integrated-validation.json"
   ],
-  "affected_invariant": "the complete fault-to-RCA-input chain must pass on one frozen commit",
+  "affected_invariant": "F2 requires observable latency on checkoutservice -> paymentservice in A and B; control-plane injection confirmation does not prove the required diagnostic observation.",
+  "alternatives": [
+    "If network traffic was not classified to the paymentservice Pod, correct only NetworkChaos target/path configuration while preserving the service-edge treatment.",
+    "If A was delayed but its span timing or B span was lost, correct the affected observation/export layer; do not weaken the 100ms gate."
+  ],
   "branch": "experiment-v2",
-  "correction_status": "implemented_locally; focused tests pass; clean-commit build/deploy, provenance, and normal validation pending",
-  "evidence": "/home/ekistoclecio/dev/microservices-demo/docs/experiment/reports/BLOCKED-12-artifacts-1794863260",
-  "expected": "normal workload, F1-F5, RAW, Dataset, RCA Input, semantic coverage and artifact integrity all PASS",
-  "first_divergence": "normal baseline counter construction and Scenario B OTel metric resource identity",
-  "followup_validation_observation": "An initial normal-only validation attempt exposed a duplicated local ephemeral-port helper; it failed before Prometheus queries and before any fault. The duplicate helper was removed in a follow-up fix.",
-  "last_successful_commit": "e66b8160b38e6bdedf7c6e246fc0a4f7d290852d",
-  "observed": "F1 CPU signal passed in A/B, but duration comparison failed: the normal window began before warmup initialized PlaceOrder counters (A series starts about five seconds after window start); B cumulative PlaceOrder series also decreased across Pod lifecycle while old metric streams remained cached",
+  "completed_in_this_battery": {
+    "F1": "PASS",
+    "F2": "FAIL",
+    "F3": "NOT_RUN",
+    "F4": "NOT_RUN",
+    "F5": "NOT_RUN",
+    "deployment_provenance": "10/10 PASS",
+    "normal_baseline": "PASS",
+    "preflight": "PASS"
+  },
+  "evidence": [
+    "F2/ground-truth.json: confirmed independent window and edge location",
+    "F2/fault-smoke.json: Chaos Mesh Selected/AllInjected and successful workload/recovery",
+    "f2-chaos-daemon-readonly.log: netem 100ms configuration request and target IP ipset/classifier setup, followed by cleanup; effective packet/qdisc match is not proven",
+    "F2/raw/datasetA/traces/checkoutservice.json: A edge span duration 5866us",
+    "F2/raw/datasetB/traces/checkoutservice.json: no B checkoutservice CLIENT span in window",
+    "preflight/deployment-provenance.json: 10/10 services deployed from commit 7c1c1f8"
+  ],
+  "evidence_directory": "docs/experiment/reports/BLOCKED-12-artifacts-1794866601",
+  "expected": "Both scenarios expose a checkoutservice->paymentservice edge with at least 100 ms latency for F2.",
+  "first_divergence": "network effect vs RAW observation; A observed edge duration remains 5.866ms while B edge CLIENT span is absent",
+  "last_successful_commit": "7c1c1f8f1a076a9a10cef0afcfc83417a7c91fb5",
+  "minimum_data_needed_for_decision": [
+    "Evidence that the checkoutservice egress packet to paymentservice matched the intended target set and netem qdisc during the confirmed window (or proof it did not).",
+    "B-side trace/export evidence for the same request showing whether a checkout CLIENT span was created, exported, queried, or dropped."
+  ],
+  "observed": "F1 passed. F2 failed in A: the confirmed checkoutservice->paymentservice window contains an A client span lasting 5.866 ms, below configured 100 ms. B has no checkoutservice CLIENT edge span in collected RAW, though a paymentservice server Charge span exists.",
   "physical_rerun_required": true,
-  "recommended_correction": "Start the normal measurement window only after fresh A/B PlaceOrder count and sum samples are observed after a separate warmup; add real Downward API Pod UID as service.instance.id to Go, Node.js, and Python Scenario B resources so cumulative streams from distinct processes cannot share the same resource identity; retain UNKNOWN for missing baselines and resets",
-  "root_cause": "PROVEN",
-  "safe_automatic_correction_possible": true,
-  "scientific_impact": "the integrated battery is invalid; current failure is caused by an incorrectly delimited normal measurement window and missing Scenario B instance identity, not evidence that F1 lacked CPU impact",
+  "recommended_correction": "Do not patch from current evidence. Perform read-only diagnosis of effective packet matching/qdisc path and B client-span export/query path; only then define a minimal correction and authorize a new F2 physical validation.",
+  "root_cause": "UNKNOWN",
+  "safe_automatic_correction_possible": false,
+  "scientific_impact": "F1 evidence in this battery passed, but the integrated battery is invalid and incomplete; no F2-F5 results can be combined or reported as a complete campaign.",
   "stage": "12-integrated-validation",
-  "working_tree": "local correction in progress; invalid battery evidence preserved under docs/experiment/reports/BLOCKED-12-artifacts-1794863260/"
+  "stopped_before": "F3",
+  "why_further_automatic_correction_is_unsafe": "The record proves the fault resource was selected/injected and the Chaos Daemon recorded a 100ms netem setup request, but no in-window packet/qdisc match evidence exists; B also lacks its client span. It is not yet possible to isolate network effect/configuration from B trace observation loss.",
+  "working_tree_status": "BLOCKER report and preserved evidence added after the run; source implementation remains at last tested commit"
 }

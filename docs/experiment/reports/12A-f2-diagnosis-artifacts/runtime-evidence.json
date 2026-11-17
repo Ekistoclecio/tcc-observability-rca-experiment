@@ -1,0 +1,295 @@
+{
+  "classification": "DIAGNOSTIC_F2_ONLY",
+  "cleanup": {
+    "residual_chaos_count": 0,
+    "sut_ready": "11/11"
+  },
+  "network": {
+    "checkout_socket_peer": "10.96.106.113:50051",
+    "configured_ipset": "Name: tcc-f_6b27dbfbee7_net_netgt\nType: hash:net\nRevision: 7\nHeader: family inet hashsize 1024 maxelem 65536 bucketsize 12 initval 0xe1b99e87\nSize in memory: 504\nReferences: 2\nNumber of entries: 1\nMembers:\n10.244.0.37\n\nName: tcc-f_6b27dbf_netport_netgt\nType: hash:net,port\nRevision: 8\nHeader: family inet hashsize 1024 maxelem 65536 bucketsize 12 initval 0x89cea9d9\nSize in memory: 456\nReferences: 2\nNumber of entries: 0\nMembers:\n\nName: tcc-f_6b27dbfbee7_net_netgtold\nType: hash:net\nRevision: 7\nHeader: family inet hashsize 1024 maxelem 65536 bucketsize 12 initval 0xaffdfbd2\nSize in memory: 504\nReferences: 0\nNumber of entries: 1\nMembers:\n10.244.0.37\n\nName: tcc-f_6b27dbf_netport_netgtold\nType: hash:net,port\nRevision: 8\nHeader: family inet hashsize 1024 maxelem 65536 bucketsize 12 initval 0x79651713\nSize in memory: 456\nReferences: 0\nNumber of entries: 0\nMembers:\n\nName: tcc-f_6b27dbfbee7_set_netgt\nType: list:set\nRevision: 3\nHeader: size 8\nSize in memory: 176\nReferences: 1\nNumber of entries: 2\nMembers:\ntcc-f_6b27dbfbee7_net_netgt\ntcc-f_6b27dbf_netport_netgt\n\nName: tcc-f_6b27dbfbee7_set_netgtold\nType: list:set\nRevision: 3\nHeader: size 8\nSize in memory: 176\nReferences: 0\nNumber of entries: 2\nMembers:\ntcc-f_6b27dbfbee7_net_netgt\ntcc-f_6b27dbf_netport_netgt",
+    "note": "A supplemental TCP probe was attempted after the active fault had already been recovered; it is excluded from all in-window conclusions.",
+    "service_cluster_ip": "10.96.106.113",
+    "service_port": "50051",
+    "snapshots": [
+      {
+        "chaos_output": "Chain CHAOS-OUTPUT (1 references)\n    pkts      bytes target     prot opt in     out     source               destination",
+        "classes": "",
+        "ipset_names": "tcc-f_6b27dbfbee7_net_netgt\ntcc-f_6b27dbf_netport_netgt\ntcc-f_6b27dbfbee7_set_netgt",
+        "label": "before_fault",
+        "qdisc": "qdisc noqueue 0: root refcnt 2 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0",
+        "tc_classifier": "Chain TC-TABLES-0 (0 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n       0        0 CLASSIFY   0    --  *      eth0    0.0.0.0/0            0.0.0.0/0            match-set tcc-f_6b27dbfbee7_set_netgt dst,dst CLASSIFY set 1:4",
+        "timestamp": "2026-11-16T23:12:34.620040Z"
+      },
+      {
+        "chaos_output": "Chain CHAOS-OUTPUT (1 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n       0        0 TC-TABLES-0  0    --  *      *       0.0.0.0/0            0.0.0.0/0",
+        "classes": "class prio 1:1 parent 1: leaf 2: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:2 parent 1: leaf 3: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:3 parent 1: leaf 4: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:4 parent 1: leaf 5: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0",
+        "ipset_names": "tcc-f_6b27dbfbee7_net_netgt\ntcc-f_6b27dbf_netport_netgt\ntcc-f_6b27dbfbee7_net_netgtold\ntcc-f_6b27dbf_netport_netgtold\ntcc-f_6b27dbfbee7_set_netgt\ntcc-f_6b27dbfbee7_set_netgtold",
+        "label": "after_injection_before_application_request",
+        "qdisc": "qdisc prio 1: root refcnt 13 bands 4 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 2: parent 1:1 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 4: parent 1:3 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc netem 5: parent 1:4 limit 1000 delay 100ms\n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 3: parent 1:2 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0",
+        "tc_classifier": "Chain TC-TABLES-0 (1 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n       0        0 CLASSIFY   0    --  *      eth0    0.0.0.0/0            0.0.0.0/0            match-set tcc-f_6b27dbfbee7_set_netgt dst,dst CLASSIFY set 1:4",
+        "timestamp": "2026-11-16T23:12:37.670334Z"
+      },
+      {
+        "chaos_output": "Chain CHAOS-OUTPUT (1 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n     186    22393 TC-TABLES-0  0    --  *      *       0.0.0.0/0            0.0.0.0/0",
+        "classes": "class prio 1:1 parent 1: leaf 2: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:2 parent 1: leaf 3: \n Sent 36824 bytes 211 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:3 parent 1: leaf 4: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nclass prio 1:4 parent 1: leaf 5: \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0",
+        "ipset_names": "tcc-f_6b27dbfbee7_net_netgt\ntcc-f_6b27dbf_netport_netgt\ntcc-f_6b27dbfbee7_net_netgtold\ntcc-f_6b27dbf_netport_netgtold\ntcc-f_6b27dbfbee7_set_netgt\ntcc-f_6b27dbfbee7_set_netgtold",
+        "label": "after_single_checkout_flow",
+        "qdisc": "qdisc prio 1: root refcnt 13 bands 4 priomap 1 2 2 2 1 2 0 0 1 1 1 1 1 1 1 1\n Sent 32071 bytes 195 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 2: parent 1:1 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 4: parent 1:3 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc netem 5: parent 1:4 limit 1000 delay 100ms\n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\nqdisc sfq 3: parent 1:2 limit 127p quantum 1514b depth 127 divisor 1024 \n Sent 32071 bytes 195 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0",
+        "tc_classifier": "Chain TC-TABLES-0 (1 references)\n    pkts      bytes target     prot opt in     out     source               destination         \n       0        0 CLASSIFY   0    --  *      eth0    0.0.0.0/0            0.0.0.0/0            match-set tcc-f_6b27dbfbee7_set_netgt dst,dst CLASSIFY set 1:4",
+        "timestamp": "2026-11-16T23:12:39.745227Z"
+      }
+    ],
+    "target_pod_ip": "10.244.0.37"
+  },
+  "preflight": {
+    "exclusive_cluster": true,
+    "prior_and_live_provenance": "10/10 PASS at tested commit 7c1c1f8",
+    "sut_ready": "11/11",
+    "zero_residual_chaos": true
+  },
+  "run_window": {
+    "confirmed_injection": [
+      {
+        "status": "True",
+        "type": "Selected"
+      },
+      {
+        "status": "True",
+        "type": "AllInjected"
+      },
+      {
+        "status": "False",
+        "type": "AllRecovered"
+      },
+      {
+        "status": "False",
+        "type": "Paused"
+      }
+    ],
+    "finished_at": "2026-11-16T23:13:49.765105Z",
+    "request_finished_at": "2026-11-16T23:12:39.745208Z",
+    "request_started_at": "2026-11-16T23:12:38.736543Z",
+    "started_at": "2026-11-16T23:12:29.896839Z"
+  },
+  "source_scratch_sha256": "fed06cef0ff7edf9585d281c883f973cbe921285f10d63bdf7bf99b42f7df7cf",
+  "tested_commit": "7c1c1f8f1a076a9a10cef0afcfc83417a7c91fb5",
+  "trace_track": {
+    "collector_log_error_lines": [
+      "l (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:47.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:47.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:52.547Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:52.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:52.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:52.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:52.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:57.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:57.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:57.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:57.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:11:57.550Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:02.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:02.548Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:02.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:02.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:02.549Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:11.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:11.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:11.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:11.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:11.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:16.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:16.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:16.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:16.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:16.136Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:21.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:21.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:21.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:21.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:21.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:26.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:26.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:26.134Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:26.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:26.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:31.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:31.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:31.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:31.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:36.135Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:36.136Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:36.137Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:36.137Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:36.137Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:44.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:44.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:44.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:44.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:44.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:49.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:49.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:49.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:49.724Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:49.725Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:54.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:54.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:54.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:54.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:54.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:59.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:59.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:59.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:59.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:12:59.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:04.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:04.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:04.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:04.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:09.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:09.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:09.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:09.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:09.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:14.721Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:14.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:14.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:14.722Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:14.723Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:23.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:23.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:23.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:23.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:23.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:28.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:28.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:28.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:28.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:28.310Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:33.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:33.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:33.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:33.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:33.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:38.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:38.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:38.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:38.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:43.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:43.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:43.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:43.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:43.310Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:48.308Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:48.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:48.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:48.309Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}",
+      "2026-11-16T23:13:48.310Z\tinfo\tprometheusexporter@v0.123.0/collector.go:450\tInstrument description conflict, using existing\t{\"instrument\": \"otel_rpc_server_call_duration_seconds\", \"existing\": \"Measures the duration of an incoming Remote Procedure Call (RPC).\", \"dropped\": \"\"}"
+    ],
+    "collector_metrics": {
+      "otelcol_exporter_queue_size": "otelcol_exporter_queue_size{data_type=\"traces\",exporter=\"otlp/jaeger\",service_instance_id=\"19c4a98b-5f64-424a-974a-7e71260f525a\",service_name=\"otelcol-contrib\",service_version=\"0.123.0\"} 0",
+      "otelcol_exporter_send_failed_spans": "otelcol_exporter_send_failed_spans{exporter=\"otlp/jaeger\",service_instance_id=\"19c4a98b-5f64-424a-974a-7e71260f525a\",service_name=\"otelcol-contrib\",service_version=\"0.123.0\"} 0",
+      "otelcol_exporter_sent_spans": "otelcol_exporter_sent_spans{exporter=\"otlp/jaeger\",service_instance_id=\"19c4a98b-5f64-424a-974a-7e71260f525a\",service_name=\"otelcol-contrib\",service_version=\"0.123.0\"} 59423",
+      "otelcol_receiver_accepted_spans": "otelcol_receiver_accepted_spans{receiver=\"otlp\",service_instance_id=\"19c4a98b-5f64-424a-974a-7e71260f525a\",service_name=\"otelcol-contrib\",service_version=\"0.123.0\",transport=\"grpc\"} 59423",
+      "otelcol_receiver_refused_spans": "otelcol_receiver_refused_spans{receiver=\"otlp\",service_instance_id=\"19c4a98b-5f64-424a-974a-7e71260f525a\",service_name=\"otelcol-contrib\",service_version=\"0.123.0\",transport=\"grpc\"} 0"
+    },
+    "jaeger_queries": [
+      {
+        "elapsed_seconds": 1,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 2,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 5,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 10,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 20,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 30,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      },
+      {
+        "elapsed_seconds": 60,
+        "result": "FOUND",
+        "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+      }
+    ],
+    "selected_spans": [
+      {
+        "duration_us": 7155,
+        "kind": "client",
+        "operation": "hipstershop.PaymentService/Charge",
+        "parent_refs": [
+          {
+            "refType": "CHILD_OF",
+            "spanID": "e20e8927721eed46",
+            "traceID": "cba836bffb4f27693c11106eeb8cc457"
+          }
+        ],
+        "span_id": "9377fa8cdede562f",
+        "start_us": 1794870753257098
+      },
+      {
+        "duration_us": 437899,
+        "kind": "client",
+        "operation": "hipstershop.CheckoutService/PlaceOrder",
+        "parent_refs": [
+          {
+            "refType": "CHILD_OF",
+            "spanID": "281e944958ddf088",
+            "traceID": "cba836bffb4f27693c11106eeb8cc457"
+          }
+        ],
+        "span_id": "67b5c988d21d2fb0",
+        "start_us": 1794870752998692
+      },
+      {
+        "duration_us": 3860,
+        "kind": "server",
+        "operation": "grpc.hipstershop.PaymentService/Charge",
+        "parent_refs": [],
+        "span_id": "3f608ebe1f11b8a5",
+        "start_us": 1794870753259000
+      },
+      {
+        "duration_us": 633546,
+        "kind": "server",
+        "operation": "POST /cart/checkout",
+        "parent_refs": [],
+        "span_id": "281e944958ddf088",
+        "start_us": 1794870752820961
+      },
+      {
+        "duration_us": 436148,
+        "kind": "server",
+        "operation": "hipstershop.CheckoutService/PlaceOrder",
+        "parent_refs": [
+          {
+            "refType": "CHILD_OF",
+            "spanID": "67b5c988d21d2fb0",
+            "traceID": "cba836bffb4f27693c11106eeb8cc457"
+          }
+        ],
+        "span_id": "e20e8927721eed46",
+        "start_us": 1794870753000076
+      }
+    ],
+    "trace_id": "cba836bffb4f27693c11106eeb8cc457"
+  }
+}

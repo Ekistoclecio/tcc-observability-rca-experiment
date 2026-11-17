@@ -1,42 +1,48 @@
-# BLOCKED — Etapa 12: validação integrada F1–F5
+# BLOCKED — Etapa 12: validação integrada interrompida em F2
 
 ## Estado
 
 - Branch: `experiment-v2`
-- Último commit estável antes da correção: `e66b8160b38e6bdedf7c6e246fc0a4f7d290852d`
-- Resultado da bateria: inválido e interrompido em F1. Nenhuma conclusão F2–F5 foi produzida por esta tentativa.
-- Evidências preservadas: [`BLOCKED-12-artifacts-1794863260/`](BLOCKED-12-artifacts-1794863260/)
+- Commit executado: `7c1c1f8f1a076a9a10cef0afcfc83417a7c91fb5`
+- Proveniência: 10/10 imagens e Pods passaram no preflight para esse commit.
+- Resultado: F1 passou; F2 falhou no gate A e a bateria foi interrompida. F3–F5 não foram executados nesta bateria.
+- A tentativa anterior F1 inválida permanece separada em `BLOCKED-12-artifacts-1794863260/`.
+- Evidências desta bateria: `BLOCKED-12-artifacts-1794866601/`.
 
 ## Observado
 
-F1 confirmou CPU elevada em checkoutservice nos dois cenários, mas o gate de duração não encontrou um baseline numérico válido e superior para comparar. Os artefatos da tentativa preservada mostram que a janela normal começava antes do fluxo de warm-up. A primeira amostra da duração de checkoutservice aparece aproximadamente cinco segundos após o início da janela, depois de a aplicação já ter processado a primeira operação. O Builder marcou a duração como `missing_baseline`, conforme o contrato temporal.
+O Ground Truth independente de F2 registrou a janela confirmada `2026-11-16T22:02:39.064404Z`–`2026-11-16T22:02:55.311984Z` e a aresta `checkoutservice -> paymentservice`. O Chaos Mesh marcou `Selected=True` e `AllInjected=True`. O Chaos Daemon registrou configuração netem de 100 ms no namespace de rede do Pod checkoutservice e classificação para o IP do Pod paymentservice `10.244.0.37`.
 
-Os dados B também contêm séries cumulativas de checkoutservice que diminuem dentro da janela (por exemplo, o contador `rpc.server.call.duration` de PlaceOrder). A configuração do Collector B conserva streams inativos por cinco minutos. Os recursos de alguns SDKs não incluem identidade de instância: para esses serviços as séries exportadas usam somente `service.name`; a substituição de Pod pode, portanto, juntar uma série antiga conservada e uma série nova inicializada em zero sob o mesmo conjunto de labels. A mesma queda foi observada em duas janelas normais preservadas. As amostras .NET e Java possuem `exported_instance`; as amostras Go, Node.js e Python analisadas não possuíam identidade equivalente. Os recursos OTel dessas implementações confirmam que definem explicitamente `service.name` e omitem `service.instance.id`.
+O fluxo normal durante a janela concluiu `POST /cart/checkout` com HTTP 200. No RAW A, a span cliente `checkoutservice -> PaymentService/Charge` observada nessa janela durou `5,866 ms`, abaixo do limite de 100 ms. No RAW B, não foi encontrada uma span cliente checkoutservice para paymentservice; uma span server `PaymentService/Charge` existe em B, mas isso não prova a duração da aresta nem explica a ausência do span cliente. O validator interrompeu em `F2/A`; o critério A/B não passou.
 
-## Divergência e causa
+Depois da limpeza: 11/11 componentes do SUT estavam Ready e não havia `NetworkChaos`/`StressChaos` residual. O cluster `tcc-baseline` não foi alterado.
 
-1. **Baseline:** o runner usa o `started_at` do processo de workload, registrado antes do warm-up, como início do Dataset normal. Essa janela não garante que os counters de duração já tenham sido inicializados e observados pelos dois Prometheus.
-2. **Identidade temporal em B:** recursos OTel de Go, Node.js e Python definem `service.name`, mas não definem `service.instance.id`. O Prometheus exporter recebe streams com as mesmas labels após substituição de Pods; com retenção de métricas inativas, valores de processos diferentes podem colidir e parecer reset.
+## Primeira divergência e causa
 
-As duas causas são bugs de medição/identidade na origem e no controle temporal. Não são justificativa para converter baseline ausente/reset em zero ou relaxar o gate F1. Ground Truth e semântica do fault não são alterados. A janela F1 desta tentativa durou 19,0327 segundos e o CPU de checkoutservice subiu de aproximadamente 0,0096 para 0,153 cores em A/B; portanto a evidência de CPU passou e a divergência ficou restrita ao sinal de duração usado no gate.
+A primeira divergência observável é entre confirmação/configuração do fault no plano de controle e a evidência da operação: a span A medida não mostra o atraso configurado. Em B, há também uma ausência de span cliente na coleta.
+
+**Root cause: UNKNOWN / NOT_PROVEN.** Os logs do Chaos Daemon comprovam que ele registrou o pedido/configuração de netem e as operações de setup/cleanup; não preservam contadores de qdisc ou prova por pacote de que a conexão efetiva para o Pod target casou com o filtro. Os RAWs não determinam se o atraso não afetou esse fluxo, se a primeira chamada foi encaminhada por outro endereço/caminho, ou se a observação foi perdida. A ausência B precisa de diagnóstico separado na exportação/consulta de traces.
 
 ## Invariante afetado
 
-Counters cumulativos devem ter baseline observado para a janela e não podem atravessar um reset/uma fronteira de instância como se fossem a mesma série. Baseline ausente e reset permanecem `UNKNOWN`.
+F2 deve produzir evidência observável de latência na aresta lógica `checkoutservice -> paymentservice` nos dois cenários. Confirmação de recurso Chaos não substitui confirmação do efeito observado nem cobertura de telemetria.
 
-## Correção mínima recomendada
+## Evidências
 
-- Dar a cada Pod uma identidade real e estável durante sua vida via Downward API (`metadata.uid`) e incluir essa identidade como `service.instance.id` nos recursos OTel dos serviços Go, Node.js e Python. Manter a identidade nativa no RAW; não usar Ground Truth ou a causa correta para selecionar séries.
-- Separar o fluxo de warm-up da janela medida. Após o warm-up, aguardar amostras recentes de count e sum de PlaceOrder nos Prometheus A e B; iniciar então a janela de workload medida. Registrar ambas as fases no artefato de controle.
+- `F2/ground-truth.json`: GT e janela confirmada independentes.
+- `F2/fault-smoke.json`: workload normal terminou durante F2; `Selected`/`AllInjected`; recuperação confirmada.
+- `F2/raw/datasetA/traces/checkoutservice.json`: span cliente A de 5,866 ms.
+- `F2/raw/datasetB/traces/checkoutservice.json`: nenhuma span cliente da aresta no RAW coletado.
+- `f2-chaos-daemon-readonly.log`: registro do pedido netem `100ms`, ipset para `10.244.0.37/32`, comandos de configuração e limpeza; SHA-256 está em `f2-readonly-diagnosis.json`.
+- `f2-readonly-diagnosis.json`: resumo estruturado das observações e das provas ausentes.
 
-Essa correção preserva a execução física compartilhada, o workload e a instrumentação A/B; corrige a identidade da série e delimita a medição antes de recolher evidência.
+## Correção e próxima ação
 
-## O que não fazer
+Nenhuma correção automática é segura: não há causa comprovada para escolher entre configuração/elegibilidade de tráfego do NetworkChaos, efeito real de rede ou perda/consulta de traces B. Não mudar limiar, semântica do fault, validator, instrumentação ou configuração para fazer a execução passar.
 
-- Não enfraquecer `counter_delta`, nem converter `missing_baseline`/`counter_reset` em zero.
-- Não derivar métricas de traces, não equalizar contagens e não filtrar por fault/serviço correto.
-- Não alterar a duração/semântica de F1 para fazer o gate passar.
+A próxima investigação deve determinar, antes de uma nova execução física, como provar a correspondência efetiva de pacotes/qdisc no caminho do Pod source para o Pod target e por que a span cliente B não chegou ao RAW. Depois de uma hipótese concreta e uma correção autorizada, uma nova validação F2 física será necessária. A bateria atual não pode ser retomada ou combinada com outra.
 
-## Correção implementada e próximas validações
-
-A correção local separa warm-up da janela medida e aguarda amostras frescas de count e sum de PlaceOrder nos Prometheus A e B antes de iniciar a medição. Recursos OTel de Go, Node.js e Python agora incluem `service.instance.id` derivado do UID real do Pod, propagado via Downward API. As regras de deltas e resets do Builder não foram alteradas. A primeira tentativa de executar o novo caminho normal-only encontrou uma função local redundante de reserva de porta que não existia no helper compartilhado; o erro ocorreu antes da consulta Prometheus e foi corrigido removendo a duplicação. Nenhuma fault foi executada nessa tentativa. Os testes focados passaram; build/deploy do commit corrigido, proveniência e validação normal ainda são gates pendentes. Depois deles, a bateria inválida não poderá ser retomada ou mesclada: a validação integrada deve recomeçar desde F1 em uma execução nova.
+- Safe automatic correction possible: **NO**
+- New physical validation required after diagnosis: **YES**
+- Working tree contains only the blocker report/evidence added after the run; implementation remains at the tested commit.
+- Stopped before: **F3**.

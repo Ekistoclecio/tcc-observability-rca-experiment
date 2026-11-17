@@ -1,0 +1,17 @@
+{
+  "reason": "Chaos Mesh removed the resource and reset qdisc but left the unreferenced TC-TABLES-0 filter and diagnostic ipsets; restored the exact pre-test inert matcher and removed only diagnostic-owned ipsets.",
+  "preexisting_inert_rule": "Chain TC-TABLES-0 (0 references)\n pkts bytes target     prot opt in     out     source               destination         \n    5   458 CLASSIFY   0    --  *      eth0    0.0.0.0/0            0.0.0.0/0            match-set diagn_f70385ffc45_set_netgt dst,dst CLASSIFY set 1:4\n",
+  "post_restore": {
+    "tc": "qdisc noqueue 0: root refcnt 2 \n Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n",
+    "chaos_output": "Chain CHAOS-OUTPUT (1 references)\n pkts bytes target     prot opt in     out     source               destination         \n",
+    "tc_tables": "Chain TC-TABLES-0 (0 references)\n pkts bytes target     prot opt in     out     source               destination         \n    0     0 CLASSIFY   0    --  *      eth0    0.0.0.0/0            0.0.0.0/0            match-set tcc-f_6b27dbfbee7_set_netgt dst,dst CLASSIFY set 1:4\n",
+    "ipset_names": [
+      "tcc-f_6b27dbfbee7_net_netgt",
+      "tcc-f_6b27dbf_netport_netgt",
+      "tcc-f_6b27dbfbee7_net_netgtold",
+      "tcc-f_6b27dbf_netport_netgtold",
+      "tcc-f_6b27dbfbee7_set_netgt",
+      "tcc-f_6b27dbfbee7_set_netgtold"
+    ]
+  }
+}
