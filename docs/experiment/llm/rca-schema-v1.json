@@ -1,0 +1,102 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hypotheses"
+  ],
+  "properties": {
+    "hypotheses": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank",
+          "location",
+          "fault_type",
+          "confidence",
+          "evidence_ids",
+          "explanation"
+        ],
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "enum": [1, 2, 3]
+          },
+          "location": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "service",
+              "peer_service",
+              "operation",
+              "datastore"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "service",
+                  "service_edge",
+                  "operation",
+                  "datastore"
+                ]
+              },
+              "service": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "peer_service": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "operation": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "datastore": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "fault_type": {
+            "type": "string",
+            "enum": [
+              "cpu_saturation",
+              "network_latency",
+              "service_unavailable",
+              "application_exception",
+              "datastore_unavailable"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
