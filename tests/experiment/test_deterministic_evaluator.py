@@ -9,6 +9,7 @@ import unittest
 from scripts.experiment.evaluation.evaluator import (
     EvaluationError,
     _write_outputs,
+    _delta,
     aggregate_treatment,
     build_evaluation,
     evaluate_case,
@@ -132,6 +133,10 @@ class OperationalMetricsTests(unittest.TestCase):
         incomplete.pop("estimated_cost_usd")
         with self.assertRaises(EvaluationError):
             evaluate_case({"hypotheses": [hypothesis(1), hypothesis(2, location("service", "service-beta")), hypothesis(3, location("service", "service-gamma"), "network_latency")]}, gt(), incomplete, 1)
+
+    def test_delta_uses_decimal_difference_without_float_artifacts(self):
+        self.assertEqual(_delta(28951.4, 38616.2), 9664.8)
+        self.assertEqual(_delta(13587.461, 10516.598), -3070.863)
 
     def test_aggregates_five_cases_exactly(self):
         rows = []

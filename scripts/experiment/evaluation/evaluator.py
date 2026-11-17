@@ -451,7 +451,9 @@ def _delta(a: Any, b: Any) -> Any:
     if isinstance(a, bool) or isinstance(b, bool):
         return None
     if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-        return _round_metric(float(b) - float(a))
+        # Subtract decimal renderings of source values to avoid binary-float
+        # artifacts such as 9664.799999999996 in the persisted B-A tables.
+        return _round_metric(float(Decimal(str(b)) - Decimal(str(a))))
     return None
 
 
