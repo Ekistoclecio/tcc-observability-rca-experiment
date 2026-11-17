@@ -180,14 +180,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--physical-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
+    output_path = args.output if args.output.is_absolute() else ROOT / args.output
     try:
-        result = evaluate_sol_pilot(args.protocol, args.run_root, args.physical_root, args.output)
+        result = evaluate_sol_pilot(args.protocol, args.run_root, args.physical_root, output_path)
     except Exception as exc:
         print(json.dumps({"status": "BLOCKED", "error_type": type(exc).__name__}, sort_keys=True))
         return 2
     print(json.dumps({"status": "PASS", "cases": len(result["cases"]),
                       "evaluator_commit": result["manifest"]["evaluator_commit"],
-                      "output": args.output.relative_to(ROOT).as_posix()}, sort_keys=True))
+                      "output": output_path.relative_to(ROOT).as_posix()}, sort_keys=True))
     return 0
 
 
