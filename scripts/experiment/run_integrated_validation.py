@@ -677,9 +677,18 @@ def verify_gt(fault: str, gt_path: Path) -> dict[str, Any]:
     return gt
 
 
+def external_inventory_paths(root: Path) -> list[Path]:
+    """List every regular artifact except this inventory's own root hash list."""
+    root_hash_manifest = root / "hashes.sha256"
+    return sorted(
+        path for path in root.rglob("*")
+        if path.is_file() and path != root_hash_manifest
+    )
+
+
 def hash_inventory(root: Path) -> list[dict[str, Any]]:
     entries = []
-    for path in sorted(item for item in root.rglob("*") if item.is_file() and item.name != "hashes.sha256"):
+    for path in external_inventory_paths(root):
         data = path.read_bytes()
         entries.append({"path": path.relative_to(root).as_posix(), "sha256": hashlib.sha256(data).hexdigest(),
                         "bytes": len(data)})
@@ -694,8 +703,7 @@ def verify_hash_manifest(root: Path) -> int:
     for line in hash_path.read_text(encoding="utf-8").splitlines():
         digest, relative = line.split("  ", 1)
         expected[relative] = digest
-    actual = {path.relative_to(root).as_posix(): path for path in root.rglob("*")
-              if path.is_file() and path != hash_path}
+    actual = {path.relative_to(root).as_posix(): path for path in external_inventory_paths(root)}
     if actual.keys() != expected.keys():
         raise IntegratedRunError(
             f"artifact inventory mismatch under {root}: "
@@ -850,7 +858,7 @@ def dataset_and_input_chain(result_root: Path, fault_dir: str, fault: str, side:
 
 def write_hashes(root: Path) -> list[str]:
     lines = []
-    for path in sorted(item for item in root.rglob("*") if item.is_file() and item.name != "hashes.sha256"):
+    for path in external_inventory_paths(root):
         lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}")
     (root / "hashes.sha256").write_text("\n".join(lines) + "\n")
     return lines
@@ -1050,10 +1058,7 @@ def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> 
     manifest = {"format": "tcc-experiment-v2-integrated-results-v1", **execution,
                 "artifacts": hash_inventory(staging)}
     (staging / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    lines = []
-    for path in sorted(item for item in staging.rglob("*") if item.is_file() and item.name != "hashes.sha256"):
-        lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(staging).as_posix()}")
-    (staging / "hashes.sha256").write_text("\n".join(lines) + "\n")
+    lines = write_hashes(staging)
     verify_hash_manifest(staging)
 
     output.parent.mkdir(parents=True, exist_ok=True)

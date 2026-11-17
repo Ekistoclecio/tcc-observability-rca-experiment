@@ -8,8 +8,10 @@ from unittest.mock import patch
 from run_integrated_validation import (
     IntegratedRunError,
     dataset_evidence,
+    external_inventory_paths,
     finalize_results,
     fresh_prometheus_instances,
+    hash_inventory,
     package_global_raw,
     reserve_local_port,
     run,
@@ -310,6 +312,79 @@ class IntegratedValidationTests(unittest.TestCase):
 
             self.assertFalse(output.exists())
             self.assertEqual(list(root.glob(".results.publish-*")), [])
+
+    def test_external_inventory_excludes_only_root_manifest_and_hashes_nested_manifests(self):
+        import hashlib
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            artifacts = {
+                "bundle-a/hashes.sha256": b"bundle a hash list\n",
+                "bundle-a/raw.json": b"raw a\n",
+                "bundle-b/hashes.sha256": b"bundle b hash list\n",
+                "bundle-c/nested/hashes.sha256": b"nested bundle hash list\n",
+            }
+            for relative, payload in artifacts.items():
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(payload)
+
+            root_hash_list = root / "hashes.sha256"
+            expected_paths = sorted(artifacts)
+            self.assertEqual(
+                [path.relative_to(root).as_posix() for path in external_inventory_paths(root)],
+                expected_paths,
+            )
+            inventory = hash_inventory(root)
+            self.assertEqual([entry["path"] for entry in inventory], expected_paths)
+            for entry in inventory:
+                self.assertEqual(
+                    entry["sha256"], hashlib.sha256((root / entry["path"]).read_bytes()).hexdigest()
+                )
+            self.assertNotIn(root_hash_list, external_inventory_paths(root))
+
+            lines = write_hashes(root)
+            self.assertEqual([line.split("  ", 1)[1] for line in lines], expected_paths)
+            self.assertEqual(verify_hash_manifest(root), len(artifacts))
+            self.assertNotIn("hashes.sha256", [line.split("  ", 1)[1] for line in lines])
+
+    def test_outer_verifier_detects_modified_nested_hash_manifest(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            nested = root / "bundle/hashes.sha256"
+            nested.parent.mkdir()
+            nested.write_bytes(b"original nested manifest\n")
+            (nested.parent / "raw.json").write_bytes(b"raw\n")
+            write_hashes(root)
+
+            nested.write_bytes(b"modified nested manifest\n")
+            with self.assertRaisesRegex(IntegratedRunError, "artifact hashes mismatch.*bundle/hashes.sha256"):
+                verify_hash_manifest(root)
+
+    def test_final_results_publish_and_protect_nested_hash_manifests(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            staging = root / "stage"
+            staging.mkdir()
+            (staging / "evidence.json").write_text('{"status":"PASS"}\n')
+            nested = staging / "fault/raw/hashes.sha256"
+            nested.parent.mkdir(parents=True)
+            nested.write_text("nested RAW manifest\n")
+            (nested.parent / "chunk.json").write_text('{"raw":true}\n')
+            output = root / "results"
+
+            result = finalize_results(staging, output, {"tested_commit": "test-sha"})
+
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(verify_hash_manifest(output), 4)
+            outer_paths = {
+                line.split("  ", 1)[1]
+                for line in (output / "hashes.sha256").read_text().splitlines()
+            }
+            self.assertIn("fault/raw/hashes.sha256", outer_paths)
+            self.assertNotIn("hashes.sha256", outer_paths)
+            declared = {entry["path"] for entry in json.loads((output / "manifest.json").read_text())["artifacts"]}
+            self.assertIn("fault/raw/hashes.sha256", declared)
 
     def test_f4_requires_error_log_and_real_b_log_span_correlation(self):
         log_a = {"signal": "log", "service": "paymentservice", "message": "Payment charge failed",
