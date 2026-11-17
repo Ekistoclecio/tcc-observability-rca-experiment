@@ -14,7 +14,10 @@ MILLION = Decimal(1_000_000)
 
 
 def load_pricing() -> dict[str, Any]:
-    return json.loads(PRICING_PATH.read_text(encoding="utf-8"))
+    from .protocol import _load_protocol, ROOT as REPO_ROOT
+    protocol = _load_protocol()
+    configured = protocol.get("pricing_file", "docs/experiment/llm/pricing-v1.json")
+    return json.loads((REPO_ROOT / configured).read_text(encoding="utf-8"))
 
 
 def _integer_or_none(value: Any) -> int | None:

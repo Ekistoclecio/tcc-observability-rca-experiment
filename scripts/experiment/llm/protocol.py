@@ -17,6 +17,29 @@ INPUT_HASHES_PATH = ARTIFACTS / "rca-inputs.sha256"
 RESULTS_ROOT = ROOT / "docs/experiment/results"
 
 
+def configure_protocol(path: Path | str) -> dict[str, Any]:
+    """Select a frozen protocol manifest and its input namespace for this process."""
+    global ARTIFACTS, PROMPT_PATH, SCHEMA_PATH, PROTOCOL_PATH, INPUT_HASHES_PATH, RESULTS_ROOT
+    selected = Path(path)
+    if not selected.is_absolute():
+        selected = ROOT / selected
+    selected = selected.resolve(strict=True)
+    protocol = json.loads(selected.read_text(encoding="utf-8"))
+    if not isinstance(protocol, dict):
+        raise ProtocolError("protocol manifest must be a JSON object")
+    PROTOCOL_PATH = selected
+    ARTIFACTS = selected.parent
+    def configured_artifact(value: str, legacy_name: str) -> Path:
+        if value.startswith("docs/"):
+            return ROOT / value
+        return ARTIFACTS / (value or legacy_name)
+    PROMPT_PATH = configured_artifact(protocol.get("prompt_file", ""), "rca-prompt-v1.txt")
+    SCHEMA_PATH = configured_artifact(protocol.get("schema_file", ""), "rca-schema-v1.json")
+    INPUT_HASHES_PATH = configured_artifact(protocol.get("input_hash_manifest", ""), "rca-inputs.sha256")
+    RESULTS_ROOT = ROOT / protocol.get("input_root", "docs/experiment/results")
+    return protocol
+
+
 class ProtocolError(ValueError):
     """Raised when frozen protocol artifacts or inputs do not match their hashes."""
 

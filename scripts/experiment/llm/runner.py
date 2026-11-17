@@ -26,11 +26,12 @@ if __package__ in (None, ""):
     __package__ = "scripts.experiment.llm"
 
 from .accounting import account_usage
+from . import execution as execution_module, protocol as protocol_module
 from .credentials import (CredentialPreflightError, require_openai_credential,
                           verify_env_git_safety)
 from .execution import (build_execution_plan, load_case_input,
                         request_identity_fields, write_or_verify_execution_plan)
-from .protocol import (ARTIFACTS, ROOT, build_openai_rca_request,
+from .protocol import (ARTIFACTS, ROOT, build_openai_rca_request, configure_protocol,
                        canonical_json_bytes, sha256, verify_frozen_inputs,
                        verify_protocol_artifacts)
 from .response_validator import RCAResponseValidationError, validate_rca_response
@@ -123,9 +124,9 @@ def classify_model_outcome(response: Any, rca_input: Mapping[str, Any]) -> dict[
     status = _response_value(response, "status")
     response_meta = {
         "response_id": _response_value(response, "id"),
-        "requested_model": "gpt-6-luna",
+        "requested_model": protocol_module._load_protocol()["model"],
         "returned_model": _response_value(response, "model"),
-        "service_tier_requested": "default",
+        "service_tier_requested": protocol_module._load_protocol()["service_tier"],
         "service_tier_returned": _response_value(response, "service_tier"),
         "api_status": status,
         "created_at": _response_value(response, "created_at"),
@@ -200,7 +201,7 @@ def _safe_error_metadata(exc: BaseException) -> dict[str, Any]:
 
 def request_fingerprint(request: Mapping[str, Any], input_sha256: str) -> str:
     identity = request_identity_fields(input_sha256)
-    protocol = json.loads((ARTIFACTS / "protocol-v1.json").read_text(encoding="utf-8"))
+    protocol = protocol_module._load_protocol()
     expected = {
         "model": protocol["model"],
         "reasoning": {"mode": protocol["reasoning_mode"], "effort": protocol["reasoning_effort"]},
@@ -260,7 +261,8 @@ def _perform_logical_call(client: Any, request: Mapping[str, Any], rca_input: Ma
 
 
 def _run_id() -> str:
-    return "pilot-v1-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    version = protocol_module._load_protocol()["protocol_version"]
+    return version + "-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
 
 
 def _case_path(run_dir: Path, case_id: str) -> Path:
@@ -284,7 +286,7 @@ def _make_request_metadata(case_id: str, ordinal: int, input_hash: str,
     return {"opaque_case_id": case_id, "ordinal": ordinal,
             "input_sha256": input_hash, "private_source_path": relative_path,
             "request_fingerprint": request_fp,
-            "runner_protocol_version": "llm-rca-pilot-v1"}
+            "runner_protocol_version": protocol_module._load_protocol()["protocol_version"]}
 
 
 def write_hash_manifest(root: Path) -> list[tuple[str, str]]:
@@ -319,12 +321,12 @@ def verify_completed_run(run_dir: Path, plan: Mapping[str, Any]) -> None:
     if (run_dir / "execution-plan.json").read_bytes() != expected_plan:
         raise PilotStopError("persisted execution plan differs from frozen plan")
     manifest = _read_json(run_dir / "run-manifest.json")
-    expected_protocol = json.loads((ARTIFACTS / "protocol-v1.json").read_text(encoding="utf-8"))
+    expected_protocol = protocol_module._load_protocol()
     if manifest.get("prompt_sha256") != expected_protocol["prompt_sha256"]:
         raise PilotStopError("run prompt hash differs from frozen protocol")
     if manifest.get("schema_sha256") != expected_protocol["schema_sha256"]:
         raise PilotStopError("run schema hash differs from frozen protocol")
-    if manifest.get("protocol_manifest_sha256") != sha256((ARTIFACTS / "protocol-v1.json").read_bytes()):
+    if manifest.get("protocol_manifest_sha256") != sha256(protocol_module.PROTOCOL_PATH.read_bytes()):
         raise PilotStopError("run protocol manifest hash differs from frozen protocol")
     cases_root = run_dir / "cases"
     actual_case_dirs = {path.name for path in cases_root.iterdir() if path.is_dir()}
@@ -391,7 +393,7 @@ def _summary(records: list[dict[str, Any]]) -> dict[str, Any]:
         **totals,
         "estimated_cost_usd": total_cost,
         "cost_status": "ESTIMATED" if total_cost is not None else "PARTIAL_OR_UNAVAILABLE",
-        "pricing_version": "pricing-v1",
+        "pricing_version": protocol_module._load_protocol().get("pricing_version", "pricing-v1"),
         "clean_single_attempt_cases": len(clean_latency),
         "median_clean_latency_ms": statistics.median(clean_latency) if clean_latency else None,
         "p95_clean_latency_ms": p95,
@@ -420,7 +422,7 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
     else:
         _write_json(execution_plan_path, plan)
     run_manifest = _load_run_manifest(run_dir)
-    protocol_manifest_bytes = (ARTIFACTS / "protocol-v1.json").read_bytes()
+    protocol_manifest_bytes = protocol_module.PROTOCOL_PATH.read_bytes()
     protocol_manifest_sha = sha256(protocol_manifest_bytes)
     if run_manifest:
         if run_manifest.get("execution_plan_sha256") != plan_hash:
@@ -434,12 +436,12 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
     else:
         run_manifest = {
             "run_id": _run_id(),
-            "protocol_version": "llm-rca-pilot-v1",
+            "protocol_version": protocol_module._load_protocol()["protocol_version"],
             "runner_commit": _git_head(),
             "openai_sdk_version": openai.__version__,
             "execution_plan_sha256": plan_hash,
-            "prompt_sha256": json.loads((ARTIFACTS / "protocol-v1.json").read_text())["prompt_sha256"],
-            "schema_sha256": json.loads((ARTIFACTS / "protocol-v1.json").read_text())["schema_sha256"],
+            "prompt_sha256": protocol_module._load_protocol()["prompt_sha256"],
+            "schema_sha256": protocol_module._load_protocol()["schema_sha256"],
             "protocol_manifest_sha256": protocol_manifest_sha,
             "request_parallelism": 1,
             "case_map_private": [],
@@ -454,7 +456,7 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
         current_hashes = verify_frozen_inputs()
         if current_hashes != frozen_hashes:
             raise PilotStopError("frozen RCA Input hashes changed during the pilot")
-        if sha256((ARTIFACTS / "protocol-v1.json").read_bytes()) != protocol_manifest_sha:
+        if sha256(protocol_module.PROTOCOL_PATH.read_bytes()) != protocol_manifest_sha:
             raise PilotStopError("protocol manifest changed during the pilot")
         if build_execution_plan() != dict(plan):
             raise PilotStopError("execution plan changed during the pilot")
@@ -549,7 +551,8 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
     return _summary(outcomes)
 
 
-def run_control_smoke(client: Any, output_root: Path = CONTROL_SMOKE_ROOT) -> dict[str, Any]:
+def run_control_smoke(client: Any, output_root: Path | None = None) -> dict[str, Any]:
+    output_root = output_root or CONTROL_SMOKE_ROOT
     synthetic_input = {
         "schema_version": "1.0",
         "evidence": [
@@ -560,14 +563,14 @@ def run_control_smoke(client: Any, output_root: Path = CONTROL_SMOKE_ROOT) -> di
         ],
     }
     plan, plan_sha = write_or_verify_execution_plan()
-    protocol_bytes = (ARTIFACTS / "protocol-v1.json").read_bytes()
+    protocol_bytes = protocol_module.PROTOCOL_PATH.read_bytes()
     runner_commit = _git_head()
     output_root.mkdir(parents=True, exist_ok=True)
     protocol = json.loads(protocol_bytes)
     _write_json(output_root / "preflight.json", {
         "kind": "control_compatibility_smoke_preflight",
         "included_in_pilot_results": False,
-        "protocol_version": "llm-rca-pilot-v1",
+        "protocol_version": protocol["protocol_version"],
         "runner_commit": runner_commit,
         "openai_sdk_version": openai.__version__,
         "execution_plan_sha256": plan_sha,
@@ -586,7 +589,7 @@ def run_control_smoke(client: Any, output_root: Path = CONTROL_SMOKE_ROOT) -> di
     record = {
         "kind": "control_compatibility_smoke",
         "included_in_pilot_results": False,
-        "protocol_version": "llm-rca-pilot-v1",
+        "protocol_version": protocol["protocol_version"],
         "runner_commit": runner_commit,
         "execution_plan_sha256": plan_sha,
         "input_sha256": synthetic_input_hash,
@@ -624,9 +627,10 @@ def _git_head() -> str:
 
 
 def _verify_live_source_freeze(allow_runtime_outputs: bool,
-                              allowed_runtime_roots: tuple[str, ...] =
-                              ("docs/experiment/llm/control-smoke/",
-                               "docs/experiment/llm/pilot-v1/")) -> None:
+                              allowed_runtime_roots: tuple[str, ...] | None = None) -> None:
+    if allowed_runtime_roots is None:
+        allowed_runtime_roots = (str(CONTROL_SMOKE_ROOT.relative_to(ROOT)) + "/",
+                                 str(PILOT_ROOT.relative_to(ROOT)) + "/")
     import subprocess
     result = subprocess.run(["git", "status", "--porcelain=v1", "--untracked-files=all"],
                             cwd=ROOT, text=True, stdout=subprocess.PIPE,
@@ -714,6 +718,19 @@ def _create_client() -> OpenAI:
     return OpenAI(base_url="https://api.openai.com/v1", max_retries=0)
 
 
+def configure_runner(protocol_path: Path | str) -> dict[str, Any]:
+    """Configure protocol-driven paths while preserving Luna defaults exactly."""
+    global ARTIFACTS, PILOT_ROOT, CONTROL_SMOKE_ROOT
+    selected = Path(protocol_path)
+    protocol = configure_protocol(selected)
+    ARTIFACTS = protocol_module.ARTIFACTS
+    PILOT_ROOT = ROOT / protocol.get("run_output_root", "docs/experiment/llm/pilot-v1")
+    CONTROL_SMOKE_ROOT = ROOT / protocol.get("control_output_root", "docs/experiment/llm/control-smoke")
+    execution_module.PLAN_PATH = ROOT / protocol.get(
+        "execution_plan_file", "docs/experiment/llm/execution-plan-v1.json")
+    return protocol
+
+
 def assert_no_secret_in_artifacts(paths: list[Path]) -> bool:
     """Scan outputs without ever rendering the secret or its location."""
     secret = os.environ.get("OPENAI_API_KEY")
@@ -734,6 +751,8 @@ def _print_safe(label: str, **fields: Any) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--protocol", type=Path,
+                        default=ROOT / "docs/experiment/llm/protocol-v1.json")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("preflight")
     subparsers.add_parser("freeze-plan")
@@ -743,6 +762,7 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
     try:
+        configure_runner(args.protocol)
         verify_env_git_safety(ROOT)
         if args.command == "preflight":
             require_openai_credential(ROOT)
@@ -758,7 +778,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "control-smoke":
             if CONTROL_SMOKE_ROOT.exists():
                 _verify_live_source_freeze(allow_runtime_outputs=True,
-                                           allowed_runtime_roots=("docs/experiment/llm/control-smoke/",))
+                                           allowed_runtime_roots=(str(CONTROL_SMOKE_ROOT.relative_to(ROOT)) + "/",))
             else:
                 _verify_live_source_freeze(allow_runtime_outputs=False)
             attempt_dir, attempt_number = _next_control_smoke_attempt()

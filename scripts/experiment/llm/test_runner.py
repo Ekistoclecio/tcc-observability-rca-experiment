@@ -18,7 +18,8 @@ from scripts.experiment.llm.execution import build_execution_plan, request_ident
 from scripts.experiment.llm.protocol import ROOT, sha256, verify_frozen_inputs, verify_protocol_artifacts
 
 
-def response_value(status="completed", prediction=None, usage=None, response_id="resp-test"):
+def response_value(status="completed", prediction=None, usage=None, response_id="resp-test",
+                   model="gpt-6-luna"):
     if prediction is None:
         prediction = {"hypotheses": [
             {"rank": 1, "location": {"kind": "service", "service": "service-alpha",
@@ -42,7 +43,7 @@ def response_value(status="completed", prediction=None, usage=None, response_id=
         text = prediction if isinstance(prediction, str) else json.dumps(prediction)
         output = [{"type": "message", "content": [{"type": "output_text", "text": text}]}]
     return {"id": response_id, "status": "incomplete" if status == "incomplete" else "completed",
-            "model": "gpt-6-luna", "service_tier": "default", "created_at": 123,
+            "model": model, "service_tier": "default", "created_at": 123,
             "incomplete_details": {"reason": "max_output_tokens"} if status == "incomplete" else None,
             "output": output,
             "usage": usage or {
@@ -101,6 +102,38 @@ class ExecutionPlanTests(unittest.TestCase):
                 ("llm-rca-pilot-v1-case:" + input_hash).encode())[:12])
             self.assertFalse(any("path" in key.lower() or "treatment" in key.lower()
                                  for key in case))
+
+    def test_sol_protocol_isolated_inputs_and_model_only_configuration_change(self):
+        sol_manifest = ROOT / "docs/experiment/validation/sol-e2e-v1/llm/protocol-sol-e2e-v1.json"
+        luna_manifest = ROOT / "docs/experiment/llm/protocol-v1.json"
+        sol = runner.configure_runner(sol_manifest)
+        try:
+            luna = json.loads(luna_manifest.read_text(encoding="utf-8"))
+            self.assertEqual(sol["model"], "gpt-6.1-sol")
+            for field in ("reasoning_mode", "reasoning_effort", "temperature",
+                          "top_p", "service_tier", "store", "stream", "text_verbosity",
+                          "max_output_tokens", "tools", "prompt_version", "prompt_sha256",
+                          "schema_version", "schema_sha256", "structured_output_name",
+                          "structured_output_strict"):
+                self.assertEqual(sol[field], luna[field], field)
+            self.assertEqual(len(verify_frozen_inputs()), 10)
+            plan = build_execution_plan()
+            self.assertEqual(len(plan["cases"]), 10)
+            self.assertEqual(plan["protocol_version"], "llm-rca-sol-e2e-v1")
+            self.assertEqual(len({row["opaque_case_id"] for row in plan["cases"]}), 10)
+            for case in plan["cases"]:
+                rca_input, _ = runner.load_case_input(case)
+                request = runner.build_openai_rca_request(rca_input)
+                self.assertEqual(request["model"], "gpt-6.1-sol")
+                self.assertEqual(set(request), {
+                    "model", "service_tier", "store", "stream", "reasoning",
+                    "max_output_tokens", "instructions", "input", "text", "tools"})
+                self.assertEqual(request["input"][0]["content"], json.dumps(
+                    rca_input, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+                self.assertNotIn("opaque_case_id", request["input"][0]["content"])
+                self.assertNotIn("ground-truth.json", request["input"][0]["content"])
+        finally:
+            runner.configure_runner(luna_manifest)
 
     def test_request_fingerprint_changes_only_with_scientific_input_identity(self):
         one = request_identity_fields("a" * 64)
@@ -274,6 +307,25 @@ class AccountingTests(unittest.TestCase):
 
 
 class MockedEndToEndTests(unittest.TestCase):
+    def test_sol_protocol_ten_case_mocked_run_is_isolated(self):
+        sol_manifest = ROOT / "docs/experiment/validation/sol-e2e-v1/llm/protocol-sol-e2e-v1.json"
+        luna_manifest = ROOT / "docs/experiment/llm/protocol-v1.json"
+        runner.configure_runner(sol_manifest)
+        try:
+            plan = build_execution_plan()
+            fake = FakeClient([response_value(response_id=f"sol-resp-{i}", model="gpt-6.1-sol")
+                               for i in range(10)])
+            with tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp) / "sol-run"
+                summary = runner.run_pilot(fake, output, plan, sleeper=lambda _: None)
+                self.assertEqual(summary["logical_cases"], 10)
+                self.assertEqual(summary["completed_valid"], 10)
+                self.assertEqual(len(fake.responses.calls), 10)
+                self.assertTrue(all(call["model"] == "gpt-6.1-sol" for call in fake.responses.calls))
+                runner.verify_hash_manifest(output)
+        finally:
+            runner.configure_runner(luna_manifest)
+
     def setUp(self):
         verify_protocol_artifacts()
         verify_frozen_inputs()

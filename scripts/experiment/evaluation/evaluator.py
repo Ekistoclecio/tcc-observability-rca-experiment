@@ -505,7 +505,7 @@ def _markdown_report(evaluation: Mapping[str, Any]) -> str:
         "significância ou avaliação qualitativa foi aplicado. Tokens, custo e latência são "
         "operacionais; `delta = B - A` e sinal positivo não significa automaticamente melhor.", "",
         f"Evaluator commit: `{evaluation['manifest']['evaluator_commit']}`<br>",
-        f"Predictions commit: `{PREDICTIONS_COMMIT}`<br>",
+        f"Predictions commit: `{evaluation['manifest'].get('predictions_commit', PREDICTIONS_COMMIT)}`<br>",
         f"Ground Truth mapping and artifact integrity: `{evaluation['manifest']['integrity']}`", "",
         "## Métricas diagnósticas", "",
         "| Treatment | Cases | Acc@1 | Acc@3 | MRR | Location Acc. | Fault Type Acc. |",
@@ -575,8 +575,8 @@ def build_evaluation(source: Mapping[str, Any], evaluator_commit: str) -> dict[s
     manifest = {
         "evaluation_version": "deterministic-rca-pilot-v1",
         "evaluator_commit": evaluator_commit,
-        "runner_commit": RUNNER_COMMIT,
-        "predictions_commit": PREDICTIONS_COMMIT,
+        "runner_commit": source.get("runner_commit", RUNNER_COMMIT),
+        "predictions_commit": source.get("predictions_commit", PREDICTIONS_COMMIT),
         "protocol_version": protocol["protocol_version"],
         "prompt_sha256": source["prompt_sha256"],
         "schema_sha256": source["schema_sha256"],

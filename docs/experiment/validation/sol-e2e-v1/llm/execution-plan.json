@@ -1,0 +1,70 @@
+{
+  "cases": [
+    {
+      "input_sha256": "9ccb64f5dd5b2526606face7de336c5227e1c9a9a082de0fff76d2c4aa14f92d",
+      "opaque_case_id": "case-60f7fe7d59e5",
+      "order_key": "05c44b9b2d50352005558e1f282030941934499b239c76e3a88ab3109ecd095f",
+      "ordinal": 1
+    },
+    {
+      "input_sha256": "5a4a950fe3d4c3cfe4cf8a1357766c6c0e5ff019fb1ce15666393776a3198b53",
+      "opaque_case_id": "case-30aff686eb1f",
+      "order_key": "1429db3b2b5713d0b105b594be1da65b39dc63d97f71ba543c1abe674dc6f4ed",
+      "ordinal": 2
+    },
+    {
+      "input_sha256": "6fcadc8be0c92b0bfc18427da13cc5350a9d924ad71830c84ef610d5181c004f",
+      "opaque_case_id": "case-a2dff2d11026",
+      "order_key": "22ea226e9e5942f757429583a8056a0126a53c380fbf24b2717446c6cf5dd712",
+      "ordinal": 3
+    },
+    {
+      "input_sha256": "44eaa50ac6e469fa5449333ee2ba5e4d25288bff3a90ef01d6b39a0c34cf9f44",
+      "opaque_case_id": "case-d19c9e70755c",
+      "order_key": "28644cc63152b80c3b4a0d917398f7eca8b065c242fed3d453030568f3f9600e",
+      "ordinal": 4
+    },
+    {
+      "input_sha256": "5c6c25978c0749916c2e258953a1e30a777ba02bda7ff4d67112867369d2a5b5",
+      "opaque_case_id": "case-03d968f18489",
+      "order_key": "50c6e80eea1eceee632d8ca61fd9ea5d25651cf138c3da75661e324a78b52258",
+      "ordinal": 5
+    },
+    {
+      "input_sha256": "12489fcb76b1ed2ae8e71bd4844d53e61ea062039ce4755c53480fbbd39fd65a",
+      "opaque_case_id": "case-87514472d86d",
+      "order_key": "56b798c1874d120768952385a9d97842bdb2425396d46b195484c7f553ca92b1",
+      "ordinal": 6
+    },
+    {
+      "input_sha256": "e40a90c79de82eb27b88b730b80e2213ad8827af46b1a63a90ec417ceb523b34",
+      "opaque_case_id": "case-03ab5017d137",
+      "order_key": "6147d6f3608d39e3a56edc7bbb63c8d693f444449ea2c47e905861ac8e0409c0",
+      "ordinal": 7
+    },
+    {
+      "input_sha256": "300cab24ea0210987ea96170901424b326d07e29e3254f5a96d29ca3d6fc731e",
+      "opaque_case_id": "case-63a5bee5ffaf",
+      "order_key": "bfd51cbee688b78ba520c1d1677adf60faaa8f825bce741ea2a2c4d41f752041",
+      "ordinal": 8
+    },
+    {
+      "input_sha256": "90e9d7c8df5cd71624067eb13737917dddc7f781bc93a340ab28f16e72bcca77",
+      "opaque_case_id": "case-9456280abd4f",
+      "order_key": "d71ad554a812c831a9bcd1f018004b1dcd5bf7b63afbab1b019e0afdb62989e0",
+      "ordinal": 9
+    },
+    {
+      "input_sha256": "3028c518adbac77b7e29f4424fea0def18053a2797123fcada942ee53ab69526",
+      "opaque_case_id": "case-d7abd655d793",
+      "order_key": "fc2ba3f3e0772f96e7679a3313d91e64360d135555c3dabfc91cdf1af1318084",
+      "ordinal": 10
+    }
+  ],
+  "logical_call_count": 10,
+  "order_algorithm": "sha256('llm-rca-sol-e2e-v1-order:' + input_sha256), lexicographic",
+  "ordering": "sha256(input bytes) deterministic",
+  "prompt_sha256": "2e107e3c7f45b843bdad435f8c233dfe5085f3589c56ddd2bf04da12998fa86b",
+  "protocol_version": "llm-rca-sol-e2e-v1",
+  "schema_sha256": "00f6a92d2946e1e9d2482eb75e69e7244763562b422d73f35b3cb6b6a3c540c7"
+}

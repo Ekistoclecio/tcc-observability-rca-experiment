@@ -42,10 +42,10 @@ def build_execution_plan() -> dict[str, Any]:
     records = []
     for path, input_sha in input_entries.items():
         order_key = hashlib.sha256(
-            ("llm-rca-pilot-v1-order:" + input_sha).encode("ascii")
+            (protocol["protocol_version"] + "-order:" + input_sha).encode("ascii")
         ).hexdigest()
         opaque_case_id = "case-" + hashlib.sha256(
-            ("llm-rca-pilot-v1-case:" + input_sha).encode("ascii")
+            (protocol["protocol_version"] + "-case:" + input_sha).encode("ascii")
         ).hexdigest()[:12]
         records.append({"opaque_case_id": opaque_case_id,
                         "input_sha256": input_sha,
@@ -65,13 +65,17 @@ def build_execution_plan() -> dict[str, Any]:
         "schema_sha256": protocol["schema_sha256"],
         "logical_call_count": len(records),
         "ordering": "sha256(input bytes) deterministic",
-        "order_algorithm": "sha256('llm-rca-pilot-v1-order:' + input_sha256), lexicographic",
+        "order_algorithm": f"sha256('{protocol['protocol_version']}-order:' + input_sha256), lexicographic",
         "cases": call_order,
     }
     return plan
 
 
-def write_or_verify_execution_plan(path=PLAN_PATH) -> tuple[dict[str, Any], str]:
+def write_or_verify_execution_plan(path=None) -> tuple[dict[str, Any], str]:
+    if path is None:
+        protocol = _load_protocol()
+        configured = protocol.get("execution_plan_file", "docs/experiment/llm/execution-plan-v1.json")
+        path = ROOT / configured
     plan = build_execution_plan()
     serialized = json.dumps(plan, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     expected = serialized.encode("utf-8")
