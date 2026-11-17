@@ -1,0 +1,95 @@
+{
+  "F1": {
+    "hash_list_sha256": "6685deb12c4c342d23c4c332a1e30eaad452330f3d14fbf7a8b6e6d4384b79ee",
+    "manifest_sha256": "98adbf771e5941ddb7d78cbad22af2a5979291491b31054e2d6b83552251263c",
+    "window": {
+      "end": "2026-11-17T15:27:36.135580000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929256135580,
+      "jaeger_start_us": 1794929237100000,
+      "loki_end_ns": 1794929256135580000,
+      "loki_start_ns": 1794929237100000000,
+      "start": "2026-11-17T15:27:17.100000000Z"
+    }
+  },
+  "F2": {
+    "hash_list_sha256": "57cfeb1c301ca0d9d857171f537fdafcbf16dc6615191c2608f1969fb1f1d60f",
+    "manifest_sha256": "d154577635bf1a0ae0ed34edfc351fdf345fe02ab19d68afd64d277bc460029b",
+    "window": {
+      "end": "2026-11-17T15:28:54.954994000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929334954994,
+      "jaeger_start_us": 1794929314102180,
+      "loki_end_ns": 1794929334954994000,
+      "loki_start_ns": 1794929314102180000,
+      "start": "2026-11-17T15:28:34.102180000Z"
+    }
+  },
+  "F3": {
+    "hash_list_sha256": "10e5bfffd5346d69d6d839cb07df9c2f8b42fcaa713ec571440d737edf16f55a",
+    "manifest_sha256": "8d8e5979553c060ba66d4c65dcfba46e5deeb65adeae3eefb5faae8088990c3a",
+    "window": {
+      "end": "2026-11-17T15:30:29.038739000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929429038739,
+      "jaeger_start_us": 1794929396965902,
+      "loki_end_ns": 1794929429038739000,
+      "loki_start_ns": 1794929396965902000,
+      "start": "2026-11-17T15:29:56.965902000Z"
+    }
+  },
+  "F4": {
+    "hash_list_sha256": "63c156a9d6ac4f1722fb551e595811e15b3761ff52dd6193ee8651fe499ee182",
+    "manifest_sha256": "e0bbf337b730f15c8b6356a29f62692d7d9d1aa545d9edb63bff32e58545bd1a",
+    "window": {
+      "end": "2026-11-17T15:31:40.418343000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929500418343,
+      "jaeger_start_us": 1794929481442044,
+      "loki_end_ns": 1794929500418343000,
+      "loki_start_ns": 1794929481442044000,
+      "start": "2026-11-17T15:31:21.442044000Z"
+    }
+  },
+  "F5": {
+    "hash_list_sha256": "1477a0b51aa12bc4ec481870e857304aed4bf1f68963b022d8a1a6cc59a7d62f",
+    "manifest_sha256": "4a240048e4142ed0e36f56c771c19bbe62ff82a963da3fa1be65af66187b545c",
+    "window": {
+      "end": "2026-11-17T15:33:08.695438000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929588695438,
+      "jaeger_start_us": 1794929553837573,
+      "loki_end_ns": 1794929588695438000,
+      "loki_start_ns": 1794929553837573000,
+      "start": "2026-11-17T15:32:33.837573000Z"
+    }
+  },
+  "global": {
+    "file_count": 644,
+    "hash_list_sha256": "74442b3e40353c4fad4382e59c80247dbf1d066dfeb2a93ac4f53cfbea6c167f",
+    "manifest_sha256": "6303064cdeac9d66742356a389e9e1d8cdcc6d599d465108320267ea62d224c9",
+    "window": {
+      "end": "2026-11-17T15:33:39.723635386Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929619723635,
+      "jaeger_start_us": 1794929165419294,
+      "loki_end_ns": 1794929619723635386,
+      "loki_start_ns": 1794929165419294240,
+      "start": "2026-11-17T15:26:05.419294240Z"
+    }
+  },
+  "normal": {
+    "file_count": 44,
+    "hash_list_sha256": "bf849057046f6f68a766727006ffe640c2da355b6335fcd30defa6b31064c180",
+    "manifest_sha256": "68e8e21b95e9d12991c21beb2ab250eb70efb91d383a363cd7e5c672cf0a9ec2",
+    "window": {
+      "end": "2026-11-17T15:26:41.129148000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1794929201129148,
+      "jaeger_start_us": 1794929172624911,
+      "loki_end_ns": 1794929201129148000,
+      "loki_start_ns": 1794929172624911000,
+      "start": "2026-11-17T15:26:12.624911000Z"
+    }
+  }
+}

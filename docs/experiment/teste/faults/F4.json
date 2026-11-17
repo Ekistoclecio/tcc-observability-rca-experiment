@@ -1,0 +1,277 @@
+{
+  "cleanup": "PASS",
+  "confirmed_end": "2026-11-17T15:31:40.418343Z",
+  "confirmed_start": "2026-11-17T15:31:21.442044Z",
+  "dataset_files": {
+    "A": "004_application_exception_r01/dataset/dataset-A.json",
+    "B": "004_application_exception_r01/dataset/dataset-B.json"
+  },
+  "fault": "F4",
+  "fault_type": "application_exception",
+  "location": {
+    "kind": "operation",
+    "value": "paymentservice/Charge"
+  },
+  "raw_bundle": "docs/experiment/results/004_application_exception_r01/raw",
+  "rca_input_files": {
+    "A": "004_application_exception_r01/rca-input-A.json",
+    "B": "004_application_exception_r01/rca-input-B.json"
+  },
+  "recovery": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"flags_absent_by_pod\": {\"paymentservice-67c57bcc68-4s8zt\": false}, \"pods_unchanged\": {\"paymentservice-67c57bcc68-4s8zt\": {\"restarts\": 0, \"uid\": \"6607f421-b048-4455-8dfc-8576af78c686\"}}}",
+    "observed_at": "2026-11-17T15:31:40.418343Z"
+  },
+  "representative_chain": {
+    "A": {
+      "dataset_evidence": [
+        {
+          "id": "ev_26049a8042dbc5a75c1f",
+          "message": "Payment charge failed",
+          "service": "paymentservice",
+          "severity": "ERROR",
+          "signal": "log",
+          "timestamp": "2026-11-17T15:31:22.311396182Z"
+        }
+      ],
+      "dataset_file": "004_application_exception_r01/dataset/dataset-A.json",
+      "raw_application_log": {
+        "line": "{\"severity\":\"error\",\"time\":1794929482306,\"pid\":1,\"hostname\":\"paymentservice-67c57bcc68-4s8zt\",\"name\":\"paymentservice-server\",\"err\":{\"type\":\"Error\",\"message\":\"Payment charge failed\",\"stack\":\"Error: Payment charge failed\\n    at throwIfChargeFailureEnabled (/usr/src/app/fault-hook.js:12:17)\\n    at charge (/usr/src/app/charge.js:63:3)\\n    at HipsterShopServer.ChargeServiceHandler (/usr/src/app/server.js:48:24)\\n    at /usr/src/app/conventional-telemetry.js:118:11\\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)\\n    at conventionalUnaryHandler (/usr/src/app/conventional-telemetry.js:116:15)\\n    at Object.otelUnaryHandler [as charge] (/usr/src/app/otel-metrics.js:28:9)\\n    at clientStreamAndUnaryHandler (/usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/serverUtils.js:98:21)\\n    at Object.handleServerFunction (/usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/serverUtils.js:109:20)\\n    at /usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:96:68\",\"code\":13},\"message\":\"Payment charge failed\"}",
+        "raw_file": "datasetA/logs/paymentservice/chunk-000000.json",
+        "stream": {
+          "detected_level": "error",
+          "filename": "/var/log/pods/online-boutique_paymentservice-67c57bcc68-4s8zt_6607f421-b048-4455-8dfc-8576af78c686/server/0.log",
+          "namespace": "online-boutique",
+          "service_name": "paymentservice",
+          "stream": "stdout"
+        },
+        "timestamp": "1794929482311396182"
+      },
+      "raw_trace": {
+        "raw_file": "datasetA/traces/cartservice/chunk-000000.json",
+        "service": "paymentservice",
+        "span": {
+          "duration": 2726,
+          "logs": [],
+          "operationName": "/hipstershop.PaymentService/Charge",
+          "processID": "p5",
+          "references": [
+            {
+              "refType": "CHILD_OF",
+              "spanID": "832e7c42e7881ef6",
+              "traceID": "9765e475860d35c693ba0c451fa43ebd"
+            }
+          ],
+          "spanID": "bc9fd6ee3e45b229",
+          "startTime": 1794929482306000,
+          "tags": [
+            {
+              "key": "result",
+              "type": "string",
+              "value": "13"
+            },
+            {
+              "key": "span.kind",
+              "type": "string",
+              "value": "server"
+            }
+          ],
+          "traceID": "9765e475860d35c693ba0c451fa43ebd",
+          "warnings": null
+        },
+        "trace_id": "9765e475860d35c693ba0c451fa43ebd"
+      },
+      "rca_input_evidence": [
+        {
+          "id": "ev_26049a8042dbc5a75c1f",
+          "message": "Payment charge failed",
+          "service": "paymentservice",
+          "severity": "ERROR",
+          "signal": "log",
+          "timestamp": "2026-11-17T15:31:22.311396182Z"
+        }
+      ],
+      "rca_input_file": "004_application_exception_r01/rca-input-A.json"
+    },
+    "B": {
+      "dataset_evidence": [
+        {
+          "attributes": {
+            "exception_message": "Payment charge failed",
+            "exception_type": "13",
+            "host_arch": "amd64",
+            "host_name": "paymentservice-67c57bcc68-4s8zt",
+            "name": "paymentservice-server",
+            "process_command": "/usr/src/app/index.js",
+            "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/index.js\"]",
+            "process_executable_name": "node",
+            "process_executable_path": "/usr/bin/node",
+            "process_pid": "1",
+            "process_runtime_description": "Node.js",
+            "process_runtime_name": "nodejs",
+            "process_runtime_version": "24.22.1",
+            "scope_version": "0.68.0",
+            "severity": "error"
+          },
+          "id": "ev_552ed6b6c8ce07a5f88e",
+          "message": "Payment charge failed",
+          "service": "paymentservice",
+          "severity": "ERROR",
+          "signal": "log",
+          "span_id": "82fb10ffe37fc675",
+          "timestamp": "2026-11-17T15:31:22.306000000Z",
+          "trace_id": "23c379602f9f16f7243dcb1049dc1650"
+        }
+      ],
+      "dataset_file": "004_application_exception_r01/dataset/dataset-B.json",
+      "raw_application_log": {
+        "line": "Payment charge failed",
+        "raw_file": "datasetB/logs/paymentservice/chunk-000000.json",
+        "stream": {
+          "detected_level": "error",
+          "exception_message": "Payment charge failed",
+          "exception_stacktrace": "Error: Payment charge failed\n    at throwIfChargeFailureEnabled (/usr/src/app/fault-hook.js:12:17)\n    at charge (/usr/src/app/charge.js:63:3)\n    at HipsterShopServer.ChargeServiceHandler (/usr/src/app/server.js:48:24)\n    at /usr/src/app/conventional-telemetry.js:118:11\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:65:14)\n    at conventionalUnaryHandler (/usr/src/app/conventional-telemetry.js:116:15)\n    at Object.otelUnaryHandler [as charge] (/usr/src/app/otel-metrics.js:28:9)\n    at clientStreamAndUnaryHandler (/usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/serverUtils.js:98:21)\n    at Object.handleServerFunction (/usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/serverUtils.js:109:20)\n    at /usr/src/app/node_modules/@opentelemetry/instrumentation-grpc/build/src/instrumentation.js:96:68",
+          "exception_type": "13",
+          "flags": "1",
+          "host_arch": "amd64",
+          "host_name": "paymentservice-67c57bcc68-4s8zt",
+          "name": "paymentservice-server",
+          "observed_timestamp": "1794929482306000000",
+          "process_command": "/usr/src/app/index.js",
+          "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/index.js\"]",
+          "process_executable_name": "node",
+          "process_executable_path": "/usr/bin/node",
+          "process_pid": "1",
+          "process_runtime_description": "Node.js",
+          "process_runtime_name": "nodejs",
+          "process_runtime_version": "24.22.1",
+          "scope_name": "@opentelemetry/instrumentation-pino",
+          "scope_version": "0.68.0",
+          "service_instance_id": "6607f421-b048-4455-8dfc-8576af78c686",
+          "service_name": "paymentservice",
+          "severity": "error",
+          "severity_number": "17",
+          "severity_text": "error",
+          "span_id": "82fb10ffe37fc675",
+          "trace_id": "23c379602f9f16f7243dcb1049dc1650"
+        },
+        "timestamp": "1794929482306000000"
+      },
+      "raw_trace": {
+        "raw_file": "datasetB/traces/cartservice/chunk-000000.json",
+        "service": "paymentservice",
+        "span": {
+          "duration": 4207,
+          "logs": [],
+          "operationName": "grpc.hipstershop.PaymentService/Charge",
+          "processID": "p4",
+          "references": [],
+          "spanID": "82fb10ffe37fc675",
+          "startTime": 1794929482304999,
+          "tags": [
+            {
+              "key": "error",
+              "type": "bool",
+              "value": true
+            },
+            {
+              "key": "grpc.error_message",
+              "type": "string",
+              "value": "Payment charge failed"
+            },
+            {
+              "key": "grpc.error_name",
+              "type": "string",
+              "value": "Error"
+            },
+            {
+              "key": "otel.status_code",
+              "type": "string",
+              "value": "ERROR"
+            },
+            {
+              "key": "otel.status_description",
+              "type": "string",
+              "value": "Payment charge failed"
+            },
+            {
+              "key": "rpc.grpc.status_code",
+              "type": "int64",
+              "value": 13
+            },
+            {
+              "key": "rpc.method",
+              "type": "string",
+              "value": "Charge"
+            },
+            {
+              "key": "rpc.service",
+              "type": "string",
+              "value": "hipstershop.PaymentService"
+            },
+            {
+              "key": "rpc.system",
+              "type": "string",
+              "value": "grpc"
+            },
+            {
+              "key": "span.kind",
+              "type": "string",
+              "value": "server"
+            }
+          ],
+          "traceID": "23c379602f9f16f7243dcb1049dc1650",
+          "warnings": null
+        },
+        "trace_id": "23c379602f9f16f7243dcb1049dc1650"
+      },
+      "rca_input_evidence": [
+        {
+          "attributes": {
+            "exception_message": "Payment charge failed",
+            "exception_type": "13",
+            "host_arch": "amd64",
+            "host_name": "paymentservice-67c57bcc68-4s8zt",
+            "name": "paymentservice-server",
+            "process_command": "/usr/src/app/index.js",
+            "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/index.js\"]",
+            "process_executable_name": "node",
+            "process_executable_path": "/usr/bin/node",
+            "process_pid": "1",
+            "process_runtime_description": "Node.js",
+            "process_runtime_name": "nodejs",
+            "process_runtime_version": "24.22.1",
+            "scope_version": "0.68.0",
+            "severity": "error"
+          },
+          "id": "ev_552ed6b6c8ce07a5f88e",
+          "message": "Payment charge failed",
+          "service": "paymentservice",
+          "severity": "ERROR",
+          "signal": "log",
+          "span_id": "82fb10ffe37fc675",
+          "timestamp": "2026-11-17T15:31:22.306000000Z",
+          "trace_id": "23c379602f9f16f7243dcb1049dc1650"
+        }
+      ],
+      "rca_input_file": "004_application_exception_r01/rca-input-B.json"
+    }
+  },
+  "validation": {
+    "fault": "F4",
+    "scenarios": {
+      "A": {
+        "error_charge_span_count": 1,
+        "error_log_count": 1,
+        "log_trace_correlated": false,
+        "status": "PASS"
+      },
+      "B": {
+        "error_charge_span_count": 1,
+        "error_log_count": 1,
+        "log_trace_correlated": true,
+        "status": "PASS"
+      }
+    }
+  }
+}

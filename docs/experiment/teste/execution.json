@@ -1,0 +1,36 @@
+{
+  "branch": "experiment-v2",
+  "deployment_provenance_status": "PASS",
+  "experiment_end": "2026-11-17T15:34:28.786019Z",
+  "experiment_end_ns": "1794929619723635386",
+  "experiment_start": "2026-11-17T15:26:05.419294Z",
+  "experiment_start_ns": "1794929165419294240",
+  "fault_order": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "faults": {
+    "F1": "PASS",
+    "F2": "PASS",
+    "F3": "PASS",
+    "F4": "PASS",
+    "F5": "PASS"
+  },
+  "llm_invocations": 0,
+  "normal_workload_status": "PASS",
+  "semantic_validation_status": "PASS",
+  "tested_commit": "35069e451c95969962753f2ed1370fb4c77d4c0a",
+  "workload_configuration": {
+    "arrival_interval_seconds": 2.0,
+    "configured_arrival_rate_flows_per_second": 0.5,
+    "drain_timeout_seconds": 60,
+    "expected_statuses": {},
+    "max_concurrent_flows": 2,
+    "request_timeout_seconds": 10,
+    "steady_flows": 3,
+    "warmup_flows": 1
+  }
+}

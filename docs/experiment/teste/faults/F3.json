@@ -1,0 +1,38 @@
+{
+  "cleanup": "PASS",
+  "confirmed_end": "2026-11-17T15:30:29.038739Z",
+  "confirmed_start": "2026-11-17T15:29:56.965902Z",
+  "dataset_files": {
+    "A": "003_service_unavailable_r01/dataset/dataset-A.json",
+    "B": "003_service_unavailable_r01/dataset/dataset-B.json"
+  },
+  "fault": "F3",
+  "fault_type": "service_unavailable",
+  "location": {
+    "kind": "service",
+    "value": "paymentservice"
+  },
+  "raw_bundle": "docs/experiment/results/003_service_unavailable_r01/raw",
+  "rca_input_files": {
+    "A": "003_service_unavailable_r01/rca-input-A.json",
+    "B": "003_service_unavailable_r01/rca-input-B.json"
+  },
+  "recovery": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+    "observed_at": "2026-11-17T15:30:29.038739Z"
+  },
+  "validation": {
+    "fault": "F3",
+    "scenarios": {
+      "A": {
+        "error_edge_span_count": 1,
+        "status": "PASS"
+      },
+      "B": {
+        "error_edge_span_count": 1,
+        "status": "PASS"
+      }
+    }
+  }
+}

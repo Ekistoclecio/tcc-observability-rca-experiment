@@ -1,0 +1,106 @@
+{
+  "raw_file": "native backend trace response",
+  "sample": {
+    "raw_file": "datasetB/traces/adservice/chunk-000000.json",
+    "service": "adservice",
+    "span": {
+      "duration": 606,
+      "logs": [],
+      "operationName": "GET /metrics",
+      "processID": "p1",
+      "references": [],
+      "spanID": "2d4ed14ae7c54881",
+      "startTime": 1794929193211175,
+      "tags": [
+        {
+          "key": "client.address",
+          "type": "string",
+          "value": "10.244.0.12"
+        },
+        {
+          "key": "http.request.method",
+          "type": "string",
+          "value": "GET"
+        },
+        {
+          "key": "http.response.status_code",
+          "type": "int64",
+          "value": 200
+        },
+        {
+          "key": "http.route",
+          "type": "string",
+          "value": "/metrics"
+        },
+        {
+          "key": "network.peer.address",
+          "type": "string",
+          "value": "10.244.0.12"
+        },
+        {
+          "key": "network.peer.port",
+          "type": "int64",
+          "value": 33962
+        },
+        {
+          "key": "network.protocol.version",
+          "type": "string",
+          "value": "1.1"
+        },
+        {
+          "key": "otel.scope.name",
+          "type": "string",
+          "value": "io.opentelemetry.java-http-server"
+        },
+        {
+          "key": "otel.scope.version",
+          "type": "string",
+          "value": "2.24.0-alpha"
+        },
+        {
+          "key": "server.address",
+          "type": "string",
+          "value": "10.244.0.16"
+        },
+        {
+          "key": "server.port",
+          "type": "int64",
+          "value": 9464
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "server"
+        },
+        {
+          "key": "thread.id",
+          "type": "int64",
+          "value": 35
+        },
+        {
+          "key": "thread.name",
+          "type": "string",
+          "value": "conventional-metrics"
+        },
+        {
+          "key": "url.path",
+          "type": "string",
+          "value": "/metrics"
+        },
+        {
+          "key": "url.scheme",
+          "type": "string",
+          "value": "http"
+        },
+        {
+          "key": "user_agent.original",
+          "type": "string",
+          "value": "Prometheus/3.5.0"
+        }
+      ],
+      "traceID": "b88f1a8609761015a4b8228f19097d32",
+      "warnings": null
+    },
+    "trace_id": "b88f1a8609761015a4b8228f19097d32"
+  }
+}

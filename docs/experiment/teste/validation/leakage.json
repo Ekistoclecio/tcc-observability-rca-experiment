@@ -1,0 +1,7 @@
+{
+  "evidence": "the input builder accepted Dataset only; each payload is an identity projection",
+  "model_invocations": 0,
+  "rca_inputs_created_without_ground_truth": true,
+  "scenario_label_in_payload": false,
+  "status": "PASS"
+}

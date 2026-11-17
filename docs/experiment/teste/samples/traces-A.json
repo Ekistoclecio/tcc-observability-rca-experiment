@@ -1,0 +1,37 @@
+{
+  "raw_file": "native backend trace response",
+  "sample": {
+    "raw_file": "datasetA/traces/adservice/chunk-000000.json",
+    "service": "frontend",
+    "span": {
+      "duration": 616,
+      "logs": [],
+      "operationName": "/hipstershop.ProductCatalogService/GetProduct",
+      "processID": "p1",
+      "references": [
+        {
+          "refType": "CHILD_OF",
+          "spanID": "d4a5167924cd23ef",
+          "traceID": "5876ec5c61da8c8ecb7cdbe5ee5a5ee5"
+        }
+      ],
+      "spanID": "980e9bda865ef528",
+      "startTime": 1794929180517649,
+      "tags": [
+        {
+          "key": "result",
+          "type": "string",
+          "value": "OK"
+        },
+        {
+          "key": "span.kind",
+          "type": "string",
+          "value": "client"
+        }
+      ],
+      "traceID": "5876ec5c61da8c8ecb7cdbe5ee5a5ee5",
+      "warnings": null
+    },
+    "trace_id": "5876ec5c61da8c8ecb7cdbe5ee5a5ee5"
+  }
+}

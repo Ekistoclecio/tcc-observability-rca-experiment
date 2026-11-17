@@ -1,0 +1,482 @@
+{
+  "cleanup": "PASS",
+  "confirmed_end": "2026-11-17T15:33:08.695438Z",
+  "confirmed_start": "2026-11-17T15:32:33.837573Z",
+  "dataset_files": {
+    "A": "005_datastore_unavailable_r01/dataset/dataset-A.json",
+    "B": "005_datastore_unavailable_r01/dataset/dataset-B.json"
+  },
+  "fault": "F5",
+  "fault_type": "datastore_unavailable",
+  "location": {
+    "kind": "datastore",
+    "value": "redis-cart"
+  },
+  "raw_bundle": "docs/experiment/results/005_datastore_unavailable_r01/raw",
+  "rca_input_files": {
+    "A": "005_datastore_unavailable_r01/rca-input-A.json",
+    "B": "005_datastore_unavailable_r01/rca-input-B.json"
+  },
+  "recovery": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+    "observed_at": "2026-11-17T15:33:08.695438Z"
+  },
+  "representative_chain": {
+    "A": {
+      "dataset_evidence": [
+        {
+          "duration_ms": 5021.388,
+          "id": "ev_f287fb857254e6b1fcf5",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "615c186ac2413914",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:34.045612Z",
+          "trace_id": "2206e1384be25db86cc5abaa74722bd6"
+        },
+        {
+          "duration_ms": 5798.265,
+          "id": "ev_3e9030a41b941624356c",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "bbc9a3aa5cec3a28",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:39.167735Z",
+          "trace_id": "e7c13ccf922e2248a757f0fc7b43e4c4"
+        },
+        {
+          "duration_ms": 5985.35,
+          "id": "ev_29dc5679447ddad3b754",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET/SET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "cceec8c09de1f03e",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:48.566650Z",
+          "trace_id": "e57c0a459e62b5e551458bb2bd73d21f"
+        },
+        {
+          "duration_ms": 5983.062,
+          "id": "ev_bc157b27bd5f2ba0a02d",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "9bce6ca1afaf8775",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:54.570938Z",
+          "trace_id": "38c3983abc798df394a04404ce39d084"
+        },
+        {
+          "duration_ms": 5987.155,
+          "id": "ev_46df1728e6480c99f4a8",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "f922a48046ad5afd",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:33:00.564845Z",
+          "trace_id": "31aa7e98cd9af863c75713f033912d26"
+        }
+      ],
+      "dataset_file": "005_datastore_unavailable_r01/dataset/dataset-A.json",
+      "raw_application_log": {
+        "line": "      Error status code 'FailedPrecondition' with detail 'Can't access cart storage. StackExchange.Redis.RedisConnectionException: The message timed out in the backlog attempting to send because no connection became available (5000ms) - Last Connection Exception: It was not possible to connect to the redis server(s). ConnectTimeout, command=HMGET, timeout: 5000, inst: 0, qu: 0, qs: 0, aw: False, bw: CheckingForTimeout, last-in: 0, cur-in: 0, sync-ops: 2, async-ops: 210, serverEndpoint: redis-cart:6379, conn-sec: n/a, aoc: 0, mc: 1/1/0, mgr: 10 of 10 available, clientName: cartservice-966b64458-m9xvm(SE.Redis-v2.7.27.49176), IOCP: (Busy=0,Free=1000,Min=1,Max=1000), WORKER: (Busy=0,Free=32767,Min=1,Max=32767), POOL: (Threads=3,QueuedItems=0,CompletedItems=15197,Timers=16), v: 2.7.27.49176 (Please take a look at this article for some common client-side issues that can cause timeouts: https://stackexchange.github.io/StackExchange.Redis/Timeouts)",
+        "raw_file": "datasetA/logs/cartservice/chunk-000000.json",
+        "stream": {
+          "detected_level": "unknown",
+          "filename": "/var/log/pods/online-boutique_cartservice-966b64458-m9xvm_c01911db-1bdc-4adf-956a-5bf989de5f20/server/0.log",
+          "namespace": "online-boutique",
+          "service_name": "cartservice",
+          "stream": "stdout"
+        },
+        "timestamp": "1794929559074664119"
+      },
+      "raw_trace": {
+        "raw_file": "datasetA/traces/cartservice/chunk-000000.json",
+        "service": "cartservice",
+        "span": {
+          "duration": 5987155,
+          "logs": [],
+          "operationName": "redis-cart GET",
+          "processID": "p1",
+          "references": [
+            {
+              "refType": "CHILD_OF",
+              "spanID": "1114a29ed1ca1f8c",
+              "traceID": "31aa7e98cd9af863c75713f033912d26"
+            }
+          ],
+          "spanID": "f922a48046ad5afd",
+          "startTime": 1794929580564845,
+          "tags": [
+            {
+              "key": "result",
+              "type": "string",
+              "value": "ERROR"
+            },
+            {
+              "key": "span.kind",
+              "type": "string",
+              "value": "client"
+            }
+          ],
+          "traceID": "31aa7e98cd9af863c75713f033912d26",
+          "warnings": null
+        },
+        "trace_id": "31aa7e98cd9af863c75713f033912d26"
+      },
+      "rca_input_evidence": [
+        {
+          "duration_ms": 5021.388,
+          "id": "ev_f287fb857254e6b1fcf5",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "615c186ac2413914",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:34.045612Z",
+          "trace_id": "2206e1384be25db86cc5abaa74722bd6"
+        },
+        {
+          "duration_ms": 5798.265,
+          "id": "ev_3e9030a41b941624356c",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "bbc9a3aa5cec3a28",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:39.167735Z",
+          "trace_id": "e7c13ccf922e2248a757f0fc7b43e4c4"
+        },
+        {
+          "duration_ms": 5985.35,
+          "id": "ev_29dc5679447ddad3b754",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET/SET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "cceec8c09de1f03e",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:48.566650Z",
+          "trace_id": "e57c0a459e62b5e551458bb2bd73d21f"
+        },
+        {
+          "duration_ms": 5983.062,
+          "id": "ev_bc157b27bd5f2ba0a02d",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "9bce6ca1afaf8775",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:54.570938Z",
+          "trace_id": "38c3983abc798df394a04404ce39d084"
+        },
+        {
+          "duration_ms": 5987.155,
+          "id": "ev_46df1728e6480c99f4a8",
+          "kind": "CLIENT",
+          "operation": "redis-cart GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "f922a48046ad5afd",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:33:00.564845Z",
+          "trace_id": "31aa7e98cd9af863c75713f033912d26"
+        }
+      ],
+      "rca_input_file": "005_datastore_unavailable_r01/rca-input-A.json"
+    },
+    "B": {
+      "dataset_evidence": [
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5115.513,
+          "id": "ev_67b42154116da9ef18ec",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "2a52de3294d9220a",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:33.952440Z",
+          "trace_id": "e0a2e0ca77e0948273a3f4caec462085"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5798.591,
+          "id": "ev_b2451e3a0ffc89e9da3e",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "98ee90218a946396",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:39.167624Z",
+          "trace_id": "6afa60383428730de66bb6903547a46b"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET SET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 9572.949,
+          "id": "ev_cce9092d2f1a8d7b01ec",
+          "kind": "CLIENT",
+          "operation": "GET SET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "7687d1498e0b099a",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:44.979434Z",
+          "trace_id": "b638396837c28d7601d0aa448044d66b"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5983.396,
+          "id": "ev_83fec44d1ba2c092cce8",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "e3ce860488396dfa",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:54.570937Z",
+          "trace_id": "b39c08b41e4b2b52009b541fc757d146"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5987.52,
+          "id": "ev_6b41ab09e8cf3cf4d6a0",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "d3a5c1cd4b9d1554",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:33:00.564639Z",
+          "trace_id": "b5e580c53f2400d6efb109b463632331"
+        }
+      ],
+      "dataset_file": "005_datastore_unavailable_r01/dataset/dataset-B.json",
+      "raw_application_log": null,
+      "raw_trace": {
+        "raw_file": "datasetB/traces/cartservice/chunk-000000.json",
+        "service": "cartservice",
+        "span": {
+          "duration": 5987520,
+          "logs": [],
+          "operationName": "GET",
+          "processID": "p3",
+          "references": [
+            {
+              "refType": "CHILD_OF",
+              "spanID": "b9f5ba259cb5a06d",
+              "traceID": "b5e580c53f2400d6efb109b463632331"
+            }
+          ],
+          "spanID": "d3a5c1cd4b9d1554",
+          "startTime": 1794929580564639,
+          "tags": [
+            {
+              "key": "db.operation.name",
+              "type": "string",
+              "value": "GET"
+            },
+            {
+              "key": "db.system.name",
+              "type": "string",
+              "value": "redis"
+            },
+            {
+              "key": "error",
+              "type": "bool",
+              "value": true
+            },
+            {
+              "key": "error.type",
+              "type": "string",
+              "value": "StackExchange.Redis.RedisConnectionException"
+            },
+            {
+              "key": "otel.scope.name",
+              "type": "string",
+              "value": "cartservice.redis"
+            },
+            {
+              "key": "otel.status_code",
+              "type": "string",
+              "value": "ERROR"
+            },
+            {
+              "key": "otel.status_description",
+              "type": "string",
+              "value": "RedisConnectionException"
+            },
+            {
+              "key": "server.address",
+              "type": "string",
+              "value": "redis-cart"
+            },
+            {
+              "key": "span.kind",
+              "type": "string",
+              "value": "client"
+            }
+          ],
+          "traceID": "b5e580c53f2400d6efb109b463632331",
+          "warnings": null
+        },
+        "trace_id": "b5e580c53f2400d6efb109b463632331"
+      },
+      "rca_input_evidence": [
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5115.513,
+          "id": "ev_67b42154116da9ef18ec",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "2a52de3294d9220a",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:33.952440Z",
+          "trace_id": "e0a2e0ca77e0948273a3f4caec462085"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5798.591,
+          "id": "ev_b2451e3a0ffc89e9da3e",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "98ee90218a946396",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:39.167624Z",
+          "trace_id": "6afa60383428730de66bb6903547a46b"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET SET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 9572.949,
+          "id": "ev_cce9092d2f1a8d7b01ec",
+          "kind": "CLIENT",
+          "operation": "GET SET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "7687d1498e0b099a",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:44.979434Z",
+          "trace_id": "b638396837c28d7601d0aa448044d66b"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5983.396,
+          "id": "ev_83fec44d1ba2c092cce8",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "e3ce860488396dfa",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:32:54.570937Z",
+          "trace_id": "b39c08b41e4b2b52009b541fc757d146"
+        },
+        {
+          "attributes": {
+            "db_operation": "GET",
+            "db_system": "redis",
+            "error_type": "StackExchange.Redis.RedisConnectionException"
+          },
+          "duration_ms": 5987.52,
+          "id": "ev_6b41ab09e8cf3cf4d6a0",
+          "kind": "CLIENT",
+          "operation": "GET",
+          "outcome": "ERROR",
+          "service": "cartservice",
+          "signal": "trace",
+          "span_id": "d3a5c1cd4b9d1554",
+          "target": "redis-cart",
+          "timestamp": "2026-11-17T15:33:00.564639Z",
+          "trace_id": "b5e580c53f2400d6efb109b463632331"
+        }
+      ],
+      "rca_input_file": "005_datastore_unavailable_r01/rca-input-B.json"
+    }
+  },
+  "validation": {
+    "fault": "F5",
+    "scenarios": {
+      "A": {
+        "error_edge_span_count": 5,
+        "status": "PASS"
+      },
+      "B": {
+        "error_edge_span_count": 5,
+        "status": "PASS"
+      }
+    }
+  }
+}

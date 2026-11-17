@@ -1,0 +1,25 @@
+{
+  "confirmed_end": "2026-11-17T15:30:29.038739Z",
+  "confirmed_start": "2026-11-17T15:29:56.965902Z",
+  "execution_eligible": true,
+  "fault_id": "F3-stage4-smoke",
+  "fault_type": "service_unavailable",
+  "ineligibility_reason": null,
+  "injection_confirmation": {
+    "control_plane_check": "Deployment replicas and ready EndpointSlice addresses are zero",
+    "evidence": "{\"desired_replicas\": 0, \"pods\": 0, \"ready_endpoints\": 0, \"ready_replicas\": 0}",
+    "observed_at": "2026-11-17T15:29:56.965902Z"
+  },
+  "recovery_confirmation": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+    "observed_at": "2026-11-17T15:30:29.038739Z"
+  },
+  "requested_start": "2026-11-17T15:29:45.673074Z",
+  "root_location": {
+    "kind": "service",
+    "value": "paymentservice"
+  },
+  "schema_version": "1.0",
+  "status": "RECOVERED"
+}

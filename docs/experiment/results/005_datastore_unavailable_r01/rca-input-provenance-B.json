@@ -1,0 +1,547 @@
+{
+  "dataset_sha256": "b33b280728ab4a7cfe49e40fcf49a49428640d45d6139d044e194bde9a3c94a9",
+  "evidence_sources": {
+    "ev_0060ca7881051cadc7f0": {
+      "dataset_json_pointer": "/facts/16",
+      "fact_sha256": "2d605cb5f2c88daa128fe4eb8e401e239d2583e38bdce42240ea45fb6768a336"
+    },
+    "ev_009de8d8811b10b7312d": {
+      "dataset_json_pointer": "/facts/104",
+      "fact_sha256": "e0396e65d0b2a0be33b50718b2f6da25c846e96ad89f4206d146cc0c8b1d9130"
+    },
+    "ev_0321967d815ff55868b3": {
+      "dataset_json_pointer": "/facts/25",
+      "fact_sha256": "b9347608796c4e86b1d8082d2bab7a8216c7f6e256a4021288cd5634e2ef202b"
+    },
+    "ev_03f82b5cc3e17c84c598": {
+      "dataset_json_pointer": "/facts/108",
+      "fact_sha256": "eb0c86073cd694b725f3cb2338b5536f80510c891a4416c6650c92dbeacc9e6b"
+    },
+    "ev_03ffb7e5ff4f74b1d460": {
+      "dataset_json_pointer": "/facts/82",
+      "fact_sha256": "62f0963ca7d50b5782cc7bae868e62b8fda12843a5859338f170b496cd0102d7"
+    },
+    "ev_0550f821312babe2a3fb": {
+      "dataset_json_pointer": "/facts/117",
+      "fact_sha256": "53c43f9dcd2858df9f8e234021eaa4615357b8fe94902449de28def92bd21c7d"
+    },
+    "ev_099586b30605be118905": {
+      "dataset_json_pointer": "/facts/70",
+      "fact_sha256": "37ea73ff37551f75850efe8fc23ef589d10c5cb2da8bcd56cc603ce1fdbbc04a"
+    },
+    "ev_0a3324e0f4e6864fc5bc": {
+      "dataset_json_pointer": "/facts/122",
+      "fact_sha256": "f6a349880cc53334a5f7918b701f3a98af09da67788d5c3d1a60318cbe68585c"
+    },
+    "ev_0d0e1642fc7c80f79cf8": {
+      "dataset_json_pointer": "/facts/62",
+      "fact_sha256": "14970c1e71c85b4bd31c007395426c2156943975749df462f21aeead4df91fc5"
+    },
+    "ev_0da95df1a5c5e90dbd2d": {
+      "dataset_json_pointer": "/facts/37",
+      "fact_sha256": "438c908606740d54331e415a60b1d2f2090c2177272578ddb464e8c6c93efed4"
+    },
+    "ev_0f51305346fc34340982": {
+      "dataset_json_pointer": "/facts/55",
+      "fact_sha256": "c589ac10a6fe10832371e9d06d6b4ff60bc54885c2087d40b1756dcf6ce429c6"
+    },
+    "ev_132b3cf8f9402b9b5aab": {
+      "dataset_json_pointer": "/facts/21",
+      "fact_sha256": "25e4b41707781d32c10b6d15c603317aeecca7d28d8cc812479e8df53cac70b8"
+    },
+    "ev_14893277b6ad255263cd": {
+      "dataset_json_pointer": "/facts/38",
+      "fact_sha256": "4ccd18b8f86277e26093e35b05bec421f5a6dc8ab73c110c8cf73b967c8cb69c"
+    },
+    "ev_18685877605fc49771fa": {
+      "dataset_json_pointer": "/facts/44",
+      "fact_sha256": "e8370e51d9d0e5bcaa0b13cad3533790edb815029d34c8f5a66db83b9a73dc2f"
+    },
+    "ev_196d834a70208ce90646": {
+      "dataset_json_pointer": "/facts/86",
+      "fact_sha256": "92f77e3945d5a3f64e313bb6b1af5f355c63c64a7c14323c28e4519dcb5ad25d"
+    },
+    "ev_1a0dc7dd7c29f7532d59": {
+      "dataset_json_pointer": "/facts/113",
+      "fact_sha256": "48ab42bcc94dfcf8facdd071dc12825e5754d0c9ff92fbc9e1fe409b6ed99db5"
+    },
+    "ev_1a658af2e385494bda8d": {
+      "dataset_json_pointer": "/facts/66",
+      "fact_sha256": "70350846739a63e581eea1e68368605b6fab918911395950663173027c0f5272"
+    },
+    "ev_1af8d688c849c5def62f": {
+      "dataset_json_pointer": "/facts/61",
+      "fact_sha256": "47fc2dfc6748bb4a30c77ea747d3f734602dab33bf422538cf0565d742905aa8"
+    },
+    "ev_21d2d971b079ba4de9f4": {
+      "dataset_json_pointer": "/facts/5",
+      "fact_sha256": "803f3ea66be9fa2ab7fa43386c3d336252a22c79a41e0034b818890c8e81e6e0"
+    },
+    "ev_22498bd13b6e867ba7cd": {
+      "dataset_json_pointer": "/facts/120",
+      "fact_sha256": "1ba0990abd04daeb6ad8c7d921486d2edd9a0fd73877afa340a15ea6eec4ecdb"
+    },
+    "ev_22e3f7bfe88ad390aebf": {
+      "dataset_json_pointer": "/facts/45",
+      "fact_sha256": "082a11b76ab2e29eb412c9722eed7ed289a25d8ed54f638ff2c4b7162699e96d"
+    },
+    "ev_23166089a83e8bb67bef": {
+      "dataset_json_pointer": "/facts/4",
+      "fact_sha256": "9dd0e48913a0a5932d132229fca987b7e50bbdab3131d353a198191f2badd31d"
+    },
+    "ev_2376cae66d70282d91f4": {
+      "dataset_json_pointer": "/facts/100",
+      "fact_sha256": "fe7b7a0433ad4fbbbed71c4aae0656bbacfc7087fb59b4f174fbdfa9a05cf57c"
+    },
+    "ev_266ccf96bdd22dc4bc0f": {
+      "dataset_json_pointer": "/facts/101",
+      "fact_sha256": "bebeb9818da05f52e9534d5300e2766af5c921fdd1cf3ead23e2d9190270f6ef"
+    },
+    "ev_26fc39a72a36d25f9527": {
+      "dataset_json_pointer": "/facts/125",
+      "fact_sha256": "239ee893ef968d6066d4fd1ea25a7ca2154dbff8672ecfd1e78ac07c0c172513"
+    },
+    "ev_2eb227dca7820dcf8dc7": {
+      "dataset_json_pointer": "/facts/40",
+      "fact_sha256": "8733f1f7ad7b97108212df24dc186f0f31d2da8b2353cf019a28e1b13d06090b"
+    },
+    "ev_2f98cffa3be6eaeca2ae": {
+      "dataset_json_pointer": "/facts/130",
+      "fact_sha256": "3279b55e05f502d3f4573cfa9da84b233cc41b12c93342060c31feecb72da67a"
+    },
+    "ev_344832fc2ebcefa7b68a": {
+      "dataset_json_pointer": "/facts/94",
+      "fact_sha256": "e524a5f0690b36b1bcec6e49edd431ccd4e26d737afe928bab0c591c6ea8a98f"
+    },
+    "ev_34f844e8aa429000dd1f": {
+      "dataset_json_pointer": "/facts/81",
+      "fact_sha256": "5df1de1506d6c541ec423f3fe7b38360d711f8949c155cd879686f530afe8e5c"
+    },
+    "ev_3622bec8395d9e47037e": {
+      "dataset_json_pointer": "/facts/13",
+      "fact_sha256": "9c16b3239e38d74c33c17431994610a31ed920b2c9f85285eeecd7e6bf2650f7"
+    },
+    "ev_3888f07132d337504fd2": {
+      "dataset_json_pointer": "/facts/68",
+      "fact_sha256": "9a43e2632577327b0603b6cdf6f41e225c5bb476c1f15012198aba902f6f8915"
+    },
+    "ev_389b39b38e1780859db6": {
+      "dataset_json_pointer": "/facts/35",
+      "fact_sha256": "34a5f0e62b563b75e0b2dc20f8e0954f14c4f6f3183d88c574f6798d70991615"
+    },
+    "ev_3963453b0be9e7400bce": {
+      "dataset_json_pointer": "/facts/119",
+      "fact_sha256": "6ca25ff1ea529d23bb8015fe9abb36bf49baa4194763c2f939623e0658aa4a2a"
+    },
+    "ev_3ad781dbd78a463067a9": {
+      "dataset_json_pointer": "/facts/3",
+      "fact_sha256": "f4f1dc26d400c57f122818944b2395c316954ca9f09aa096fff658569f7b093e"
+    },
+    "ev_3b5892c8fc8a90d9aedd": {
+      "dataset_json_pointer": "/facts/83",
+      "fact_sha256": "b94671de12f6242b9a4b81dbd15055ab0698b7fc144a7404b92c9475f20e5b6a"
+    },
+    "ev_3fbcf8cde7d3578b1d3a": {
+      "dataset_json_pointer": "/facts/48",
+      "fact_sha256": "675c9bc8e33942f0b0bef23e97df677ace24bdba473fd7dda13d19bfa3cc504f"
+    },
+    "ev_4042b531b3b44b0045d4": {
+      "dataset_json_pointer": "/facts/56",
+      "fact_sha256": "dfc4c3481965d77fa9b581b460bb019b004f696a288f2d2ab5b82c2865afebd2"
+    },
+    "ev_41922f4f7fc8b5ba6097": {
+      "dataset_json_pointer": "/facts/8",
+      "fact_sha256": "7bee61acf4899555250b155ca0fec2cf06ae25702471234a5be75beac6a85985"
+    },
+    "ev_4bd5ef4ead83aae9191f": {
+      "dataset_json_pointer": "/facts/132",
+      "fact_sha256": "820e11db4bffd133db34a4e318bbf2c135d500e907251856f6f10b39186e1eae"
+    },
+    "ev_4c72111a1263fe4eceaa": {
+      "dataset_json_pointer": "/facts/39",
+      "fact_sha256": "80019cd232985b0c5ce60dcd29a35a31df033d6201b93e17df1753ad83292457"
+    },
+    "ev_521974107ed149556535": {
+      "dataset_json_pointer": "/facts/15",
+      "fact_sha256": "560308d83594d22fd2416d8b6b2162fef24784c4072e347d9f8b2de46316c837"
+    },
+    "ev_586b39e64239a02c1969": {
+      "dataset_json_pointer": "/facts/63",
+      "fact_sha256": "7fc4faa40d0840986490615e8fd41efd3bfd1fea475aabce511bed727d2ce034"
+    },
+    "ev_5bf7ab0d7053f470e7d4": {
+      "dataset_json_pointer": "/facts/105",
+      "fact_sha256": "4f9a4a454874edaef14494ef4d6b0f5909fdae429e1d5968c89372e041b72174"
+    },
+    "ev_5d2461393b496d554044": {
+      "dataset_json_pointer": "/facts/59",
+      "fact_sha256": "e28bab8d4b07e1f5691c67224158c46b67eecc150b6b0deaa689ed50f16c0a7d"
+    },
+    "ev_5e84c784bbfbbcbfb9ac": {
+      "dataset_json_pointer": "/facts/110",
+      "fact_sha256": "9c9cc3128008299103cc21ba20ddd8e7ebfa788f3fb2993b9366c4aa3be9b862"
+    },
+    "ev_5f635a314d2dc1aff8ef": {
+      "dataset_json_pointer": "/facts/129",
+      "fact_sha256": "a7ab8b7fc909cf4137e9c062eae3c22c7f29c7fc7222a791bba21bd0d5dc39c6"
+    },
+    "ev_60bb5ebb1df798b4e2db": {
+      "dataset_json_pointer": "/facts/69",
+      "fact_sha256": "a16abf5b1d31ef2f766a8f89563a081ea5ac614519f63a7ed7527cd3626be743"
+    },
+    "ev_61b94257626032005e92": {
+      "dataset_json_pointer": "/facts/109",
+      "fact_sha256": "ba9c305a598f5ad1d7abf963053fd6f50b665fc6435f20e08b4b4fe72d6482c6"
+    },
+    "ev_62118acb3bbb0a2198e2": {
+      "dataset_json_pointer": "/facts/26",
+      "fact_sha256": "aded5d606c3f41323ddb0cb2cf9b75a0495dc82bfc348c019c515b05d8ff3888"
+    },
+    "ev_67b42154116da9ef18ec": {
+      "dataset_json_pointer": "/facts/96",
+      "fact_sha256": "ec139f60399e6a3c46049d083e8a3c222bbb97cfbdbbce9cbf3fcd746e90d87a"
+    },
+    "ev_685a297c9fe1f45e0949": {
+      "dataset_json_pointer": "/facts/14",
+      "fact_sha256": "d38898b66999633b2c1808fd0ed9ab3fd227e2e22ea7c9d3f0cc23e73a88e555"
+    },
+    "ev_6b41ab09e8cf3cf4d6a0": {
+      "dataset_json_pointer": "/facts/131",
+      "fact_sha256": "9f3188107d771c5d1d9fe4daa6d04ebb15f13d112a72db951261ad13b6e3f423"
+    },
+    "ev_7a9dea00cfd36117e452": {
+      "dataset_json_pointer": "/facts/32",
+      "fact_sha256": "c24b4db8013ba8b34cfe13422ec26873f96d1501b6481ee53915f4a60ac4a759"
+    },
+    "ev_7c7464aebe31a382f5f9": {
+      "dataset_json_pointer": "/facts/99",
+      "fact_sha256": "c4948eb1e5a56a7dfcb84a36a0c55244debc2f7293d4cda51078daf386a418d8"
+    },
+    "ev_7c8e2e1c0249b8646703": {
+      "dataset_json_pointer": "/facts/73",
+      "fact_sha256": "e8d46f7e9c24d91892526a0ff14d9ec39c36ac4b06b1acf70491ccb00e2939bf"
+    },
+    "ev_7cb940ec9196eb2e1772": {
+      "dataset_json_pointer": "/facts/33",
+      "fact_sha256": "81a049153e05308105bab2a710116527591024db5d58ee793824f2639cfbc42a"
+    },
+    "ev_7dbc59b493587d0bfca4": {
+      "dataset_json_pointer": "/facts/67",
+      "fact_sha256": "486ee0e630fc157adb4b1eda0a938e69e505a022481a81eb252e05ca5d26677d"
+    },
+    "ev_7f1a27496c79be874955": {
+      "dataset_json_pointer": "/facts/20",
+      "fact_sha256": "976684ed939077e0b368faa53145ca6843d306ab6c655eda016ed524433410a3"
+    },
+    "ev_800d9e877cc462ac820c": {
+      "dataset_json_pointer": "/facts/29",
+      "fact_sha256": "ac8907d1d7ee351960dc49afdde204a0b33c0110bcdfe51a156bbdabc4b5ce67"
+    },
+    "ev_806b33d1866b7fedf820": {
+      "dataset_json_pointer": "/facts/7",
+      "fact_sha256": "d1218be9448db37505ab073a7d1f2629cb50eaf07dc71836fb457ac568eabcf4"
+    },
+    "ev_83fec44d1ba2c092cce8": {
+      "dataset_json_pointer": "/facts/123",
+      "fact_sha256": "d6ea8e907668f7332aae44345cdb99e2e94849e8903bc44f6151dd1f0c481440"
+    },
+    "ev_842fc3e45e682db98374": {
+      "dataset_json_pointer": "/facts/24",
+      "fact_sha256": "2f08c5f783e3021914da327a31c21c67bce618d4423ff605405f0ee6f7f355b3"
+    },
+    "ev_84d9a6ed9f66b85e933f": {
+      "dataset_json_pointer": "/facts/75",
+      "fact_sha256": "e37386ad8357938775395b479055f3109c3544b0ac8b1354084df3a0f35c9c18"
+    },
+    "ev_84f0de132f1b352b87b9": {
+      "dataset_json_pointer": "/facts/53",
+      "fact_sha256": "fca49b619790c5d54e9f0959cb03f58b70914e75b43112f474a1cd3029053d93"
+    },
+    "ev_8cdaba8af397dcc64d2f": {
+      "dataset_json_pointer": "/facts/77",
+      "fact_sha256": "befbd51a9294d752bc14c7d2495571c0589cc01f5f70fa965fe00126b2767a7c"
+    },
+    "ev_8f6d9e9ffbd6600bc3fa": {
+      "dataset_json_pointer": "/facts/2",
+      "fact_sha256": "207a2cc3916590eedfc3f62f271ea55bea758af76fed42c0be50bf02504c9232"
+    },
+    "ev_918cc4dc9e533faf6252": {
+      "dataset_json_pointer": "/facts/79",
+      "fact_sha256": "db8fc5805c1ead4708e30d97f00eb0bf41e4e03f345d7b67e24da0b1f99cbc2d"
+    },
+    "ev_91e889cd864ee8c895d7": {
+      "dataset_json_pointer": "/facts/89",
+      "fact_sha256": "04105aac8164c8cca24800d8bcada7a5ea9bfd21bc3e66017df0e1bff1a4fac6"
+    },
+    "ev_927add71d88755e6261b": {
+      "dataset_json_pointer": "/facts/90",
+      "fact_sha256": "f5e92438b4fb9d5ddd748a5d7ba7966c362281d980a0ae8d5c5d8a627a2850e7"
+    },
+    "ev_93447fe3ef02818e52a5": {
+      "dataset_json_pointer": "/facts/112",
+      "fact_sha256": "61af7e12dfc2c6b9a7e185e323e1fe724f26830a973aae1d5a913dec4480c74c"
+    },
+    "ev_9598c896d120abdbcc81": {
+      "dataset_json_pointer": "/facts/11",
+      "fact_sha256": "0ea34712fab70354f0da9dfdee51a570c5fc454444e01cd48d1fa1894bdc445b"
+    },
+    "ev_973e715a2f8b24d4b62b": {
+      "dataset_json_pointer": "/facts/72",
+      "fact_sha256": "c609e1a2af9e3b85a75b66407bbaeb514918f6391c91949a6a7dee65a3f448f9"
+    },
+    "ev_98a8f841d27de23727e5": {
+      "dataset_json_pointer": "/facts/49",
+      "fact_sha256": "fa53544513de62d634caee651844e3edb7342583029050bc53aabba538713984"
+    },
+    "ev_9a8b5cf5b9d4f78eb036": {
+      "dataset_json_pointer": "/facts/85",
+      "fact_sha256": "a1b24c564a1558a50e979eaca13725be1eac9a68442d60da4626a5e163b7fede"
+    },
+    "ev_9aea4f49d707cd1d8e3f": {
+      "dataset_json_pointer": "/facts/92",
+      "fact_sha256": "5613ca14536c4178fae8c4d83757f49b8ca8b3df51be573ebda3e66ec6c308f7"
+    },
+    "ev_9bfdb028e9469e742a7d": {
+      "dataset_json_pointer": "/facts/41",
+      "fact_sha256": "a6ce3ee9150ce9fd81d0322b8cb7ae16e7ab3f750619d0f5e521b3a50c957021"
+    },
+    "ev_9e7b604f50afa248198f": {
+      "dataset_json_pointer": "/facts/124",
+      "fact_sha256": "68f42e382843c2ec5b9f5b18d926e8e02c1d9ff3c3f23e8baf53a17cef5f7bcb"
+    },
+    "ev_9f5cf07041ec72e414cd": {
+      "dataset_json_pointer": "/facts/43",
+      "fact_sha256": "ed92f39b31cdeb405562ccb7e6063453cefdb6a41ecb810e80eadb5a6704eb25"
+    },
+    "ev_a4d40cd1a9884683d852": {
+      "dataset_json_pointer": "/facts/118",
+      "fact_sha256": "9c8b0ee70d96c5a89c12fda592b6017dd8c32ccb355b73c75a8566fceb551b3c"
+    },
+    "ev_a510e0c6f4deba024000": {
+      "dataset_json_pointer": "/facts/22",
+      "fact_sha256": "89b82eff48e37a27449f42dfe971c5c2d82fb061c1b6596d2bf0ecb0ac35102e"
+    },
+    "ev_a52eee6e24094d0ef6ae": {
+      "dataset_json_pointer": "/facts/76",
+      "fact_sha256": "35f292a954f0170795fe4efee039cb22c6da741d677014e8a8af68755ce1d908"
+    },
+    "ev_a8dbf715a2572b03d49d": {
+      "dataset_json_pointer": "/facts/64",
+      "fact_sha256": "0ff3713d299f4957b53788f82835bef193ec42ac035f3c2f05f65a929f90e4e6"
+    },
+    "ev_ac44d8b6bf90fffcbff2": {
+      "dataset_json_pointer": "/facts/51",
+      "fact_sha256": "323cd81c4449e00f03d40d0cd5a2c7b45c91119c4b3caf1bbef6b28f1fad69a2"
+    },
+    "ev_ada6571a78294b850ab7": {
+      "dataset_json_pointer": "/facts/46",
+      "fact_sha256": "46d2ab7c062b40420ebecd968722d8e2e77f2baf9137f425226c8b27441dfa0b"
+    },
+    "ev_ae7005467c837ee106f4": {
+      "dataset_json_pointer": "/facts/23",
+      "fact_sha256": "80b63ab8211d7894b0015f71be393bbeeefb3d950c6c6ddd677c56902286adaa"
+    },
+    "ev_b092fa19c379a031b6a5": {
+      "dataset_json_pointer": "/facts/98",
+      "fact_sha256": "c54603ab0cad95939ea88941bb0fba86bf350f16517460b409c40b4fb35a8651"
+    },
+    "ev_b2451e3a0ffc89e9da3e": {
+      "dataset_json_pointer": "/facts/106",
+      "fact_sha256": "02e384443336599cdc266a8bad142a8ad069cf75b9bb1c2441788c2c14db7ded"
+    },
+    "ev_b37c388f2c4b085121ac": {
+      "dataset_json_pointer": "/facts/103",
+      "fact_sha256": "5a53e295900685f83b4fc80680ac7b40ff2315121a74ed31c11b34fbdddc2a1a"
+    },
+    "ev_ba807cb660db014ea5d3": {
+      "dataset_json_pointer": "/facts/128",
+      "fact_sha256": "c19ecf476c2fbc74e5ab11d25aed4560896252438f2aa682a67d100ad2c85b5f"
+    },
+    "ev_babd2c59c9350f3ef5c3": {
+      "dataset_json_pointer": "/facts/95",
+      "fact_sha256": "88817213357db68502305196bd483a6696ad13e3f80b476836f5ac7174893d71"
+    },
+    "ev_bb4293539728df74cb46": {
+      "dataset_json_pointer": "/facts/0",
+      "fact_sha256": "e87aff06bb7225be3d976eb09772085de7b03777a929d229bd1abf2cbe714608"
+    },
+    "ev_bbafad74fef1f9ff0f3a": {
+      "dataset_json_pointer": "/facts/57",
+      "fact_sha256": "865e3832c09d98e9b61a71cf27f3f61ff4de40af52f04fe5b12d1e837023e482"
+    },
+    "ev_bbe1c05ae457383f8c43": {
+      "dataset_json_pointer": "/facts/97",
+      "fact_sha256": "03c28c689270bbe48f66868838ad3e2f86787ae3ae14b2a54c7f0cc7fa94f9ab"
+    },
+    "ev_bca54595820b753e7af2": {
+      "dataset_json_pointer": "/facts/30",
+      "fact_sha256": "82a4520587ff6bbf99b3fadc5e783438a3d272c9bb350e6f05e2cb0699aeb229"
+    },
+    "ev_c06553583d2c9f779f62": {
+      "dataset_json_pointer": "/facts/102",
+      "fact_sha256": "78bdc2fb605080abe945b66ba3eeef4841a82e39319977e2b191e896facfe6e2"
+    },
+    "ev_c128eeca480403906022": {
+      "dataset_json_pointer": "/facts/58",
+      "fact_sha256": "7385fe8a6c7fb0931cfbd3b2993cdb67ff565752618dee0d5269d31b844b35b8"
+    },
+    "ev_c240706a096e651e5029": {
+      "dataset_json_pointer": "/facts/1",
+      "fact_sha256": "48010c935bf9ba73f920961fd956b509925726d546d43d0c566bc360647eca25"
+    },
+    "ev_c2c30ad43549a40bdc10": {
+      "dataset_json_pointer": "/facts/115",
+      "fact_sha256": "e4e486184252a815535fc3b8ef53775f3e6310ac96d45c066bbdc87e1f723d57"
+    },
+    "ev_c3d8835faa159c27d118": {
+      "dataset_json_pointer": "/facts/134",
+      "fact_sha256": "6c10cd47e425d9c9d2ea325cfcf44f2109503769869b80c571ef811d4539dad0"
+    },
+    "ev_c4928c65f011ccad00b8": {
+      "dataset_json_pointer": "/facts/107",
+      "fact_sha256": "f3adccaf6af05055aa11bc368e2bd8b1519ec9cd1c671afa2fe4d8dfa2b213b6"
+    },
+    "ev_c4dd0a23a65073a056cf": {
+      "dataset_json_pointer": "/facts/17",
+      "fact_sha256": "3a2b90ee44bd29c3125fa89245a363a17dd116ba953ce7c1db4807eb25417d0f"
+    },
+    "ev_c574640b5fffa06a00ea": {
+      "dataset_json_pointer": "/facts/9",
+      "fact_sha256": "74172faab4f07e27415fcf88b61df3595d8ae1908741db6d17e7b945bea25bbe"
+    },
+    "ev_c762ede3bfa19b59933b": {
+      "dataset_json_pointer": "/facts/74",
+      "fact_sha256": "ca95bd3318cad5346ebd89493802b44aef06c15e9471ee0bb7a4554f6dbeaa28"
+    },
+    "ev_cce9092d2f1a8d7b01ec": {
+      "dataset_json_pointer": "/facts/114",
+      "fact_sha256": "56d5e7a6541e256cfef017ba9ebc3e4d2f70af0524c86b892c86865a02a69e82"
+    },
+    "ev_ccf4739791bc9058e81f": {
+      "dataset_json_pointer": "/facts/116",
+      "fact_sha256": "1791d9bad02b6194c800fa1355edecfd197d60ea56119781908bfba4497ebc39"
+    },
+    "ev_cd93d6796c5246bd4dc7": {
+      "dataset_json_pointer": "/facts/50",
+      "fact_sha256": "1edf5ccf67b57663d98d64c025434ba1a1f11ecdfa1c657a073493799213eac1"
+    },
+    "ev_ce8249d60f55981e0e64": {
+      "dataset_json_pointer": "/facts/93",
+      "fact_sha256": "72d3a05b1e1f8b88c1a67a2cbf9e41b70c26a83b380241968b66d14df6d0fea1"
+    },
+    "ev_cf8adc9c02aa66a1d662": {
+      "dataset_json_pointer": "/facts/65",
+      "fact_sha256": "6240c8c8c39ce2551b69806c9bc0521206e320fa2196fc60433aeb8e1c73dd9a"
+    },
+    "ev_d1cb463002a9bf9ef904": {
+      "dataset_json_pointer": "/facts/19",
+      "fact_sha256": "e3e47762e639bcb53f9aca5cc4736b203540ec3d7011521f8eeadb04c582464c"
+    },
+    "ev_d204f049413971b0a388": {
+      "dataset_json_pointer": "/facts/133",
+      "fact_sha256": "40dbaf15a23c4e43c5a5c8b22e07c97cf887c8e45185812ba0b8b0b451d90798"
+    },
+    "ev_d2d6e4265035a085a820": {
+      "dataset_json_pointer": "/facts/12",
+      "fact_sha256": "eb68bb0c1dc618c633ef680719a9e8de7fa51950cd2234c9406c90b0596a2829"
+    },
+    "ev_d365a289a4983aefa4a8": {
+      "dataset_json_pointer": "/facts/10",
+      "fact_sha256": "82ed8ec5bdb688af0d33da78b35421e5ddaac0916cd9b26d3e072d7c8b475b16"
+    },
+    "ev_d4eeb7fed8826fb816a5": {
+      "dataset_json_pointer": "/facts/78",
+      "fact_sha256": "8922396ba0044fd93239c72793f4b37d8712ad737d02b328e7451fe8be0b18e8"
+    },
+    "ev_d5ba47395c91dfe28a9f": {
+      "dataset_json_pointer": "/facts/52",
+      "fact_sha256": "a863abaa4271c88c817c4f101040bc6086c53b7bd20d75921e48d917ae174d2d"
+    },
+    "ev_dc58bd18c6ccb9f17aed": {
+      "dataset_json_pointer": "/facts/47",
+      "fact_sha256": "05ee81faee8388836a8e6dbbe9be81acbd3d376015f00c0824ead29d81d181fc"
+    },
+    "ev_dd89b7a9ec3656cc5e21": {
+      "dataset_json_pointer": "/facts/42",
+      "fact_sha256": "c3174b50dc932303d4d475e0f0fe9d403d1578ffdfe9e4e6e4272d2a14cb0608"
+    },
+    "ev_ddf095b1966d8d53dd1e": {
+      "dataset_json_pointer": "/facts/54",
+      "fact_sha256": "6cdbaf7d6c7730bd5944d79acae8d121e3289d0976b88bb7cf2d75db8a32d8f5"
+    },
+    "ev_de90024ae58a9208a943": {
+      "dataset_json_pointer": "/facts/27",
+      "fact_sha256": "233d8b5bd176ce594fc53c43b3911c35168cfe450bd2c0e4a995772b1f7547da"
+    },
+    "ev_df43b61bd7928a72fd4c": {
+      "dataset_json_pointer": "/facts/111",
+      "fact_sha256": "84dda211aff4f30769092c7dae50b391623f45d02df2013230d1f6732a983174"
+    },
+    "ev_df8ed96d7f0889372564": {
+      "dataset_json_pointer": "/facts/60",
+      "fact_sha256": "080af60949faa88f9d25b88c1dffb9f2d69340f5c47b80dbc0a4ad8df1fa29d6"
+    },
+    "ev_dfee33991b52188fb8e6": {
+      "dataset_json_pointer": "/facts/18",
+      "fact_sha256": "84b92f8c02b3ff623971616feee41272f6c22f0e0682ec454cf33b45fc7ed81a"
+    },
+    "ev_e47a0b7f3aaa5a8fae3d": {
+      "dataset_json_pointer": "/facts/28",
+      "fact_sha256": "d736ea36ca179ac89b9ecd7a090b0fd79c91dcff75bc621d477ef570b61c833c"
+    },
+    "ev_e5ec4f046aae27e0e15c": {
+      "dataset_json_pointer": "/facts/87",
+      "fact_sha256": "0ad0e4c783667d9801d4301a1e87dfebfa6fdcb502a0fe524372bcf02769218e"
+    },
+    "ev_e67663b4661d0ab6d68b": {
+      "dataset_json_pointer": "/facts/36",
+      "fact_sha256": "07f9079f84a471d4ba91104c79581751af669c60987629188b08030d805a1b2e"
+    },
+    "ev_e7e7ac04aba60caa771e": {
+      "dataset_json_pointer": "/facts/6",
+      "fact_sha256": "6b8ab061e143323063322dc515eb4a75a53179a55689112d6b84102b5a598f5c"
+    },
+    "ev_e9866d186cb3b5e05747": {
+      "dataset_json_pointer": "/facts/71",
+      "fact_sha256": "ab30dbd2c0db5048195cbf3c6f43c368972edace711274a7a410351920d60943"
+    },
+    "ev_eae5943c4d93443b7972": {
+      "dataset_json_pointer": "/facts/88",
+      "fact_sha256": "4a9dfef08c0ee9816801cecf4c95c265d7558c2625e50105ba10d70da3b800ff"
+    },
+    "ev_ebce13c1de1f636a9286": {
+      "dataset_json_pointer": "/facts/127",
+      "fact_sha256": "c901959ec6187baa842638ae7996364ff5c74fdda25e9f74a0c132940a49ba6d"
+    },
+    "ev_f2293d826992ff0d02c3": {
+      "dataset_json_pointer": "/facts/34",
+      "fact_sha256": "02a1d0951fb61128eef05e63ca4d65c1cda8b375cd658e9e32c300c05a1ad3ff"
+    },
+    "ev_f69e7b961b8014d6f518": {
+      "dataset_json_pointer": "/facts/80",
+      "fact_sha256": "4bfcab37571aafa8102158ab93af102a25fb6a70121cf53c130a25223d275fc0"
+    },
+    "ev_f760a993858431273be0": {
+      "dataset_json_pointer": "/facts/126",
+      "fact_sha256": "9626cccf7b6c34a498a1b706773943ec82e22a5764ad29400c4600bad62d88c0"
+    },
+    "ev_f9d3ff385e4a27849f7a": {
+      "dataset_json_pointer": "/facts/31",
+      "fact_sha256": "b93e6b6ec4e7ef5c45367e1074f1df92ce4f59f20b8fb4713e7f56227a66413c"
+    },
+    "ev_fb0fa25b829938de4d5b": {
+      "dataset_json_pointer": "/facts/91",
+      "fact_sha256": "83e8b7833eea070e2d7d5d99ddb990133012ee1bb82b41313e5c6910314ec8c7"
+    },
+    "ev_fb69f90d48668e7ca011": {
+      "dataset_json_pointer": "/facts/121",
+      "fact_sha256": "b46cf8c0e0f8e2f86d145736b2fc48b3a4fd82ac34e35e0ed14ac3b59176839c"
+    },
+    "ev_fcc53c7ef26e0a58db6d": {
+      "dataset_json_pointer": "/facts/84",
+      "fact_sha256": "8d9dc7e76b05af98f6295af3529c5baf2690df0c17fc06c7c69a02d07a0420a1"
+    }
+  },
+  "format": "tcc-rca-input-provenance-v1",
+  "rca_input_sha256": "54f116a5077fae0770e3c19a56278649fec4803fd9d9ae5258d53cbee28f616d"
+}
