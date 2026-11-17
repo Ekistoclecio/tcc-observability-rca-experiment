@@ -1,0 +1,25 @@
+{
+  "confirmed_end": "2026-11-17T00:31:36.634179Z",
+  "confirmed_start": "2026-11-17T00:31:00.769984Z",
+  "execution_eligible": true,
+  "fault_id": "F2-stage4-smoke",
+  "fault_type": "network_latency",
+  "ineligibility_reason": null,
+  "injection_confirmation": {
+    "control_plane_check": "F2 ClusterIP:port ipset classifier and netem packet counters increased",
+    "evidence": "{\"chaos_mesh\": {\"control_plane_check\": \"Chaos Mesh Selected and AllInjected conditions\", \"evidence\": \"{\\\"conditions\\\": {\\\"conditions\\\": [{\\\"status\\\": \\\"True\\\", \\\"type\\\": \\\"AllInjected\\\"}, {\\\"status\\\": \\\"False\\\", \\\"type\\\": \\\"AllRecovered\\\"}, {\\\"status\\\": \\\"False\\\", \\\"type\\\": \\\"Paused\\\"}, {\\\"status\\\": \\\"True\\\", \\\"type\\\": \\\"Selected\\\"}], \\\"experiment\\\": {\\\"containerRecords\\\": [{\\\"events\\\": [{\\\"operation\\\": \\\"Apply\\\", \\\"timestamp\\\": \\\"2026-11-17T00:30:51Z\\\", \\\"type\\\": \\\"Succeeded\\\"}], \\\"id\\\": \\\"online-boutique/checkoutservice-58c76865f-hptt6\\\", \\\"injectedCount\\\": 1, \\\"phase\\\": \\\"Injected\\\", \\\"recoveredCount\\\": 0, \\\"selectorKey\\\": \\\".\\\"}], \\\"desiredPhase\\\": \\\"Run\\\"}, \\\"instances\\\": {\\\"online-boutique/checkoutservice-58c76865f-hptt6\\\": 1}}, \\\"external_target\\\": \\\"10.96.106.113:50051\\\"}\"}, \"network_effect\": {\"after\": {\"chaos_output_packets\": 216, \"classifier_packets\": 4, \"external_target\": \"10.96.106.113:50051\", \"ipset\": {\"classifier_parent\": \"tcc-f_6b27dbfbee7_set_netgt\", \"member\": \"10.96.106.113,tcp:50051\", \"name\": \"tcc-f_6b27dbf_netport_netgt\"}, \"netem\": {\"bytes\": 460, \"packets\": 4}, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-6vm68\", \"container_id\": \"7033e65b521841d9dced09842afc9fa6b6c3439fbd66bb49635a3a61a86240ba\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 129614, \"pod\": \"checkoutservice-58c76865f-hptt6\"}, \"observed_at\": \"2026-11-17T00:31:00.769897Z\"}, \"before\": {\"chaos_output_packets\": 20, \"classifier_packets\": 0, \"external_target\": \"10.96.106.113:50051\", \"ipset\": {\"classifier_parent\": \"tcc-f_6b27dbfbee7_set_netgt\", \"member\": \"10.96.106.113,tcp:50051\", \"name\": \"tcc-f_6b27dbf_netport_netgt\"}, \"netem\": {\"bytes\": 0, \"packets\": 0}, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-6vm68\", \"container_id\": \"7033e65b521841d9dced09842afc9fa6b6c3439fbd66bb49635a3a61a86240ba\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 129614, \"pod\": \"checkoutservice-58c76865f-hptt6\"}, \"observed_at\": \"2026-11-17T00:30:54.034933Z\"}, \"confirmation_probe_excluded_from_measurement_window\": true, \"deltas\": {\"classifier_packets\": 4, \"netem_bytes\": 460, \"netem_packets\": 4}, \"external_target\": \"10.96.106.113:50051\"}}",
+    "observed_at": "2026-11-17T00:31:00.769984Z"
+  },
+  "recovery_confirmation": {
+    "control_plane_check": "target restored and fault control absent",
+    "evidence": "{\"network_recovery\": {\"active_netem\": false, \"active_network_fault_state_removed\": true, \"chaos_output_hook_active\": false, \"classifier_chain_referenced\": false, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-6vm68\", \"container_id\": \"7033e65b521841d9dced09842afc9fa6b6c3439fbd66bb49635a3a61a86240ba\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 129614, \"pod\": \"checkoutservice-58c76865f-hptt6\"}, \"orphaned_inert_target_ipsets\": [\"tcc-f_6b27dbf_netport_netgt\"]}, \"resource_absent\": true}",
+    "observed_at": "2026-11-17T00:31:36.634179Z"
+  },
+  "requested_start": "2026-11-17T00:30:50.270750Z",
+  "root_location": {
+    "kind": "service_edge",
+    "value": "checkoutservice -> paymentservice"
+  },
+  "schema_version": "1.0",
+  "status": "RECOVERED"
+}

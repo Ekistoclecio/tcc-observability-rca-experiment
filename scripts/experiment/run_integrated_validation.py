@@ -589,14 +589,69 @@ def verify_global_raw_hashes(root: Path) -> int:
         raise IntegratedRunError("global RAW collection hash list is missing")
     entries = {}
     for line in hash_path.read_text(encoding="utf-8").splitlines():
-        digest, relative = line.split("  ", 1)
+        try:
+            digest, relative = line.split("  ", 1)
+        except ValueError as exc:
+            raise IntegratedRunError(f"invalid global RAW hash entry: {line!r}") from exc
+        relative_path = Path(relative)
+        if (not relative or relative_path.is_absolute() or ".." in relative_path.parts
+                or relative in entries):
+            raise IntegratedRunError(f"invalid or duplicate global RAW path: {relative!r}")
         path = root / relative
         if relative == "manifest.json":
             path = root / "global-raw-manifest.json"
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+        if (path.is_symlink() or not path.is_file()
+                or hashlib.sha256(path.read_bytes()).hexdigest() != digest):
             raise IntegratedRunError(f"global RAW hash mismatch: {relative}")
         entries[relative] = digest
+
+    manifest_path = root / "global-raw-manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise IntegratedRunError(f"invalid global RAW manifest: {exc}") from exc
+    if not isinstance(manifest, dict):
+        raise IntegratedRunError("global RAW manifest must be a JSON object")
+    declared = {}
+    for section in ("native_responses", "control_artifacts"):
+        artifacts = manifest.get(section)
+        if not isinstance(artifacts, list):
+            raise IntegratedRunError(f"global RAW manifest has invalid {section}")
+        for artifact in artifacts:
+            if not isinstance(artifact, dict):
+                raise IntegratedRunError(f"global RAW manifest has invalid {section} entry")
+            relative = artifact.get("path")
+            digest = artifact.get("sha256")
+            size = artifact.get("bytes")
+            if (not isinstance(relative, str) or not relative or relative in declared
+                    or not isinstance(digest, str) or not isinstance(size, int)):
+                raise IntegratedRunError(f"global RAW manifest has invalid artifact metadata: {artifact}")
+            declared[relative] = (digest, size)
+    expected_paths = set(declared) | {"manifest.json"}
+    if set(entries) != expected_paths:
+        raise IntegratedRunError(
+            "global RAW manifest/hash list inventory mismatch: "
+            f"unlisted={sorted(set(entries) - expected_paths)}, "
+            f"missing={sorted(expected_paths - set(entries))}"
+        )
+    for relative, (digest, size) in declared.items():
+        path = root / relative
+        if (entries[relative] != digest or path.is_symlink() or not path.is_file()
+                or path.stat().st_size != size):
+            raise IntegratedRunError(f"global RAW manifest mismatch: {relative}")
     return len(entries)
+
+
+def package_global_raw(global_raw: Path, staging: Path) -> int:
+    """Copy the complete native RAW bundle into results staging without rewriting it."""
+    for directory in ("datasetA", "datasetB", "control"):
+        source = global_raw / directory
+        if not source.is_dir():
+            raise IntegratedRunError(f"global RAW directory is missing: {source}")
+        shutil.copytree(source, staging / directory, copy_function=shutil.copy2)
+    shutil.copy2(global_raw / "manifest.json", staging / "global-raw-manifest.json")
+    shutil.copy2(global_raw / "hashes.sha256", staging / "global-raw-hashes.sha256")
+    return verify_global_raw_hashes(staging)
 
 
 def raw_log_sample(bundle: Path, side: str, predicate) -> dict[str, Any] | None:
@@ -866,7 +921,7 @@ def create_audit_package(results: Path, execution: dict[str, Any], fault_results
 
 
 def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> dict[str, Any]:
-    if output.exists():
+    if output.exists() or output.is_symlink():
         raise IntegratedRunError(f"results output already exists; refusing overwrite: {output}")
     manifest = {"format": "tcc-experiment-v2-integrated-results-v1", **execution,
                 "artifacts": hash_inventory(staging)}
@@ -875,8 +930,19 @@ def finalize_results(staging: Path, output: Path, execution: dict[str, Any]) -> 
     for path in sorted(item for item in staging.rglob("*") if item.is_file() and item.name != "hashes.sha256"):
         lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(staging).as_posix()}")
     (staging / "hashes.sha256").write_text("\n".join(lines) + "\n")
-    shutil.copytree(staging, output, copy_function=shutil.copy2)
-    verify_hash_manifest(output)
+    verify_hash_manifest(staging)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    publish_staging = Path(tempfile.mkdtemp(prefix=f".{output.name}.publish-", dir=output.parent))
+    try:
+        shutil.copytree(staging, publish_staging, dirs_exist_ok=True, copy_function=shutil.copy2)
+        verify_hash_manifest(publish_staging)
+        if output.exists() or output.is_symlink():
+            raise IntegratedRunError(f"results output appeared during publication: {output}")
+        os.replace(publish_staging, output)
+    finally:
+        if publish_staging.exists():
+            shutil.rmtree(publish_staging)
     return {"status": "PASS", "results": str(output), "files_hashed": len(lines),
             "manifest_sha256": hashlib.sha256((output / "manifest.json").read_bytes()).hexdigest(),
             "hash_list_sha256": hashlib.sha256((output / "hashes.sha256").read_bytes()).hexdigest()}
@@ -992,14 +1058,10 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
         global_collection = collect(global_raw, time_text(start_time), time_text(global_end),
                                     control_workload, commit, envvars, env)
         (staging / "global-collection.json").write_text(json.dumps(global_collection, indent=2, sort_keys=True) + "\n")
-        for side in "AB":
-            shutil.copytree(global_raw / f"dataset{side}", staging / f"dataset{side}", copy_function=shutil.copy2)
-        shutil.copy2(global_raw / "manifest.json", staging / "global-raw-manifest.json")
-        shutil.copy2(global_raw / "hashes.sha256", staging / "global-raw-hashes.sha256")
-        verify_global_raw_hashes(staging)
+        package_global_raw(global_raw, staging)
         (staging / "README.md").write_text(
             "# Resultados integrados — experiment-v2\n\n"
-            f"Commit executado: `{commit}`. RAW global completo e nativo está em `datasetA/` e `datasetB/`; "
+            f"Commit executado: `{commit}`. RAW global completo e nativo está em `datasetA/`, `datasetB/` e `control/`; "
             "`global-raw-manifest.json` e `global-raw-hashes.sha256` preservam a consulta e a integridade da coleta.\n\n"
             "Cada diretório numerado contém RAW da janela do fault, Dataset A/B, RCA Input A/B e Ground Truth "
             "separado dos inputs. Os inputs não contêm Ground Truth nem rótulo de cenário. Nenhuma chamada de LLM foi feita.\n"

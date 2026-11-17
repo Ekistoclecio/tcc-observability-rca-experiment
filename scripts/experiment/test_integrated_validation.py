@@ -8,12 +8,15 @@ from unittest.mock import patch
 from run_integrated_validation import (
     IntegratedRunError,
     dataset_evidence,
+    finalize_results,
     fresh_prometheus_instances,
+    package_global_raw,
     reserve_local_port,
     run,
     run_normal_baseline,
     validate_fault_facts,
     verify_global_raw_hashes,
+    verify_hash_manifest,
     write_hashes,
 )
 
@@ -36,6 +39,49 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def make_global_raw_fixture(self, root, native_count=44):
+        import hashlib
+
+        source = root / "global-raw"
+        (source / "datasetA").mkdir(parents=True)
+        (source / "datasetB").mkdir()
+        (source / "control").mkdir()
+        native_responses = []
+        for index in range(native_count):
+            side = "A" if index % 2 == 0 else "B"
+            relative = f"dataset{side}/sample-{index:02d}.json"
+            path = source / relative
+            path.write_bytes(f"native response {index}\n".encode())
+            native_responses.append({
+                "path": relative,
+                "bytes": path.stat().st_size,
+                "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "content_type": "application/json",
+                "http_status": 200,
+            })
+        control = source / "control/workload.json"
+        control.write_bytes(b'{"workload":"original bytes"}\n')
+        control_artifacts = [{
+            "path": "control/workload.json",
+            "bytes": control.stat().st_size,
+            "sha256": hashlib.sha256(control.read_bytes()).hexdigest(),
+            "content_type": "application/json",
+            "kind": "workload-control-record",
+        }]
+        manifest = source / "manifest.json"
+        manifest.write_text(json.dumps({
+            "format": "tcc-experiment-v2-raw-collection-v1",
+            "native_responses": native_responses,
+            "control_artifacts": control_artifacts,
+        }, sort_keys=True) + "\n")
+        entries = []
+        for path in sorted(item for item in source.rglob("*") if item.is_file()):
+            entries.append(
+                f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(source).as_posix()}"
+            )
+        (source / "hashes.sha256").write_text("\n".join(entries) + "\n")
+        return source
+
     def test_reserves_ephemeral_local_port_for_prometheus_forward(self):
         self.assertGreater(reserve_local_port(), 0)
 
@@ -171,8 +217,15 @@ class IntegratedValidationTests(unittest.TestCase):
             data_path = root / "datasetA/metrics.json"
             data_path.write_text("native response")
             manifest = root / "global-raw-manifest.json"
-            manifest.write_text("collector manifest")
             import hashlib
+            manifest.write_text(json.dumps({
+                "native_responses": [{
+                    "path": "datasetA/metrics.json",
+                    "bytes": data_path.stat().st_size,
+                    "sha256": hashlib.sha256(data_path.read_bytes()).hexdigest(),
+                }],
+                "control_artifacts": [],
+            }))
             entries = [
                 f"{hashlib.sha256(data_path.read_bytes()).hexdigest()}  datasetA/metrics.json",
                 f"{hashlib.sha256(manifest.read_bytes()).hexdigest()}  manifest.json",
@@ -182,6 +235,81 @@ class IntegratedValidationTests(unittest.TestCase):
             data_path.write_text("changed")
             with self.assertRaises(IntegratedRunError):
                 verify_global_raw_hashes(root)
+
+    def test_global_raw_packaging_preserves_every_hash_listed_file_byte_for_byte(self):
+        import hashlib
+
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.make_global_raw_fixture(root, native_count=44)
+            staging = root / "staging"
+            staging.mkdir()
+
+            self.assertEqual(package_global_raw(source, staging), 46)
+            original = (source / "control/workload.json").read_bytes()
+            self.assertEqual((staging / "control/workload.json").read_bytes(), original)
+
+            hash_entries = (staging / "global-raw-hashes.sha256").read_text().splitlines()
+            self.assertEqual(len(hash_entries), 46)
+            for line in hash_entries:
+                expected, relative = line.split("  ", 1)
+                path = staging / relative
+                if relative == "manifest.json":
+                    path = staging / "global-raw-manifest.json"
+                self.assertTrue(path.exists(), relative)
+                self.assertTrue(path.is_file(), relative)
+                self.assertFalse(path.is_symlink(), relative)
+                self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), expected, relative)
+
+    def test_global_raw_hash_verification_rejects_missing_or_modified_listed_files(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = self.make_global_raw_fixture(root, native_count=2)
+            staging = root / "staging"
+            staging.mkdir()
+            package_global_raw(source, staging)
+
+            (staging / "control/workload.json").unlink()
+            with self.assertRaisesRegex(IntegratedRunError, "control/workload.json"):
+                verify_global_raw_hashes(staging)
+            (staging / "control/workload.json").write_bytes(b"changed bytes\n")
+            with self.assertRaisesRegex(IntegratedRunError, "control/workload.json"):
+                verify_global_raw_hashes(staging)
+
+    def test_final_results_are_hash_checked_before_atomic_publication(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            staging = root / "stage"
+            staging.mkdir()
+            (staging / "evidence.json").write_text('{"status":"PASS"}\n')
+            output = root / "results"
+
+            result = finalize_results(staging, output, {"tested_commit": "test-sha"})
+
+            self.assertEqual(result["status"], "PASS")
+            self.assertTrue(output.is_dir())
+            self.assertEqual(verify_hash_manifest(output), 2)
+
+    def test_final_results_are_not_published_when_staging_copy_fails_integrity(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            staging = root / "stage"
+            staging.mkdir()
+            (staging / "evidence.json").write_text('{"status":"PASS"}\n')
+            output = root / "results"
+            verify = verify_hash_manifest
+
+            def reject_publish_copy(path):
+                if path.name.startswith(".results.publish-"):
+                    raise IntegratedRunError("synthetic staging-copy hash failure")
+                return verify(path)
+
+            with patch("run_integrated_validation.verify_hash_manifest", side_effect=reject_publish_copy):
+                with self.assertRaisesRegex(IntegratedRunError, "staging-copy hash failure"):
+                    finalize_results(staging, output, {"tested_commit": "test-sha"})
+
+            self.assertFalse(output.exists())
+            self.assertEqual(list(root.glob(".results.publish-*")), [])
 
     def test_f4_requires_error_log_and_real_b_log_span_correlation(self):
         log_a = {"signal": "log", "service": "paymentservice", "message": "Payment charge failed",

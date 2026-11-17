@@ -1,0 +1,51 @@
+{
+  "stage": "12C-f2-fix-validation",
+  "branch": "experiment-v2",
+  "fix_commit": "d6a43936b5b18ae7f6534f947c77bcba2a1f7bf3",
+  "tested_commit": "a51a09eae1c7b5cf8216ab96c4a6b15a1ce05dcd",
+  "chaos_mesh_version": "2.8.6",
+  "implementation": {
+    "service": "paymentservice",
+    "dynamic_cluster_ip_resolution": true,
+    "target": "checkoutservice",
+    "external_target_port": 50051,
+    "pod_target_used": false,
+    "direction": "to",
+    "latency_ms": 100,
+    "jitter_ms": 0,
+    "correlation_percent": 100,
+    "confirmation_source": "network control-plane matcher and netem counters",
+    "confirmation_probe_excluded_from_measurement_window": true
+  },
+  "isolated_post_deploy_validation": {
+    "status": "PASS",
+    "deployment_provenance": "10/10 PASS",
+    "resolved_external_target": "10.96.106.113:50051",
+    "matcher_packet_delta": 4,
+    "netem_packet_delta": 4,
+    "netem_byte_delta": 460,
+    "confirmation_checkout_http_status": 200,
+    "scenario_a": {
+      "paymentservice_charge_client_ms": 104.32,
+      "shippingservice_getquote_client_ms": 0.847
+    },
+    "scenario_b": {
+      "paymentservice_charge_client_ms": 104.254,
+      "shippingservice_getquote_client_ms": 0.811,
+      "payment_client_span_present": true
+    },
+    "raw_integrity": "PASS",
+    "recovery": "PASS",
+    "post_recovery_checkout": "PASS",
+    "active_network_fault_residual": false,
+    "inert_orphan_target_ipsets_observed": true
+  },
+  "integrated_battery": {
+    "started_from_f1": true,
+    "f1_f2_f3_f4_f5_individual_fault_smokes": "PASS",
+    "overall_battery_status": "INVALIDATED",
+    "blocker": "global RAW packaging omitted hash-listed control/workload.json",
+    "report": "docs/experiment/reports/BLOCKED-12-global-raw-packaging.md"
+  },
+  "evidence_directory": "docs/experiment/stages/12C-f2-fix-validation-artifacts/"
+}

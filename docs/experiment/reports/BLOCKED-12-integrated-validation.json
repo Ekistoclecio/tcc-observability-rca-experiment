@@ -1,48 +1,28 @@
 {
-  "affected_files": [
-    "docs/experiment/reports/BLOCKED-12-integrated-validation.md",
-    "docs/experiment/reports/BLOCKED-12-integrated-validation.json"
-  ],
-  "affected_invariant": "F2 requires observable latency on checkoutservice -> paymentservice in A and B; control-plane injection confirmation does not prove the required diagnostic observation.",
-  "alternatives": [
-    "If network traffic was not classified to the paymentservice Pod, correct only NetworkChaos target/path configuration while preserving the service-edge treatment.",
-    "If A was delayed but its span timing or B span was lost, correct the affected observation/export layer; do not weaken the 100ms gate."
-  ],
-  "branch": "experiment-v2",
-  "completed_in_this_battery": {
-    "F1": "PASS",
-    "F2": "FAIL",
-    "F3": "NOT_RUN",
-    "F4": "NOT_RUN",
-    "F5": "NOT_RUN",
-    "deployment_provenance": "10/10 PASS",
-    "normal_baseline": "PASS",
-    "preflight": "PASS"
-  },
-  "evidence": [
-    "F2/ground-truth.json: confirmed independent window and edge location",
-    "F2/fault-smoke.json: Chaos Mesh Selected/AllInjected and successful workload/recovery",
-    "f2-chaos-daemon-readonly.log: netem 100ms configuration request and target IP ipset/classifier setup, followed by cleanup; effective packet/qdisc match is not proven",
-    "F2/raw/datasetA/traces/checkoutservice.json: A edge span duration 5866us",
-    "F2/raw/datasetB/traces/checkoutservice.json: no B checkoutservice CLIENT span in window",
-    "preflight/deployment-provenance.json: 10/10 services deployed from commit 7c1c1f8"
-  ],
-  "evidence_directory": "docs/experiment/reports/BLOCKED-12-artifacts-1794866601",
-  "expected": "Both scenarios expose a checkoutservice->paymentservice edge with at least 100 ms latency for F2.",
-  "first_divergence": "network effect vs RAW observation; A observed edge duration remains 5.866ms while B edge CLIENT span is absent",
-  "last_successful_commit": "7c1c1f8f1a076a9a10cef0afcfc83417a7c91fb5",
-  "minimum_data_needed_for_decision": [
-    "Evidence that the checkoutservice egress packet to paymentservice matched the intended target set and netem qdisc during the confirmed window (or proof it did not).",
-    "B-side trace/export evidence for the same request showing whether a checkout CLIENT span was created, exported, queried, or dropped."
-  ],
-  "observed": "F1 passed. F2 failed in A: the confirmed checkoutservice->paymentservice window contains an A client span lasting 5.866 ms, below configured 100 ms. B has no checkoutservice CLIENT edge span in collected RAW, though a paymentservice server Charge span exists.",
-  "physical_rerun_required": true,
-  "recommended_correction": "Do not patch from current evidence. Perform read-only diagnosis of effective packet matching/qdisc path and B client-span export/query path; only then define a minimal correction and authorize a new F2 physical validation.",
-  "root_cause": "UNKNOWN",
-  "safe_automatic_correction_possible": false,
-  "scientific_impact": "F1 evidence in this battery passed, but the integrated battery is invalid and incomplete; no F2-F5 results can be combined or reported as a complete campaign.",
   "stage": "12-integrated-validation",
-  "stopped_before": "F3",
-  "why_further_automatic_correction_is_unsafe": "The record proves the fault resource was selected/injected and the Chaos Daemon recorded a 100ms netem setup request, but no in-window packet/qdisc match evidence exists; B also lacks its client span. It is not yet possible to isolate network effect/configuration from B trace observation loss.",
-  "working_tree_status": "BLOCKER report and preserved evidence added after the run; source implementation remains at last tested commit"
+  "last_successful_commit": "a51a09eae1c7b5cf8216ab96c4a6b15a1ce05dcd",
+  "tested_commit": "a51a09eae1c7b5cf8216ab96c4a6b15a1ce05dcd",
+  "branch": "experiment-v2",
+  "battery_status": "INVALIDATED",
+  "completed_physical_faults": ["F1", "F2", "F3", "F4", "F5"],
+  "observed": "global RAW hash mismatch: control/workload.json",
+  "expected": "all files listed by the global RAW manifest/hash list are present byte-for-byte in final staging",
+  "first_divergence": "GLOBAL_RAW_RESULT_PACKAGING copied datasetA, datasetB, manifest and hashes, but omitted global-raw/control/workload.json",
+  "root_cause": "PROVEN",
+  "evidence": "docs/experiment/reports/BLOCKED-12-artifacts-1794876161",
+  "affected_files": ["scripts/experiment/run_integrated_validation.py"],
+  "affected_invariant": "global RAW completeness and artifact integrity",
+  "scientific_impact": "F1-F5 per-fault staging passed, but final artifact integrity failed; no final result package was published and this battery is invalid for final reporting",
+  "safe_automatic_correction_possible": false,
+  "recommended_correction": "copy global-raw/control/ into result staging byte-for-byte before hash verification; retain original hash list; add a focused packaging-integrity test",
+  "alternative": "do not omit control/workload.json from the hash list",
+  "physical_rerun_required": true,
+  "stopped_before": "publishing docs/experiment/results and docs/experiment/teste",
+  "llm_invocations": 0,
+  "resolution": {
+    "blocker": "GLOBAL_RAW_RESULT_PACKAGING",
+    "local_fix_status": "IMPLEMENTED_AND_TESTED",
+    "official_battery_status": "INVALIDATED; MUST RESTART FROM F1 AFTER NEW FROZEN COMMIT"
+  },
+  "working_tree_status": "packaging fix, regression tests, blocker updates and preserved compact evidence pending commit"
 }
