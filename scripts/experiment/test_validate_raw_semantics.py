@@ -8,15 +8,134 @@ from validate_raw_semantics import (
     is_raw_only_trace,
     is_error_span,
     normalize_operation,
+    rfc3339_epoch_ns,
     semantic_operation_signature,
     severity_semantic,
     trace_spans,
     verify_raw_bundle,
+    verify_gt_and_window,
     ValidationError,
 )
 
 
 class RawSemanticValidationTests(unittest.TestCase):
+    def test_rfc3339_parser_compares_fractional_precision_exactly(self):
+        variants = (
+            "2026-11-17T12:34:56.310126Z",
+            "2026-11-17T12:34:56.310126000Z",
+        )
+        self.assertEqual(*(rfc3339_epoch_ns(value) for value in variants))
+        self.assertEqual(
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310126000Z"),
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310126000Z"),
+        )
+        self.assertNotEqual(
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310126001Z"),
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310126000Z"),
+        )
+        self.assertNotEqual(
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310127Z"),
+            rfc3339_epoch_ns("2026-11-17T12:34:56.310126000Z"),
+        )
+
+    def test_rfc3339_parser_normalizes_timezones_exactly(self):
+        self.assertEqual(
+            rfc3339_epoch_ns("2026-11-17T12:00:00Z"),
+            rfc3339_epoch_ns("2026-11-17T09:00:00-03:00"),
+        )
+        self.assertNotEqual(
+            rfc3339_epoch_ns("2026-11-17T12:00:00Z"),
+            rfc3339_epoch_ns("2026-11-17T09:00:01-03:00"),
+        )
+
+    def test_rfc3339_parser_accepts_fractional_trailing_zero_variants(self):
+        values = (
+            "2026-11-17T12:34:56.1Z",
+            "2026-11-17T12:34:56.100Z",
+            "2026-11-17T12:34:56.100000Z",
+            "2026-11-17T12:34:56.100000000Z",
+        )
+        self.assertEqual(len({rfc3339_epoch_ns(value) for value in values}), 1)
+
+    def test_rfc3339_parser_rejects_invalid_or_subnanosecond_timestamps(self):
+        for value in ("not-a-timestamp", "2026-13-17T12:00:00Z",
+                      "2026-11-17T12:00:00.0000000001Z"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                rfc3339_epoch_ns(value)
+
+    def test_real_ground_truth_window_gate_compares_instants(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root / "raw"
+            raw.mkdir()
+            gt_path = root / "ground-truth.json"
+            gt_path.write_text(json.dumps({
+                "status": "RECOVERED",
+                "execution_eligible": True,
+                "fault_type": "application_exception",
+                "root_location": {"kind": "operation", "value": "paymentservice/Charge"},
+                "confirmed_start": "2026-11-17T12:34:56.310126Z",
+                "confirmed_end": "2026-11-17T12:34:57.310126Z",
+            }))
+            (raw / "manifest.json").write_text(json.dumps({"window": {
+                "start": "2026-11-17T12:34:56.310126000Z",
+                "end": "2026-11-17T12:34:57.310126000Z",
+            }}))
+            result = verify_gt_and_window(
+                raw, gt_path, "application_exception", "operation", "paymentservice/Charge"
+            )
+            self.assertEqual(result["window"]["status"], "PASS")
+            self.assertEqual(result["window"]["comparisons"]["start"]["delta_ns"], 0)
+            self.assertEqual(result["window"]["comparisons"]["end"]["delta_ns"], 0)
+
+    def test_real_ground_truth_window_gate_reports_exact_temporal_delta(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root / "raw"
+            raw.mkdir()
+            gt_path = root / "ground-truth.json"
+            gt_path.write_text(json.dumps({
+                "status": "RECOVERED",
+                "execution_eligible": True,
+                "fault_type": "datastore_unavailable",
+                "root_location": {"kind": "datastore", "value": "redis-cart"},
+                "confirmed_start": "2026-11-17T12:34:56.310126Z",
+                "confirmed_end": "2026-11-17T12:34:57.310126Z",
+            }))
+            (raw / "manifest.json").write_text(json.dumps({"window": {
+                "start": "2026-11-17T12:34:56.310126001Z",
+                "end": "2026-11-17T12:34:57.310126000Z",
+            }}))
+            result = verify_gt_and_window(
+                raw, gt_path, "datastore_unavailable", "datastore", "redis-cart"
+            )
+            self.assertEqual(result["window"]["status"], "FAIL")
+            self.assertEqual(result["window"]["comparisons"]["start"]["delta_ns"], 1)
+
+    def test_real_ground_truth_window_gate_fails_explicitly_on_invalid_timestamp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root / "raw"
+            raw.mkdir()
+            gt_path = root / "ground-truth.json"
+            gt_path.write_text(json.dumps({
+                "status": "RECOVERED",
+                "execution_eligible": True,
+                "fault_type": "application_exception",
+                "root_location": {"kind": "operation", "value": "paymentservice/Charge"},
+                "confirmed_start": "invalid",
+                "confirmed_end": "2026-11-17T12:34:57Z",
+            }))
+            (raw / "manifest.json").write_text(json.dumps({"window": {
+                "start": "2026-11-17T12:34:56Z",
+                "end": "2026-11-17T12:34:57Z",
+            }}))
+            result = verify_gt_and_window(
+                raw, gt_path, "application_exception", "operation", "paymentservice/Charge"
+            )
+            self.assertEqual(result["window"]["status"], "FAIL")
+            self.assertIn("error", result["window"]["comparisons"]["start"])
+
     def test_normalizes_only_native_operation_prefixes(self):
         self.assertEqual(normalize_operation("grpc.hipstershop.PaymentService/Charge"),
                          "hipstershop.PaymentService/Charge")

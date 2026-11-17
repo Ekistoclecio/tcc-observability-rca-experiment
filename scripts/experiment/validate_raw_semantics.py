@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -31,6 +32,12 @@ SERVICES = (
 DATASTORES = ("redis-cart",)
 TRACE_ID_RE = re.compile(r"^[0-9a-fA-F]{32}$")
 SPAN_ID_RE = re.compile(r"^[0-9a-fA-F]{16}$")
+RFC3339_RE = re.compile(
+    r"^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})"
+    r"[Tt](?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})"
+    r"(?:\.(?P<fraction>\d+))?(?P<offset>[Zz]|[+-]\d{2}:\d{2})$"
+)
+NANOSECONDS_PER_SECOND = 1_000_000_000
 
 
 class ValidationError(RuntimeError):
@@ -63,6 +70,43 @@ def read_json(path: Path) -> Any:
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def rfc3339_epoch_ns(value: str) -> int:
+    """Parse an RFC3339 instant exactly, without float or sub-ns rounding."""
+    if not isinstance(value, str):
+        raise ValueError("timestamp must be a string")
+    match = RFC3339_RE.fullmatch(value)
+    if match is None:
+        raise ValueError(f"invalid RFC3339 timestamp: {value!r}")
+    fraction = match.group("fraction") or ""
+    if len(fraction) > 9:
+        raise ValueError(f"timestamp precision exceeds nanoseconds: {value!r}")
+
+    raw_offset = match.group("offset")
+    if raw_offset.lower() == "z":
+        offset = timezone.utc
+    else:
+        sign = 1 if raw_offset[0] == "+" else -1
+        offset_hour = int(raw_offset[1:3])
+        offset_minute = int(raw_offset[4:6])
+        if offset_hour > 23 or offset_minute > 59:
+            raise ValueError(f"invalid RFC3339 UTC offset: {value!r}")
+        offset = timezone(sign * timedelta(hours=offset_hour, minutes=offset_minute))
+
+    try:
+        local = datetime(
+            int(match.group("year")), int(match.group("month")), int(match.group("day")),
+            int(match.group("hour")), int(match.group("minute")), int(match.group("second")),
+            tzinfo=offset,
+        )
+    except ValueError as exc:
+        raise ValueError(f"invalid RFC3339 timestamp: {value!r}: {exc}") from exc
+
+    utc_delta = local.astimezone(timezone.utc) - datetime(1970, 1, 1, tzinfo=timezone.utc)
+    whole_seconds = utc_delta.days * 86_400 + utc_delta.seconds
+    fractional_ns = int(fraction.ljust(9, "0")) if fraction else 0
+    return whole_seconds * NANOSECONDS_PER_SECOND + fractional_ns
 
 
 def verify_raw_bundle(root: Path) -> dict[str, Any]:
@@ -390,7 +434,31 @@ def verify_gt_and_window(root: Path, gt_path: Path, fault_type: str, location_ki
     window = manifest.get("window", {})
     start = gt.get("confirmed_start")
     end = gt.get("confirmed_end")
-    window_matches = start is not None and end is not None and window.get("start") == start and window.get("end") == end
+    comparisons: dict[str, Any] = {}
+    window_matches = start is not None and end is not None
+    for boundary, expected_raw in (("start", start), ("end", end)):
+        actual_raw = window.get(boundary)
+        comparison: dict[str, Any] = {
+            "expected_raw": expected_raw,
+            "actual_raw": actual_raw,
+        }
+        try:
+            if expected_raw is None or actual_raw is None:
+                raise ValueError("timestamp is missing")
+            expected_ns = rfc3339_epoch_ns(expected_raw)
+            actual_ns = rfc3339_epoch_ns(actual_raw)
+            delta_ns = actual_ns - expected_ns
+            comparison.update({
+                "expected_epoch_ns": expected_ns,
+                "actual_epoch_ns": actual_ns,
+                "delta_ns": delta_ns,
+                "status": "PASS" if delta_ns == 0 else "FAIL",
+            })
+            window_matches = window_matches and delta_ns == 0
+        except ValueError as exc:
+            comparison.update({"status": "FAIL", "error": str(exc)})
+            window_matches = False
+        comparisons[boundary] = comparison
     return {
         "ground_truth": {
             "path": str(gt_path),
@@ -400,8 +468,13 @@ def verify_gt_and_window(root: Path, gt_path: Path, fault_type: str, location_ki
             "root_location": root_location,
             "status_check": "PASS" if passed else "FAIL",
         },
-        "window": {"start": start, "end": end, "manifest_window": window,
-                   "status": "PASS" if window_matches else "FAIL"},
+        "window": {
+            "start": start,
+            "end": end,
+            "manifest_window": window,
+            "comparisons": comparisons,
+            "status": "PASS" if window_matches else "FAIL",
+        },
     }
 
 
