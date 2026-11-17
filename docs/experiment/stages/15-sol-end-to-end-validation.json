@@ -124,7 +124,8 @@
     "predictions": "PASS",
     "secret scan": "PASS",
     "validation_root_inventory": "PASS (1278 entries; includes nested hashes.sha256)",
-    "validation_root_sha256": "540af111015524d0fc20e960190aac8f8d2e8f599bf00906eabde876194b34d7"
+    "validation_root_inventory_entries": 1279,
+    "validation_root_sha256": "7cbac56591e86c30f3c579db2328e1dc2e2aadd03a1b6603b04f3ef54502be89"
   },
   "llm_protocol": {
     "model": "gpt-6.1-sol",

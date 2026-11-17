@@ -1,56 +1,170 @@
-# Etapa 15 — piloto end-to-end GPT-6.1 Sol
+<!-- <p align="center">
+<img src="/src/frontend/static/icons/Hipster_HeroLogoMaroon.svg" width="300" alt="Online Boutique" />
+</p> -->
+![Continuous Integration](https://github.com/GoogleCloudPlatform/microservices-demo/workflows/Continuous%20Integration%20-%20Main/Release/badge.svg)
 
-## Execução física e protocolo
+**Online Boutique** is a cloud-first microservices demo application.  The application is a
+web-based e-commerce app where users can browse items, add them to the cart, and purchase them.
 
-Validação piloto com ambiente fresco: cinco fault instances físicos, uma execução por fault, tratamentos pareados A/B. F1–F5, Ground Truth, RAW, validação semântica, Dataset A/B, RCA Input A/B, recuperação, cleanup e finalização passaram. Não é uma bateria estatística definitiva.
+Google uses this application to demonstrate how developers can modernize enterprise applications using Google Cloud products, including: [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine), [Cloud Service Mesh (CSM)](https://cloud.google.com/service-mesh), [gRPC](https://grpc.io/), [Cloud Operations](https://cloud.google.com/products/operations), [Spanner](https://cloud.google.com/spanner), [Memorystore](https://cloud.google.com/memorystore), [AlloyDB](https://cloud.google.com/alloydb), and [Gemini](https://ai.google.dev/). This application works on any Kubernetes cluster.
 
-- Identidade física: `sol-e2e-v1-20261117T183158Z`; commit físico testado `35069e451c95969962753f2ed1370fb4c77d4c0a`.
-- Cluster `tcc-experiment-v2-stage1` reconstruído; Chaos Mesh `2.8.6`.
-- Provenance: `PASS 10/10`; SUT `11/11 Ready`.
-- Jaeger PVCs novos A/B `c8d16fdc-6a42-422a-9357-e514fdc60099` / `2e822f25-efa6-4c0a-b0fe-51a53a743059`; 512 MiB, restart count 0/0, OOM none.
-- F1–F5: `{"F1": "PASS", "F2": "PASS", "F3": "PASS", "F4": "PASS", "F5": "PASS"}`.
-- Commit do runner/protocolo `0c264780a2b33213ec763e3f48b979bd154e3c7c`; predictions `cba1569e007cbda3921f061dbcbbbeb9e65d7452`; evaluator `96515afb13e9fa5e01a8f9e43cf7e3cd03e07759`.
-- Protocolo `llm-rca-sol-e2e-v1`, modelo `gpt-6.1-sol`, reasoning standard/medium, tools none.
-- Prompt `rca-prompt-v1` SHA-256 `2e107e3c7f45b843bdad435f8c233dfe5085f3589c56ddd2bf04da12998fa86b`; schema `rca-schema-v1` SHA-256 `00f6a92d2946e1e9d2482eb75e69e7244763562b422d73f35b3cb6b6a3c540c7`.
-- Pricing Standard verificado em 2026-11-17: input USD 2/M, cached input USD 0,10/M e output USD 10/M. Acima de 272K input tokens por request aplicam-se input/cache ×2 e output ×1,5; nenhuma chamada Sol cruzou o limite. Fontes: [pricing oficial](https://developers.openai.com/api/docs/pricing) e [modelo GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol).
+If you’re using this demo, please **★Star** this repository to show your interest!
 
-## Chamadas e custo
+**Note to Googlers:** Please fill out the form at [go/microservices-demo](http://go/microservices-demo).
 
-Uma chamada sintética de controle passou e está fora dos resultados piloto. Dez chamadas RCA sequenciais foram concluídas com dez respostas estruturadas e semanticamente válidas, zero retries e zero chamadas de evaluator/API após a inferência. O runner não carregou Ground Truth.
+## Architecture
 
-| Parcela | USD |
-|---|---:|
-| Control smoke (excluído do piloto) | 0.00613 |
-| Dez diagnósticos RCA | 0.8980775 |
-| Custo total Sol API | 0.9042075 |
+**Online Boutique** is composed of 11 microservices written in different
+languages that talk to each other over gRPC.
 
-Uso das dez chamadas: input 335337; cached input 0; output 5975; reasoning 1053 (não somado novamente); total 341312. Sem retries: mediana de latência 10097.29 ms.
+[![Architecture of
+microservices](/docs/img/architecture-diagram.png)](/docs/img/architecture-diagram.png)
 
-## Resultados A/B determinísticos
+Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
 
-| Tratamento | n | Acc@1 | Acc@3 | MRR | Location | Fault type | Input | Cached | Output | Reasoning | Total | Cost USD | Mean latency ms | Median latency ms |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| A | 5 | 0.6 | 0.6 | 0.6 | 0.6 | 0.8 | 141907 | 0 | 3101 | 659 | 145008 | 0.38577 | 11034.0088 | 11412.634 |
-| B | 5 | 0.6 | 0.6 | 0.6 | 0.6 | 0.8 | 193430 | 0 | 2874 | 394 | 196304 | 0.5123075 | 9299.6672 | 9277.129 |
-| Δ B−A | — | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 51523.0 | 0.0 | -227.0 | -265.0 | 51296.0 | 0.1265375 | -1734.3416 | -2135.505 |
+| Service                                              | Language      | Description                                                                                                                       |
+| ---------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| [frontend](/src/frontend)                           | Go            | Exposes an HTTP server to serve the website. Does not require signup/login and generates session IDs for all users automatically. |
+| [cartservice](/src/cartservice)                     | C#            | Stores the items in the user's shopping cart in Redis and retrieves it.                                                           |
+| [productcatalogservice](/src/productcatalogservice) | Go            | Provides the list of products from a JSON file and ability to search products and get individual products.                        |
+| [currencyservice](/src/currencyservice)             | Node.js       | Converts one money amount to another currency. Uses real values fetched from European Central Bank. It's the highest QPS service. |
+| [paymentservice](/src/paymentservice)               | Node.js       | Charges the given credit card info (mock) with the given amount and returns a transaction ID.                                     |
+| [shippingservice](/src/shippingservice)             | Go            | Gives shipping cost estimates based on the shopping cart. Ships items to the given address (mock)                                 |
+| [emailservice](/src/emailservice)                   | Python        | Sends users an order confirmation email (mock).                                                                                   |
+| [checkoutservice](/src/checkoutservice)             | Go            | Retrieves user cart, prepares order and orchestrates the payment, shipping and the email notification.                            |
+| [recommendationservice](/src/recommendationservice) | Python        | Recommends other products based on what's given in the cart.                                                                      |
+| [adservice](/src/adservice)                         | Java          | Provides text ads based on given context words.                                                                                   |
+| [loadgenerator](/src/loadgenerator)                 | Python/Locust | Continuously sends requests imitating realistic user shopping flows to the frontend.                                              |
 
-Neste dataset piloto, os cinco indicadores diagnósticos agregados foram iguais em A e B. B teve 51.523 tokens de entrada e 51.296 tokens totais a mais, custou USD 0,1265375 a mais e apresentou latência média 1.734,3416 ms menor. Descritivo desta execução; não indica superioridade geral.
+## Screenshots
 
-| Fault | Tratamento | Rank correto | Acc@1 | Acc@3 | RR | Location | Type | Tokens | Custo USD | Latência ms |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| F1 | A | — | 0 | 0 | 0.0 | 0 | 0 | 33635 | 0.0890585 | 11412.634 |
-| F1 | B | — | 0 | 0 | 0.0 | 0 | 0 | 45232 | 0.1180135 | 10765.383 |
-| F2 | A | 1 | 1 | 1 | 1.0 | 1 | 1 | 33894 | 0.0894135 | 10874.941 |
-| F2 | B | 1 | 1 | 1 | 1.0 | 1 | 1 | 45903 | 0.119376 | 9429.197 |
-| F3 | A | 1 | 1 | 1 | 1.0 | 1 | 1 | 28632 | 0.076386 | 11947.542 |
-| F3 | B | 1 | 1 | 1 | 1.0 | 1 | 1 | 40693 | 0.105541 | 9277.129 |
-| F4 | A | — | 0 | 0 | 0.0 | 0 | 1 | 30850 | 0.081826 | 11990.717 |
-| F4 | B | — | 0 | 0 | 0.0 | 0 | 1 | 42715 | 0.1111135 | 9019.314 |
-| F5 | A | 1 | 1 | 1 | 1.0 | 1 | 1 | 17997 | 0.049086 | 8944.21 |
-| F5 | B | 1 | 1 | 1 | 1.0 | 1 | 1 | 21761 | 0.0582635 | 8007.313 |
+| Home Page                                                                                                         | Checkout Screen                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [![Screenshot of store homepage](/docs/img/online-boutique-frontend-1.png)](/docs/img/online-boutique-frontend-1.png) | [![Screenshot of checkout screen](/docs/img/online-boutique-frontend-2.png)](/docs/img/online-boutique-frontend-2.png) |
 
-## Limites e integridade
+## Quickstart (GKE)
 
-A comparação Luna–Sol não é controlada porque usa execuções físicas e RCA Inputs diferentes; os artifacts Luna anteriores não foram alterados. A comparação principal A/B é pareada na mesma execução física. Não foram calculados p-values, significância, generalização ou LLM-as-a-Judge.
+1. Ensure you have the following requirements:
+   - [Google Cloud project](https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project).
+   - Shell environment with `gcloud`, `git`, and `kubectl`.
 
-Inventários e SHA-256 físicos, dos inputs, predictions e avaliação passaram. O manifesto externo do control smoke foi completado para incluir o manifesto aninhado da tentativa; nenhum byte da resposta foi alterado. A varredura não encontrou a credencial em artifacts. Ground Truth só foi aberto após o commit das predictions.
+2. Clone the latest major version.
+
+   ```sh
+   git clone --depth 1 --branch v0 https://github.com/GoogleCloudPlatform/microservices-demo.git
+   cd microservices-demo/
+   ```
+
+   The `--depth 1` argument skips downloading git history.
+
+3. Set the Google Cloud project and region and ensure the Google Kubernetes Engine API is enabled.
+
+   ```sh
+   export PROJECT_ID=<PROJECT_ID>
+   export REGION=us-central1
+   gcloud services enable container.googleapis.com \
+     --project=${PROJECT_ID}
+   ```
+
+   Substitute `<PROJECT_ID>` with the ID of your Google Cloud project.
+
+4. Create a GKE cluster and get the credentials for it.
+
+   ```sh
+   gcloud container clusters create-auto online-boutique \
+     --project=${PROJECT_ID} --region=${REGION} \
+     --labels dev-tutorial=online-boutique
+   ```
+
+   Creating the cluster may take a few minutes.
+
+5. Deploy Online Boutique to the cluster.
+
+   ```sh
+   kubectl apply -f ./release/kubernetes-manifests.yaml
+   ```
+
+6. Wait for the pods to be ready.
+
+   ```sh
+   kubectl get pods
+   ```
+
+   After a few minutes, you should see the Pods in a `Running` state:
+
+   ```
+   NAME                                     READY   STATUS    RESTARTS   AGE
+   adservice-76bdd69666-ckc5j               1/1     Running   0          2m58s
+   cartservice-66d497c6b7-dp5jr             1/1     Running   0          2m59s
+   checkoutservice-666c784bd6-4jd22         1/1     Running   0          3m1s
+   currencyservice-5d5d496984-4jmd7         1/1     Running   0          2m59s
+   emailservice-667457d9d6-75jcq            1/1     Running   0          3m2s
+   frontend-6b8d69b9fb-wjqdg                1/1     Running   0          3m1s
+   loadgenerator-665b5cd444-gwqdq           1/1     Running   0          3m
+   paymentservice-68596d6dd6-bf6bv          1/1     Running   0          3m
+   productcatalogservice-557d474574-888kr   1/1     Running   0          3m
+   recommendationservice-69c56b74d4-7z8r5   1/1     Running   0          3m1s
+   redis-cart-5f59546cdd-5jnqf              1/1     Running   0          2m58s
+   shippingservice-6ccc89f8fd-v686r         1/1     Running   0          2m58s
+   ```
+
+7. Access the web frontend in a browser using the frontend's external IP.
+
+   ```sh
+   kubectl get service frontend-external | awk '{print $4}'
+   ```
+
+   Visit `http://EXTERNAL_IP` in a web browser to access your instance of Online Boutique.
+
+8. Congrats! You've deployed the default Online Boutique. To deploy a different variation of Online Boutique (e.g., with Google Cloud Operations tracing, Istio, etc.), see [Deploy Online Boutique variations with Kustomize](#deploy-online-boutique-variations-with-kustomize).
+
+9. Once you are done with it, delete the GKE cluster.
+
+   ```sh
+   gcloud container clusters delete online-boutique \
+     --project=${PROJECT_ID} --region=${REGION}
+   ```
+
+   Deleting the cluster may take a few minutes.
+
+## Additional deployment options
+
+- **Terraform**: [See these instructions](/terraform) to learn how to deploy Online Boutique using [Terraform](https://www.terraform.io/intro).
+- **Istio / Cloud Service Mesh**: [See these instructions](/kustomize/components/service-mesh-istio/README.md) to deploy Online Boutique alongside an Istio-backed service mesh.
+- **Non-GKE clusters (Minikube, Kind, etc)**: See the [Development guide](/docs/development-guide.md) to learn how you can deploy Online Boutique on non-GKE clusters.
+- **AI assistant using Gemini**: [See these instructions](/kustomize/components/shopping-assistant/README.md) to deploy a Gemini-powered AI assistant that suggests products to purchase based on an image.
+- **And more**: The [`/kustomize` directory](/kustomize) contains instructions for customizing the deployment of Online Boutique with other variations.
+
+## Documentation
+
+- [Development](/docs/development-guide.md) to learn how to run and develop this app locally.
+
+## Demos featuring Online Boutique
+
+- [Security hardening of the OnlineBoutique sample apps with the Docker Hardened Images (DHI)](https://medium.com/google-cloud/security-hardening-of-the-onlineboutique-sample-apps-with-docker-hardened-images-dhi-ca1fad348343)
+- [alpine, distroless or scratch?](https://medium.com/google-cloud/alpine-distroless-or-scratch-caac35250e0b)
+- [Platform Engineering in action: Deploy the Online Boutique sample apps with Score and Humanitec](https://medium.com/p/d99101001e69)
+- [The new Kubernetes Gateway API with Istio and Anthos Service Mesh (ASM)](https://medium.com/p/9d64c7009cd)
+- [Use Azure Redis Cache with the Online Boutique sample on AKS](https://medium.com/p/981bd98b53f8)
+- [Sail Sharp, 8 tips to optimize and secure your .NET containers for Kubernetes](https://medium.com/p/c68ba253844a)
+- [Deploy multi-region application with Anthos and Google cloud Spanner](https://medium.com/google-cloud/a2ea3493ed0)
+- [Use Google Cloud Memorystore (Redis) with the Online Boutique sample on GKE](https://medium.com/p/82f7879a900d)
+- [Use Helm to simplify the deployment of Online Boutique, with a Service Mesh, GitOps, and more!](https://medium.com/p/246119e46d53)
+- [How to reduce microservices complexity with Apigee and Anthos Service Mesh](https://cloud.google.com/blog/products/application-modernization/api-management-and-service-mesh-go-together)
+- [gRPC health probes with Kubernetes 1.24+](https://medium.com/p/b5bd26253a4c)
+- [Use Google Cloud Spanner with the Online Boutique sample](https://medium.com/p/f7248e077339)
+- [Seamlessly encrypt traffic from any apps in your Mesh to Memorystore (redis)](https://medium.com/google-cloud/64b71969318d)
+- [Strengthen your app's security with Cloud Service Mesh and Anthos Config Management](https://cloud.google.com/service-mesh/docs/strengthen-app-security)
+- [From edge to mesh: Exposing service mesh applications through GKE Ingress](https://cloud.google.com/architecture/exposing-service-mesh-apps-through-gke-ingress)
+- [Take the first step toward SRE with Cloud Operations Sandbox](https://cloud.google.com/blog/products/operations/on-the-road-to-sre-with-cloud-operations-sandbox)
+- [Deploying the Online Boutique sample application on Cloud Service Mesh](https://cloud.google.com/service-mesh/docs/onlineboutique-install-kpt)
+- [Anthos Service Mesh Workshop: Lab Guide](https://codelabs.developers.google.com/codelabs/anthos-service-mesh-workshop)
+- [KubeCon EU 2019 - Reinventing Networking: A Deep Dive into Istio's Multicluster Gateways - Steve Dake, Independent](https://youtu.be/-t2BfT59zJA?t=982)
+- Google Cloud Next'18 SF
+  - [Day 1 Keynote](https://youtu.be/vJ9OaAqfxo4?t=2416) showing GKE On-Prem
+  - [Day 3 Keynote](https://youtu.be/JQPOPV_VH5w?t=815) showing Stackdriver
+    APM (Tracing, Code Search, Profiler, Google Cloud Build)
+  - [Introduction to Service Management with Istio](https://www.youtube.com/watch?v=wCJrdKdD6UM&feature=youtu.be&t=586)
+- [Google Cloud Next'18 London – Keynote](https://youtu.be/nIq2pkNcfEI?t=3071)
+  showing Stackdriver Incident Response Management
+- [Microservices demo showcasing Go Micro](https://github.com/go-micro/demo)
