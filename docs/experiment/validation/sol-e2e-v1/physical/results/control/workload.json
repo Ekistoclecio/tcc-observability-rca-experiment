@@ -1,0 +1,345 @@
+{
+  "faults": {
+    "F1": {
+      "fault": "F1",
+      "scenarios": {
+        "A": {
+          "cpu_cores": 0.0870148947368421,
+          "normal_cpu_cores": 0.008593233333333332,
+          "request_duration_degraded_operations": {
+            "hipstershop.CheckoutService/PlaceOrder": {
+              "fault": 0.16713732149999994,
+              "normal": 0.07665487100000001
+            },
+            "hipstershop.CurrencyService/Convert": {
+              "fault": 0.0044445292500000025,
+              "normal": 0.003697533333333336
+            },
+            "hipstershop.EmailService/SendOrderConfirmation": {
+              "fault": 0.041897059500000014,
+              "normal": 0.017715645999999998
+            },
+            "hipstershop.PaymentService/Charge": {
+              "fault": 0.06260798699999998,
+              "normal": 0.004731053333333328
+            },
+            "hipstershop.ProductCatalogService/GetProduct": {
+              "fault": 0.039843195,
+              "normal": 0.0011791186666666672
+            },
+            "hipstershop.ShippingService/GetQuote": {
+              "fault": 0.0015906589999999977,
+              "normal": 0.0012927670000000002
+            }
+          },
+          "status": "PASS"
+        },
+        "B": {
+          "cpu_cores": 0.0870148947368421,
+          "normal_cpu_cores": 0.008593233333333332,
+          "request_duration_degraded_operations": {
+            "hipstershop.CheckoutService/PlaceOrder": {
+              "fault": 0.16719595749999994,
+              "normal": 0.07672418600000001
+            },
+            "hipstershop.CurrencyService/Convert": {
+              "fault": 0.0043920680000000024,
+              "normal": 0.0034210468333333347
+            },
+            "hipstershop.EmailService/SendOrderConfirmation": {
+              "fault": 0.0418512655,
+              "normal": 0.017658964000000003
+            },
+            "hipstershop.PaymentService/Charge": {
+              "fault": 0.0625584765,
+              "normal": 0.0046806983333333345
+            },
+            "hipstershop.ProductCatalogService/GetProduct": {
+              "fault": 0.03979471749999999,
+              "normal": 0.0011102056666666665
+            },
+            "hipstershop.ShippingService/GetQuote": {
+              "fault": 0.0015242104999999995,
+              "normal": 0.0012264909999999997
+            }
+          },
+          "status": "PASS"
+        }
+      }
+    },
+    "F2": {
+      "fault": "F2",
+      "scenarios": {
+        "A": {
+          "edge_span_count": 1,
+          "max_duration_ms": 103.683,
+          "status": "PASS"
+        },
+        "B": {
+          "edge_span_count": 1,
+          "max_duration_ms": 103.631,
+          "status": "PASS"
+        }
+      }
+    },
+    "F3": {
+      "fault": "F3",
+      "scenarios": {
+        "A": {
+          "error_edge_span_count": 1,
+          "status": "PASS"
+        },
+        "B": {
+          "error_edge_span_count": 1,
+          "status": "PASS"
+        }
+      }
+    },
+    "F4": {
+      "fault": "F4",
+      "scenarios": {
+        "A": {
+          "error_charge_span_count": 1,
+          "error_log_count": 1,
+          "log_trace_correlated": false,
+          "status": "PASS"
+        },
+        "B": {
+          "error_charge_span_count": 1,
+          "error_log_count": 1,
+          "log_trace_correlated": true,
+          "status": "PASS"
+        }
+      }
+    },
+    "F5": {
+      "fault": "F5",
+      "scenarios": {
+        "A": {
+          "error_edge_span_count": 5,
+          "status": "PASS"
+        },
+        "B": {
+          "error_edge_span_count": 5,
+          "status": "PASS"
+        }
+      }
+    }
+  },
+  "normal": {
+    "base_url": "http://127.0.0.1:18080",
+    "baseline_readiness": {
+      "metric_boundary": "checkoutservice PlaceOrder server duration count and sum",
+      "ready_at": "2026-11-17T18:32:06.217477Z",
+      "sample_timestamp_must_be_after_epoch": 1794940320.420857,
+      "scenarios": {
+        "A": {
+          "common_instances": [
+            "checkoutservice-55bfc8b5d5-nfhwf"
+          ],
+          "count": {
+            "fresh_instances": {
+              "checkoutservice-55bfc8b5d5-nfhwf": 1794940322.756
+            },
+            "identity_label": "pod",
+            "query": "timestamp(tcc_conventional_request_duration_seconds_count{service_name=\"checkoutservice\",operation=\"/hipstershop.CheckoutService/PlaceOrder\",status_code=\"OK\"})"
+          },
+          "sum": {
+            "fresh_instances": {
+              "checkoutservice-55bfc8b5d5-nfhwf": 1794940322.756
+            },
+            "identity_label": "pod",
+            "query": "timestamp(tcc_conventional_request_duration_seconds_sum{service_name=\"checkoutservice\",operation=\"/hipstershop.CheckoutService/PlaceOrder\",status_code=\"OK\"})"
+          }
+        },
+        "B": {
+          "common_instances": [
+            "458c295c-b4a4-4f42-bb2f-9d26f34de68f"
+          ],
+          "count": {
+            "fresh_instances": {
+              "458c295c-b4a4-4f42-bb2f-9d26f34de68f": 1794940323.229
+            },
+            "identity_label": "exported_instance",
+            "query": "timestamp(otel_rpc_server_call_duration_seconds_count{exported_job=\"checkoutservice\",rpc_method=\"hipstershop.CheckoutService/PlaceOrder\",rpc_response_status_code=\"OK\"})"
+          },
+          "sum": {
+            "fresh_instances": {
+              "458c295c-b4a4-4f42-bb2f-9d26f34de68f": 1794940323.229
+            },
+            "identity_label": "exported_instance",
+            "query": "timestamp(otel_rpc_server_call_duration_seconds_sum{exported_job=\"checkoutservice\",rpc_method=\"hipstershop.CheckoutService/PlaceOrder\",rpc_response_status_code=\"OK\"})"
+          }
+        }
+      },
+      "status": "PASS",
+      "warmup_finished_at": "2026-11-17T18:32:00.420857Z"
+    },
+    "configuration": {
+      "arrival_interval_seconds": 2.0,
+      "configured_arrival_rate_flows_per_second": 0.5,
+      "drain_timeout_seconds": 60,
+      "expected_statuses": {},
+      "max_concurrent_flows": 2,
+      "request_timeout_seconds": 10,
+      "steady_flows": 3,
+      "warmup_flows": 1
+    },
+    "finished_at": "2026-11-17T18:32:16.915700Z",
+    "measurement_started_at": "2026-11-17T18:32:06.528224Z",
+    "started_at": "2026-11-17T18:32:06.528224Z",
+    "status": "PASS",
+    "steady": [
+      {
+        "flow": 1,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 0.225195,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.148735,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.202022,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.206308,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.299982,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      },
+      {
+        "flow": 2,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 0.221008,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.144487,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.207152,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.20286,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.288571,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      },
+      {
+        "flow": 3,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 0.257574,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.199543,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.30512,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.106918,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.202966,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "successful_steady_flows": 3,
+    "successful_warmup_flows": 1,
+    "warmup": [
+      {
+        "flow": 1,
+        "status": "PASS",
+        "steps": [
+          {
+            "duration_seconds": 0.260528,
+            "method": "GET",
+            "path": "/",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.198789,
+            "method": "GET",
+            "path": "/product/OLJCESPC7Z",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.213818,
+            "method": "POST",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.199898,
+            "method": "GET",
+            "path": "/cart",
+            "status": 200
+          },
+          {
+            "duration_seconds": 0.289487,
+            "method": "POST",
+            "path": "/cart/checkout",
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "warmup_finished_at": "2026-11-17T18:32:00.420857Z",
+    "warmup_started_at": "2026-11-17T18:31:59.235595Z"
+  }
+}

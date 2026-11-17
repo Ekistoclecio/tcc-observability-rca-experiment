@@ -1,0 +1,59 @@
+{
+  "base_url": "http://127.0.0.1:18080",
+  "configuration": {
+    "arrival_interval_seconds": 1.0,
+    "configured_arrival_rate_flows_per_second": 1.0,
+    "drain_timeout_seconds": 60,
+    "expected_statuses": {},
+    "max_concurrent_flows": 1,
+    "request_timeout_seconds": 10,
+    "steady_flows": 1,
+    "warmup_flows": 0
+  },
+  "finished_at": "2026-11-17T18:34:40.711515Z",
+  "started_at": "2026-11-17T18:34:39.591618Z",
+  "status": "PASS",
+  "steady": [
+    {
+      "flow": 1,
+      "status": "PASS",
+      "steps": [
+        {
+          "duration_seconds": 0.287,
+          "method": "GET",
+          "path": "/",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.190327,
+          "method": "GET",
+          "path": "/product/OLJCESPC7Z",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.197218,
+          "method": "POST",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.121264,
+          "method": "GET",
+          "path": "/cart",
+          "status": 200
+        },
+        {
+          "duration_seconds": 0.297789,
+          "method": "POST",
+          "path": "/cart/checkout",
+          "status": 200
+        }
+      ]
+    }
+  ],
+  "steady_started_at": "2026-11-17T18:34:39.591646Z",
+  "successful_steady_flows": 1,
+  "successful_warmup_flows": 0,
+  "warmup": [],
+  "warmup_finished_at": "2026-11-17T18:34:39.591642Z"
+}

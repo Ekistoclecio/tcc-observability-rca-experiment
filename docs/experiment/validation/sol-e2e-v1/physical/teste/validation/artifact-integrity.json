@@ -1,0 +1,8 @@
+{
+  "audit_hashes_exclude_self": true,
+  "results_hash_list_sha256": "be58ce3b4ce77586a354e0002f217922118d66644c0366eaaf054eccce638693",
+  "results_hashed_file_count": 1161,
+  "results_hashes_include_manifest": true,
+  "results_manifest_sha256": "881fcae1ecb9e243182aff5fa1678d966540208a349543aa2a0c690a7577b5ce",
+  "status": "PASS"
+}

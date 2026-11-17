@@ -1,0 +1,138 @@
+{
+  "artifacts": [
+    {
+      "bytes": 651,
+      "path": "README.md",
+      "sha256": "73955dcc86a409a7f78fd20c90f9914b0622894cab9beab6bacb18f05c4dd59d"
+    },
+    {
+      "bytes": 213,
+      "path": "dataset-summary.json",
+      "sha256": "6b10e5ca65d247c8442c5ede57e2da66cf472ccfa5f039f3a91f97130ed5e2d3"
+    },
+    {
+      "bytes": 13514,
+      "path": "deployment-provenance.json",
+      "sha256": "379da60eaea6cca185d9fef0917911a94007a5e717e9ba3891f356b95d227207"
+    },
+    {
+      "bytes": 1032,
+      "path": "environment.json",
+      "sha256": "24c9df78f2f1b36e1645804ee3c7e4d2d3ed40f9965dd9b939894feb80e665f9"
+    },
+    {
+      "bytes": 914,
+      "path": "execution.json",
+      "sha256": "1548895472bc66e5492ae109d5245e537d953caab70a42718d761dc4e8e73d6f"
+    },
+    {
+      "bytes": 3067,
+      "path": "faults/F1.json",
+      "sha256": "85da0c1f072d551ab77beaa72df417fe33b8aabb5a127c3e666b6e6b0ad59af0"
+    },
+    {
+      "bytes": 1613,
+      "path": "faults/F2.json",
+      "sha256": "5aee56a45e2b0af19bb27ca2580d398dee1c897c49b8b8250516c0e201111203"
+    },
+    {
+      "bytes": 1088,
+      "path": "faults/F3.json",
+      "sha256": "86d8040ac321ff3f9fd2035714a20c597d6fced84449cabc8db26cda573ca6f7"
+    },
+    {
+      "bytes": 11642,
+      "path": "faults/F4.json",
+      "sha256": "ff3d14806c01719448db28e580abb4a4b220470525219257b2659b9dca7ff7a4"
+    },
+    {
+      "bytes": 16777,
+      "path": "faults/F5.json",
+      "sha256": "b994b016fd19b686fe284421e11583d36ac0cc644ba5ebe81cad0bf0888cf15e"
+    },
+    {
+      "bytes": 3703,
+      "path": "raw-summary.json",
+      "sha256": "4c4811eba7b3720caec7c3bbffa865958dac169bd42b3c239729715677053d35"
+    },
+    {
+      "bytes": 845,
+      "path": "samples/logs-A.json",
+      "sha256": "aa128d2bd421b39944678b0fadbb4508d2235c4bf73a7983e3e1035bb405de3e"
+    },
+    {
+      "bytes": 4593,
+      "path": "samples/logs-B.json",
+      "sha256": "a2f05009b94bb23089978bb3aaa3319fe8567e33449ff5f1058132efa49e3301"
+    },
+    {
+      "bytes": 29744,
+      "path": "samples/metrics-A.json",
+      "sha256": "9a0ed8c7e8826790549384c52b019f902836c0a8687b636da0c4b932997ec6fd"
+    },
+    {
+      "bytes": 29744,
+      "path": "samples/metrics-B.json",
+      "sha256": "5c743c8779f9a69cf177581175da30374965316f4f46b45ac8331408adc77a24"
+    },
+    {
+      "bytes": 749,
+      "path": "samples/traces-A.json",
+      "sha256": "f2bcabfc8223e82ffa988de7e1db0a6864c08c4541d0cb87322e65dda1afe809"
+    },
+    {
+      "bytes": 2499,
+      "path": "samples/traces-B.json",
+      "sha256": "3cb3db9d466e1708c9309fa2d5ad3e534239e19e5b1701be2e34749bc9e3e199"
+    },
+    {
+      "bytes": 335,
+      "path": "validation/artifact-integrity.json",
+      "sha256": "f404489bf1572e689b9ac95be6abefa7dc38d2fe6e958358a3724dba0278e352"
+    },
+    {
+      "bytes": 476934,
+      "path": "validation/dataset-provenance/F4-A.json",
+      "sha256": "1a79dc57ee94cc4a449c1277d7a1972f66198ef2e6aea911ef83202035406b42"
+    },
+    {
+      "bytes": 476934,
+      "path": "validation/dataset-provenance/F4-B.json",
+      "sha256": "1a79dc57ee94cc4a449c1277d7a1972f66198ef2e6aea911ef83202035406b42"
+    },
+    {
+      "bytes": 138460,
+      "path": "validation/dataset-provenance/F5-A.json",
+      "sha256": "716e258573750a10edfb53fcf019fe789502c31641c7a735eb09b362f56f1a1e"
+    },
+    {
+      "bytes": 138460,
+      "path": "validation/dataset-provenance/F5-B.json",
+      "sha256": "716e258573750a10edfb53fcf019fe789502c31641c7a735eb09b362f56f1a1e"
+    },
+    {
+      "bytes": 671,
+      "path": "validation/dataset-provenance.json",
+      "sha256": "f85273466b2d279cd83d1663c8598bdf2c10caee4f8ba266de43e699309a1640"
+    },
+    {
+      "bytes": 381664,
+      "path": "validation/fault-coverage.json",
+      "sha256": "7f64584b4ab53ae18ee60cdc5936c7b00aad4c500cc708811bcbd0731d3e2784"
+    },
+    {
+      "bytes": 235,
+      "path": "validation/leakage.json",
+      "sha256": "a1b1c057459575bacfc4f48acb2e2691c8c139506b3a88585d904ad8e310c208"
+    },
+    {
+      "bytes": 27362,
+      "path": "validation/semantic-coverage.json",
+      "sha256": "231bf8538497b6110649a4d93087499ec3de88ca547bf2ef37bf8cf7b0ec8a89"
+    }
+  ],
+  "format": "tcc-experiment-v2-independent-audit-v1",
+  "hash_exclusion": "hashes.sha256 does not hash itself",
+  "raw_full_data_location": "docs/experiment/results/",
+  "tested_commit": "35069e451c95969962753f2ed1370fb4c77d4c0a"
+}

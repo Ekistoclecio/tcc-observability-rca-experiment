@@ -1,0 +1,25 @@
+{
+  "faults": {
+    "F1": {
+      "A": "validation/dataset-provenance/F1-A.json",
+      "B": "validation/dataset-provenance/F1-B.json"
+    },
+    "F2": {
+      "A": "validation/dataset-provenance/F2-A.json",
+      "B": "validation/dataset-provenance/F2-B.json"
+    },
+    "F3": {
+      "A": "validation/dataset-provenance/F3-A.json",
+      "B": "validation/dataset-provenance/F3-B.json"
+    },
+    "F4": {
+      "A": "validation/dataset-provenance/F4-A.json",
+      "B": "validation/dataset-provenance/F4-B.json"
+    },
+    "F5": {
+      "A": "validation/dataset-provenance/F5-A.json",
+      "B": "validation/dataset-provenance/F5-B.json"
+    }
+  },
+  "status": "PASS"
+}

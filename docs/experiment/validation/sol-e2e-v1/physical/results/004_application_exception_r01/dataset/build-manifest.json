@@ -1,0 +1,14 @@
+{
+  "builder_script_sha256": "b8cb784c285f9789624fbbfa466239ce6511abdf586c698a9367443b3afc9435",
+  "fact_counts": {
+    "A": 308,
+    "B": 295
+  },
+  "format": "tcc-dataset-build-v1",
+  "outputs": {
+    "dataset-A.json": "00011fdf1d84fd45e62936beae0b64ef2248ffd2a57483492d839caddf760025",
+    "dataset-B.json": "3e36ecf95f7ce20b8bd1f1f0124bed7f6bf6633b63b5d3be58c2a67c56096644"
+  },
+  "provenance_sha256": "1a79dc57ee94cc4a449c1277d7a1972f66198ef2e6aea911ef83202035406b42",
+  "raw_bundle_manifest_sha256": "468a4380f3b9b00ce42154e4d7eaac8800d8a4221d3650babe56a843bd75e5ad"
+}
