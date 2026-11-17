@@ -199,6 +199,8 @@ class OperationalMetricsTests(unittest.TestCase):
             files_a = {p.relative_to(first).as_posix(): p.read_bytes() for p in first.rglob("*") if p.is_file()}
             files_b = {p.relative_to(second).as_posix(): p.read_bytes() for p in second.rglob("*") if p.is_file()}
             self.assertEqual(files_a, files_b)
+            readme = (first / "README.md").read_text()
+            self.assertNotRegex(readme, r"(?m)[ \t]+$")
             paired = json.loads((first / "paired-comparison.json").read_text())
             self.assertEqual(paired["delta_convention"], "B - A")
         self.assertEqual(paired["faults"]["fault-0"]["metrics"]["accuracy_at_1"]["delta_B_minus_A"], -1.0)

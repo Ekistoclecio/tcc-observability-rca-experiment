@@ -504,8 +504,8 @@ def _markdown_report(evaluation: Mapping[str, Any]) -> str:
         "Não sustenta conclusões estatísticas generalizáveis. Nenhum LLM-as-a-Judge, teste de "
         "significância ou avaliação qualitativa foi aplicado. Tokens, custo e latência são "
         "operacionais; `delta = B - A` e sinal positivo não significa automaticamente melhor.", "",
-        f"Evaluator commit: `{evaluation['manifest']['evaluator_commit']}`  ",
-        f"Predictions commit: `{PREDICTIONS_COMMIT}`  ",
+        f"Evaluator commit: `{evaluation['manifest']['evaluator_commit']}`<br>",
+        f"Predictions commit: `{PREDICTIONS_COMMIT}`<br>",
         f"Ground Truth mapping and artifact integrity: `{evaluation['manifest']['integrity']}`", "",
         "## Métricas diagnósticas", "",
         "| Treatment | Cases | Acc@1 | Acc@3 | MRR | Location Acc. | Fault Type Acc. |",
