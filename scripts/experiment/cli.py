@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 from scripts.experiment.configuration import (
     ConfigurationError, ROOT, format_plan, resolve_config,
@@ -20,9 +20,16 @@ def _run(script: Path, env: dict[str, str]) -> None:
     subprocess.run(["bash", str(script)], cwd=ROOT, env=env, check=True)
 
 
-def _active_kind_clusters(kind_bin: str) -> list[str]:
-    result = subprocess.run([kind_bin, "get", "clusters"], cwd=ROOT,
-                            text=True, capture_output=True, check=True)
+def _active_kind_clusters(kind_bin: str, expected_version: str) -> list[str]:
+    try:
+        result = subprocess.run([kind_bin, "get", "clusters"], cwd=ROOT,
+                                text=True, capture_output=True, check=True)
+    except FileNotFoundError:
+        raise ConfigurationError(
+            f"Kind executable not found: {kind_bin!r}. Install the pinned Kind {expected_version} "
+            "and ensure it is on PATH, or set KIND_BIN to its absolute path. "
+            "See docs/experiment/README.md."
+        ) from None
     return result.stdout.split()
 
 
@@ -46,16 +53,17 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
 
     env = os.environ.copy()
     kind_bin = env.get("KIND_BIN", "kind")
-    clusters = _active_kind_clusters(kind_bin)
+    versions = ROOT / "config/experiment/environment/versions.env"
+    pinned = dotenv_values(versions, encoding="utf-8")
+    if not pinned.get("KIND_VERSION") or not pinned.get("KIND_CLUSTER_NAME"):
+        raise ConfigurationError("experiment environment version manifest is missing Kind settings")
+    clusters = _active_kind_clusters(kind_bin, pinned["KIND_VERSION"])
     if clusters:
         raise ConfigurationError(
             "exclusive Kind runtime required; remove conflicting clusters before running: "
             + ", ".join(clusters)
         )
 
-    versions = ROOT / "config/experiment/environment/versions.env"
-    from scripts.experiment.run_integrated_validation import load_env_file
-    pinned = load_env_file(versions)
     cluster_name = pinned["KIND_CLUSTER_NAME"]
     creation_started = False
     try:
@@ -65,6 +73,9 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
         _run(ROOT / "scripts/experiment/environment/deploy.sh", env)
         _run(ROOT / "scripts/experiment/observability-a/deploy.sh", env)
         _run(ROOT / "scripts/experiment/observability-b/deploy.sh", env)
+        experiment_scripts = str(ROOT / "scripts/experiment")
+        if experiment_scripts not in sys.path:
+            sys.path.insert(0, experiment_scripts)
         from scripts.experiment.run_integrated_validation import execute
         execute((ROOT / "docs/experiment/results").resolve(),
                 fault_repetitions=config.fault_repetitions, purpose="configured_experiment_run",
@@ -73,8 +84,8 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
     finally:
         if creation_started:
             try:
-                current = _active_kind_clusters(kind_bin)
-            except (OSError, subprocess.CalledProcessError):
+                current = _active_kind_clusters(kind_bin, pinned["KIND_VERSION"])
+            except (ConfigurationError, OSError, subprocess.CalledProcessError):
                 current = []
             if cluster_name in current:
                 subprocess.run([kind_bin, "delete", "cluster", "--name", cluster_name],

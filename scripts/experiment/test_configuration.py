@@ -175,7 +175,7 @@ class ConfigurationTests(unittest.TestCase):
             result = subprocess.run([str(ROOT / "run-experiment.sh"), "--dry-run",
                                      "--env-file", str(selected)], cwd=ROOT / "docs",
                                     capture_output=True, text=True, check=False)
-            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertIn("EXPERIMENT_F2_NETWORK_LATENCY", result.stderr)
             self.assertNotIn("synthetic-only", result.stdout + result.stderr)
         finally:
@@ -227,6 +227,28 @@ class ConfigurationTests(unittest.TestCase):
             self.assertIn("Physical fault instances: 1", result.stdout)
             self.assertIn("Enabled:                   no", result.stdout)
             self.assertIn("Expected RCA inputs:       2", result.stdout)
+        finally:
+            selected.unlink(missing_ok=True)
+
+    def test_missing_kind_is_reported_with_pinned_version_before_setup(self):
+        import os
+        with tempfile.NamedTemporaryFile("w", suffix=".env", prefix=".offline-kind-missing-",
+                                         dir=ROOT, encoding="utf-8", delete=False) as stream:
+            stream.write("EXPERIMENT_F1_CPU_SATURATION=1\n"
+                         "RCA_ENABLED=false\nEVALUATION_ENABLED=false\nOPENAI_API_KEY=\n")
+            selected = Path(stream.name)
+        try:
+            environment = {key: value for key, value in os.environ.items()
+                           if key not in CONTROLLED_ENV}
+            environment["KIND_BIN"] = str(ROOT / ".missing-kind-test-bin")
+            result = subprocess.run([str(ROOT / "run-experiment.sh"), "--env-file", str(selected)],
+                                    cwd=ROOT / "docs", env=environment,
+                                    capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            self.assertIn("Kind executable not found", result.stderr)
+            self.assertIn("pinned Kind v0.33.0", result.stderr)
+            self.assertIn("KIND_BIN", result.stderr)
+            self.assertNotIn("FileNotFoundError", result.stderr)
         finally:
             selected.unlink(missing_ok=True)
 
