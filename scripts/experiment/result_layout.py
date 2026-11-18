@@ -27,9 +27,24 @@ def validate_repetitions(repetitions: int) -> int:
     return repetitions
 
 
-def instance_ids(repetitions: int) -> list[str]:
-    validate_repetitions(repetitions)
-    return [f"{fault}-R{rep:02d}" for fault in FAULTS for rep in range(1, repetitions + 1)]
+def repetition_plan(repetitions: int | Mapping[str, int]) -> dict[str, int]:
+    if type(repetitions) is int:
+        validate_repetitions(repetitions)
+        return {fault: repetitions for fault in FAULTS}
+    if not isinstance(repetitions, Mapping) or set(repetitions) - set(FAULTS):
+        raise ResultLayoutError("fault repetitions must map known fault IDs to non-negative integers")
+    plan = {fault: repetitions.get(fault, 0) for fault in FAULTS}
+    if any(type(value) is not int or value < 0 for value in plan.values()):
+        raise ResultLayoutError("fault repetitions must be non-negative integers")
+    if not any(plan.values()):
+        raise ResultLayoutError("at least one physical fault instance is required")
+    return plan
+
+
+def instance_ids(repetitions: int | Mapping[str, int]) -> list[str]:
+    plan = repetition_plan(repetitions)
+    return [f"{fault}-R{rep:02d}" for fault in FAULTS
+            for rep in range(1, plan[fault] + 1)]
 
 
 def case_id(instance_id: str, treatment: str) -> str:
@@ -46,7 +61,7 @@ def parse_case_id(value: str) -> tuple[str, str, int, str]:
     return value, fault, int(repetition), treatment
 
 
-def expected_case_ids(repetitions: int) -> list[str]:
+def expected_case_ids(repetitions: int | Mapping[str, int]) -> list[str]:
     return [case_id(instance, treatment) for instance in instance_ids(repetitions)
             for treatment in TREATMENTS]
 
@@ -74,7 +89,7 @@ def build_ground_truth(instances: Mapping[str, Mapping[str, Any]]) -> dict[str, 
     return result
 
 
-def create_run_tree(destination: Path, run_id: str, repetitions: int,
+def create_run_tree(destination: Path, run_id: str, repetitions: int | Mapping[str, int],
                     instances: Mapping[str, Mapping[str, Any]], global_raw: Path,
                     manifest_fields: Mapping[str, Any]) -> dict[str, Any]:
     """Create the scientific run tree from validated Builder/GT outputs.
@@ -84,8 +99,8 @@ def create_run_tree(destination: Path, run_id: str, repetitions: int,
     the private input workspace; only exact model requests are published under
     `llm/inputs/`.
     """
-    validate_repetitions(repetitions)
-    identities = instance_ids(repetitions)
+    plan = repetition_plan(repetitions)
+    identities = instance_ids(plan)
     if set(instances) != set(identities):
         raise ResultLayoutError("physical instance set does not match configured repetition grid")
     if destination.exists():
@@ -125,11 +140,14 @@ def create_run_tree(destination: Path, run_id: str, repetitions: int,
     manifest = {
         "run_id": run_id,
         "status": "STAGING",
-        "repetitions_per_fault": repetitions,
-        "faults": list(FAULTS),
+        "repetitions_per_fault": (next(iter({plan[f] for f in FAULTS if plan[f] > 0}))
+                                  if len({plan[f] for f in FAULTS if plan[f] > 0}) == 1 else None),
+        "fault_repetitions": plan,
+        "faults": [fault for fault in FAULTS if plan[fault] > 0],
         "physical_fault_instances": len(identities),
         "treatments": list(TREATMENTS),
         "rca_inputs": len(identities) * 2,
+        "expected_treatment_cases": len(identities) * 2,
         **dict(manifest_fields),
     }
     write_json(destination / "manifest.json", manifest)
@@ -142,17 +160,17 @@ def instance_ids_from_records(instances: Mapping[str, Any]) -> list[str]:
         raise ResultLayoutError("a run must contain physical fault instances")
     if any(not INSTANCE_RE.fullmatch(identity) for identity in identities):
         raise ResultLayoutError("invalid physical instance identity")
-    # Validate the complete F1..F5 by repetition grid, not just the total count.
+    # Every selected fault has a contiguous R01..Rn sequence; omitted faults are valid.
     by_fault: dict[str, set[int]] = {}
     for identity in identities:
         fault, rep = identity.split("-R", 1)
         by_fault.setdefault(fault, set()).add(int(rep))
-    counts = {len(values) for values in by_fault.values()}
-    if len(counts) != 1:
-        raise ResultLayoutError("all fault families must have the same repetition count")
-    n = counts.pop()
-    if identities != instance_ids(n):
-        raise ResultLayoutError("physical instances must be a complete F1..F5 repetition grid")
+    for fault, values in by_fault.items():
+        if values != set(range(1, max(values) + 1)):
+            raise ResultLayoutError(f"repetition sequence for {fault} must start at R01 without gaps")
+    ordering = {fault: index for index, fault in enumerate(FAULTS)}
+    identities.sort(key=lambda value: (ordering[value.split("-R", 1)[0]],
+                                       int(value.split("-R", 1)[1])))
     return identities
 
 
@@ -186,32 +204,43 @@ def outer_hashes(root: Path) -> list[tuple[str, str]]:
     return entries
 
 
-def verify_run(root: Path, repetitions: int | None = None) -> dict[str, Any]:
+def verify_run(root: Path, repetitions: int | Mapping[str, int] | None = None) -> dict[str, Any]:
     if not root.is_dir():
         raise ResultLayoutError(f"run directory does not exist: {root}")
     if sorted(p.name for p in root.iterdir()) != sorted(RUN_ITEMS):
         raise ResultLayoutError("run root contains missing or unexpected entries")
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-    n = manifest.get("repetitions_per_fault")
-    if repetitions is not None and n != repetitions:
-        raise ResultLayoutError("manifest repetition count mismatch")
-    validate_repetitions(n)
+    stored_plan = manifest.get("fault_repetitions")
+    if stored_plan is None:
+        n = manifest.get("repetitions_per_fault")
+        validate_repetitions(n)
+        stored_plan = {fault: n for fault in FAULTS}
+    plan = repetition_plan(stored_plan)
+    if repetitions is not None and repetition_plan(repetitions) != plan:
+        raise ResultLayoutError("manifest repetition plan mismatch")
+    active_faults = [fault for fault in FAULTS if plan[fault] > 0]
+    active_counts = {plan[fault] for fault in active_faults}
+    uniform = next(iter(active_counts)) if len(active_counts) == 1 else None
     if manifest.get("status") != "SUCCESS":
         raise ResultLayoutError("only a fully finalized SUCCESS run may be verified for publication")
-    if (manifest.get("physical_fault_instances") != 5 * n
-            or manifest.get("rca_inputs") != 10 * n
-            or manifest.get("faults") != list(FAULTS)
+    physical_count = sum(plan.values())
+    if (manifest.get("physical_fault_instances") != physical_count
+            or manifest.get("rca_inputs") != physical_count * 2
+            or manifest.get("faults") != active_faults
             or manifest.get("treatments") != list(TREATMENTS)):
-        raise ResultLayoutError("manifest counts or experiment grid do not match repetitions")
-    ids = expected_case_ids(n)
+        raise ResultLayoutError("manifest counts or experiment grid do not match fault repetitions")
+    ids = expected_case_ids(plan)
     gt = json.loads((root / "ground-truth.json").read_text(encoding="utf-8"))
-    if sum(len(values) for values in gt.values()) != 5 * n or set(gt) != set(FAULTS):
+    if sum(len(values) for values in gt.values()) != physical_count or set(gt) != set(active_faults):
         raise ResultLayoutError("Ground Truth must contain exactly one entry per physical instance")
-    for fault in FAULTS:
-        if set(gt[fault]) != {f"R{r:02d}" for r in range(1, n + 1)}:
+    for fault in active_faults:
+        if set(gt[fault]) != {f"R{r:02d}" for r in range(1, plan[fault] + 1)}:
             raise ResultLayoutError(f"Ground Truth repetition grid is incomplete for {fault}")
+    config = manifest.get("configuration", {})
+    rca_enabled = config.get("rca", {}).get("enabled", True)
+    evaluation_enabled = config.get("evaluation", {}).get("enabled", True)
     for relative, expected in (("telemetry", set(ids)), ("llm/inputs", set(ids)),
-                               ("llm/responses", set(ids))):
+                               ("llm/responses", set(ids) if rca_enabled else set())):
         directory = root / relative
         entries = list(directory.iterdir())
         if any(not path.is_file() or path.suffix != ".json" for path in entries):
@@ -222,6 +251,11 @@ def verify_run(root: Path, repetitions: int | None = None) -> dict[str, Any]:
     evaluation_dir = root / "evaluation"
     if [p.name for p in evaluation_dir.iterdir()] != ["results.json"]:
         raise ResultLayoutError("evaluation directory must contain only results.json")
+    evaluation = json.loads((evaluation_dir / "results.json").read_text(encoding="utf-8"))
+    if evaluation_enabled and not rca_enabled:
+        raise ResultLayoutError("evaluation cannot be enabled when RCA is disabled")
+    if not evaluation_enabled and evaluation.get("status") != "NOT_RUN":
+        raise ResultLayoutError("disabled evaluation must be represented as NOT_RUN")
     hashes_path = root / "hashes.sha256"
     expected_hashes: dict[str, str] = {}
     for line in hashes_path.read_text(encoding="utf-8").splitlines():
@@ -248,9 +282,10 @@ def verify_run(root: Path, repetitions: int | None = None) -> dict[str, Any]:
             raise ResultLayoutError(f"raw/{side} modality layout is invalid")
     if sorted(p.name for p in (root / "llm").iterdir()) != ["inputs", "responses"]:
         raise ResultLayoutError("llm must contain only inputs and responses")
-    return {"run_id": manifest.get("run_id"), "repetitions_per_fault": n,
-            "physical_fault_instances": 5 * n, "treatments": 2,
-            "rca_inputs": 10 * n, "hash_entries": len(expected_hashes)}
+    return {"run_id": manifest.get("run_id"), "repetitions_per_fault": uniform,
+            "fault_repetitions": plan,
+            "physical_fault_instances": physical_count, "treatments": 2,
+            "rca_inputs": physical_count * 2, "hash_entries": len(expected_hashes)}
 
 
 def next_run_id(results_root: Path) -> str:

@@ -19,7 +19,7 @@ import traceback
 import time
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, Mapping
 
 from collect_raw import (
     CollectionError as RawCollectionError,
@@ -1394,15 +1394,21 @@ def _export_llm_responses(temporary_run: Path, staged_run: Path, protocol_path: 
 
 
 def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
-            repetitions: int = 1, purpose: str = "result_layout_end_to_end_validation") -> dict[str, Any]:
+            repetitions: int = 1, purpose: str = "result_layout_end_to_end_validation",
+            fault_repetitions: Mapping[str, int] | None = None,
+            experiment_config: Any | None = None) -> dict[str, Any]:
     global FINALIZATION_EVENTS, LAST_FINALIZATION_FAILURE, FINALIZATION_SCRATCH
     global PUBLISHED_FINAL_PATHS, FINALIZATION_TEMP_PATHS
     from scripts.experiment.llm import protocol as llm_protocol
     from scripts.experiment.llm.protocol import build_openai_rca_request, verify_protocol_artifacts
     from scripts.experiment.llm.accounting import load_pricing
 
-    if type(repetitions) is not int or repetitions < 1:
-        raise IntegratedRunError("repetitions must be a positive integer")
+    from scripts.experiment.result_layout import repetition_plan
+    selected_plan = repetition_plan(fault_repetitions if fault_repetitions is not None else repetitions)
+    physical_count = sum(selected_plan.values())
+    case_count = physical_count * 2
+    rca_enabled = experiment_config.rca.enabled if experiment_config is not None else True
+    evaluation_enabled = experiment_config.evaluation_enabled if experiment_config is not None else True
     FINALIZATION_EVENTS = []
     LAST_FINALIZATION_FAILURE = None
     FINALIZATION_SCRATCH = None
@@ -1414,8 +1420,9 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
     if output_root.resolve() != (EXPERIMENT / "results").resolve():
         raise IntegratedRunError(f"run publication root must be {EXPERIMENT / 'results'}")
     envvars = load_env_file(VERSIONS)
-    from scripts.experiment.llm.credentials import load_root_credentials
-    load_root_credentials(ROOT)
+    if rca_enabled and experiment_config is None:
+        from scripts.experiment.llm.credentials import require_openai_credential
+        require_openai_credential(ROOT)
     env = os.environ.copy()
     env.setdefault("KIND_BIN", "kind")
     env.setdefault("KUBECTL_BIN", "kubectl")
@@ -1439,8 +1446,9 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
     with PreserveWorkOnError() as work:
         work.mkdir(exist_ok=True)
         preflight_report = preflight(work / "preflight", branch, commit, envvars)
-        _run_llm_command(ROOT / "scripts/experiment/llm/resources/protocol-v1.json",
-                         "preflight", env)
+        if rca_enabled:
+            _run_llm_command(ROOT / "scripts/experiment/llm/resources/protocol-v1.json",
+                             "preflight", env)
         global_start_ns = time.time_ns()
         start_time = datetime_from_epoch_ns(global_start_ns)
         normal_record = work / "normal-workload.json"
@@ -1456,8 +1464,10 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
         physical_instances: dict[str, Any] = {}
         fault_results: dict[str, Any] = {}
         for fault in FAULTS:
+            if selected_plan[fault] == 0:
+                continue
             fault_type, _, _ = FAULTS[fault]
-            for repetition in range(1, repetitions + 1):
+            for repetition in range(1, selected_plan[fault] + 1):
                 identity = f"{fault}-R{repetition:02d}"
                 fault_work = work / "instances" / identity
                 fault_work.mkdir(parents=True)
@@ -1511,19 +1521,19 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                     "recovery": "PASS", "cleanup": "PASS",
                 }
 
-        semantic_results = {}
-        for repetition in range(1, repetitions + 1):
-            semantic_path = work / f"semantic-R{repetition:02d}.json"
-            semantic = run_script(SEMANTIC_VALIDATOR,
-                                  "--normal-raw", str(normal_raw),
-                                  "--f4-raw", str(work / "instances" / f"F4-R{repetition:02d}" / "raw"),
-                                  "--f4-ground-truth", str(work / "instances" / f"F4-R{repetition:02d}" / "ground-truth.json"),
-                                  "--f5-raw", str(work / "instances" / f"F5-R{repetition:02d}" / "raw"),
-                                  "--f5-ground-truth", str(work / "instances" / f"F5-R{repetition:02d}" / "ground-truth.json"),
-                                  "--output", str(semantic_path), env=env)
-            if semantic.get("status") != "PASS":
-                raise IntegratedRunError(f"semantic validation failed for repetition R{repetition:02d}: {semantic}")
-            semantic_results[f"R{repetition:02d}"] = semantic
+        semantic_path = work / "semantic-validation.json"
+        semantic_args = ["--normal-raw", str(normal_raw)]
+        for fault, option in (("F4", "--f4-instance"), ("F5", "--f5-instance")):
+            for repetition in range(1, selected_plan[fault] + 1):
+                identity = f"{fault}-R{repetition:02d}"
+                fault_dir = work / "instances" / identity
+                semantic_args.extend([option, identity, str(fault_dir / "raw"),
+                                      str(fault_dir / "ground-truth.json")])
+        semantic_args.extend(["--output", str(semantic_path)])
+        semantic = run_script(SEMANTIC_VALIDATOR, *semantic_args, env=env)
+        if semantic.get("status") != "PASS":
+            raise IntegratedRunError(f"semantic validation failed: {semantic}")
+        semantic_results = semantic
 
         global_end_ns = time.time_ns()
         global_end = datetime_from_epoch_ns(global_end_ns)
@@ -1544,13 +1554,23 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             "schema_file": str(ROOT / "scripts/experiment/llm/resources/rca-schema-v1.json"),
             "pricing_file": str(ROOT / protocol.get(
                 "pricing_file", "scripts/experiment/llm/resources/pricing-luna-default-v1.json")),
-            "pilot_fault_instances": 5 * repetitions,
-            "pilot_rca_inputs": 10 * repetitions,
+            "pilot_fault_instances": physical_count,
+            "pilot_rca_inputs": case_count,
             "execution_plan_file": str(plan_path),
             "run_output_root": str(temporary_llm),
             "control_output_root": str(control_root),
             "request_archive_root": str(staging_run / "llm" / "inputs"),
         })
+        if experiment_config is not None:
+            from scripts.experiment.configuration import SUPPORTED_MODELS
+            protocol.update({
+                "model": experiment_config.rca.model,
+                "reasoning_mode": experiment_config.rca.reasoning_mode,
+                "reasoning_effort": experiment_config.rca.reasoning_effort,
+                "max_output_tokens": experiment_config.rca.max_output_tokens,
+                "service_tier": experiment_config.rca.service_tier,
+                "pricing_file": SUPPORTED_MODELS[experiment_config.rca.model],
+            })
         temporary_protocol.write_text(json.dumps(protocol, ensure_ascii=False, sort_keys=True,
                                                  indent=2) + "\n", encoding="utf-8")
         try:
@@ -1558,11 +1578,13 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             verify_protocol_artifacts()
             pricing = load_pricing()
             input_paths = sorted(input_root.glob("F[1-5]-R*-?.json"))
-            if len(input_paths) != 10 * repetitions:
+            if len(input_paths) != case_count:
                 raise IntegratedRunError("current physical run did not produce the complete RCA Input set")
             create_run_tree(
-                staging_run, run_id, repetitions, physical_instances, global_raw,
+                staging_run, run_id, selected_plan, physical_instances, global_raw,
                 {"purpose": purpose, "git_commit": commit,
+                 **({"configuration": experiment_config.manifest_configuration()}
+                    if experiment_config is not None else {}),
                  "started_at": time_text(start_time), "finished_at": time_text(global_end),
                  "experiment_interval_ns": {"start": str(global_start_ns), "end": str(global_end_ns)},
                  "workload_configuration": normal_summary.get("configuration"),
@@ -1586,7 +1608,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                          "pricing_snapshot": pricing,
                          "sdk_version": None,
                          "control_smoke": None,
-                         "logical_diagnoses": 10 * repetitions}},
+                         "logical_diagnoses": case_count if rca_enabled else 0}},
             )
             from scripts.experiment.llm.runner import _git_head as _runner_commit
             llm_protocol.configure_protocol(temporary_protocol)
@@ -1597,19 +1619,25 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 (staging_run / "llm" / "inputs" / name).write_text(
                     json.dumps(request, ensure_ascii=False, sort_keys=True, indent=2,
                                allow_nan=False) + "\n", encoding="utf-8")
-            _run_llm_command(temporary_protocol, "preflight", env)
-            frozen_plan = _run_llm_command(temporary_protocol, "freeze-plan", env)
-            control = _run_llm_command(temporary_protocol, "control-smoke", env)
-            pilot = _run_llm_command(temporary_protocol, "run", env,
-                                     "--run-dir", str(temporary_llm))
-            exported = _export_llm_responses(temporary_llm, staging_run, temporary_protocol)
-            control_record = next(control_root.glob("attempt-*/control-smoke.json"), None)
-            control_data = json.loads(control_record.read_text(encoding="utf-8")) if control_record else {}
+            if rca_enabled:
+                _run_llm_command(temporary_protocol, "preflight", env)
+                frozen_plan = _run_llm_command(temporary_protocol, "freeze-plan", env)
+                control = _run_llm_command(temporary_protocol, "control-smoke", env)
+                pilot = _run_llm_command(temporary_protocol, "run", env,
+                                         "--run-dir", str(temporary_llm))
+                exported = _export_llm_responses(temporary_llm, staging_run, temporary_protocol)
+                control_record = next(control_root.glob("attempt-*/control-smoke.json"), None)
+                control_data = json.loads(control_record.read_text(encoding="utf-8")) if control_record else {}
+            else:
+                frozen_plan, control, pilot = {}, {}, {"total_transport_attempts": 0}
+                exported = {"outcomes": {}, "runner_manifest": {}, "plan": {}}
+                control_data = {}
             manifest_path = staging_run / "manifest.json"
             published_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             published_manifest["status"] = "FINALIZING"
             llm_block = published_manifest["llm"]
-            llm_block.update({"runner_commit": _runner_commit(),
+            from scripts.experiment.llm.runner import _git_head as _runner_commit
+            llm_block.update({"runner_commit": _runner_commit() if rca_enabled else None,
                               "sdk_version": exported["runner_manifest"].get("openai_sdk_version"),
                               "execution_plan_sha256": frozen_plan.get("sha256"),
                               "logical_outcomes": {status: list(exported["outcomes"].values()).count(status)
@@ -1619,12 +1647,17 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                                                 "response_id": control_data.get("response_metadata", {}).get("response_id"),
                                                 "usage": control_data.get("response_metadata", {}).get("usage"),
                                                 "latency_ms": control_data.get("latency_ms"),
-                                                "included_in_pilot_results": False}})
+                                                "included_in_pilot_results": False} if rca_enabled else None})
             _write_json(manifest_path, published_manifest)
-            from scripts.experiment.evaluation.evaluator import write_evaluation
-            evaluation = write_evaluation(staging_run)
-            published_manifest["llm"]["evaluation_status"] = "PASS"
-            published_manifest["evaluation_status"] = "PASS"
+            if evaluation_enabled:
+                from scripts.experiment.evaluation.evaluator import write_evaluation
+                evaluation = write_evaluation(staging_run)
+                published_manifest["llm"]["evaluation_status"] = "PASS"
+                published_manifest["evaluation_status"] = "PASS"
+            else:
+                evaluation = {"overall": None}
+                _write_json(staging_run / "evaluation" / "results.json",
+                            {"status": "NOT_RUN", "reason": "EVALUATION_DISABLED"})
             published_manifest["finished_at"] = time_text(utc_now())
             published_manifest["status"] = "SUCCESS"
             _write_json(manifest_path, published_manifest)
@@ -1638,12 +1671,17 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             from scripts.experiment.llm.runner import assert_no_secret_in_artifacts
             assert_no_secret_in_artifacts([staging_run])
             outer_hashes(staging_run)
-            integrity = verify_run(staging_run, repetitions)
+            integrity = verify_run(staging_run, selected_plan)
             destination = publish_atomic(staging_run, output_root, run_id)
             FINALIZATION_SCRATCH = None
             return {"status": "PASS", "run_id": run_id, "tested_commit": commit,
-                    "repetitions_per_fault": repetitions, "physical_fault_instances": 5 * repetitions,
-                    "rca_inputs": 10 * repetitions, "result_path": str(destination),
+                    "repetitions_per_fault": (next(iter({selected_plan[f] for f in FAULTS
+                                                          if selected_plan[f] > 0}))
+                                                if len({selected_plan[f] for f in FAULTS
+                                                        if selected_plan[f] > 0}) == 1 else None),
+                    "fault_repetitions": selected_plan,
+                    "physical_fault_instances": physical_count,
+                    "rca_inputs": case_count, "result_path": str(destination),
                     "semantic_validation": semantic_results,
                     "global_raw_collection": global_collection,
                     "preflight": preflight_report, "pilot": pilot,

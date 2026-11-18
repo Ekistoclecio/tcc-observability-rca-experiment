@@ -22,7 +22,7 @@ Pontuar predictions congeladas somente após a inferência, associando-as a Grou
 
 `input_tokens`, `cached_input_tokens`, `output_tokens`, `reasoning_tokens`, `total_tokens`, `estimated_cost_usd` e `latency_ms` vêm dos artifacts efetivamente registrados na resposta do runner. Tokenização não é recalculada; reasoning não é somado novamente ao total; custo não é recalculado com uma tabela posterior. A agregação informa totais/médias relevantes por tratamento, além de mean/median/min/max de latência. Deltas são sempre `B - A`; sinal positivo é apenas valor maior, não juízo automático de qualidade.
 
-A unidade pareada é a mesma instância física (fault e repetition) observada por A e B. Para qualquer N positivo, cada fault agrega N pares e o overall agrega 5N diagnósticos por tratamento. Respostas sem status `COMPLETED` e validação semântica PASS mantêm outcome operacional e usage, mas não recebem métricas diagnósticas numéricas. Não há crédito parcial para Accuracy@k.
+A unidade pareada é a mesma instância física (fault e repetition) observada por A e B. O evaluator consome `fault_repetitions` do manifest, aceita subconjuntos e contagens heterogêneas e agrega somente instâncias executadas; com cinco repetições uniformes, agrega 25 pares físicos e 25 diagnósticos por tratamento. Respostas sem status `COMPLETED` e validação semântica PASS mantêm outcome operacional e usage, mas não recebem métricas diagnósticas numéricas. Não há crédito parcial para Accuracy@k.
 
 ## Limites metodológicos
 
@@ -30,4 +30,4 @@ O piloto de desenvolvimento não é evidência científica e seus valores foram 
 
 ## Validação e estado
 
-Testes sintéticos cobrem cada localização, ranks, top-k, reciprocal rank, métricas separadas, custo/tokens, agregação e deltas, além de N=1 e N=5. O evaluator exige a grade completa de respostas e Ground Truth elegível por instância; não lê arquivos de Ground Truth fora da run e não faz chamadas de rede. Estado: código e regras estão prontos para avaliar uma nova execução; não há evaluation artifacts armazenados.
+Testes sintéticos cobrem cada localização, ranks, top-k, reciprocal rank, métricas separadas, custo/tokens, agregação e deltas, N=1, N=5 e contagens mistas/subconjuntos. O evaluator exige A/B e Ground Truth elegível para cada instância configurada, mas não exige faults desabilitadas; não lê arquivos de Ground Truth fora da run e não faz chamadas de rede. Estado: código e regras estão prontos para avaliar uma nova execução; não há evaluation artifacts armazenados.

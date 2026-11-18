@@ -681,12 +681,30 @@ def validate_f5(root: Path, gt_path: Path, checks: Checks) -> dict[str, Any]:
 
 def validate(args: argparse.Namespace) -> dict[str, Any]:
     checks = Checks()
-    raw_roots = {"normal": args.normal_raw, "F4": args.f4_raw, "F5": args.f5_raw}
+    f4_instances = list(getattr(args, "f4_instances", []) or [])
+    f5_instances = list(getattr(args, "f5_instances", []) or [])
+    if getattr(args, "f4_raw", None) is not None:
+        f4_instances.append(("F4", args.f4_raw, args.f4_ground_truth))
+    if getattr(args, "f5_raw", None) is not None:
+        f5_instances.append(("F5", args.f5_raw, args.f5_ground_truth))
+    raw_roots = {"normal": args.normal_raw}
+    raw_roots.update({identity: raw for identity, raw, _gt in f4_instances + f5_instances})
     bundles = {name: verify_raw_bundle(root) for name, root in raw_roots.items()}
     source_manifests = {name: read_json(root / "manifest.json") for name, root in raw_roots.items()}
     normal = validate_normal(args.normal_raw, checks)
-    f4 = validate_f4(args.f4_raw, args.f4_ground_truth, checks)
-    f5 = validate_f5(args.f5_raw, args.f5_ground_truth, checks)
+    faults: dict[str, Any] = {}
+    for identity, raw, gt in f4_instances:
+        local = Checks()
+        result = validate_f4(raw, gt, local)
+        faults[identity] = result
+        for item in local.items:
+            checks.items.append({**item, "check": item["check"].replace("F4.", f"{identity}.", 1)})
+    for identity, raw, gt in f5_instances:
+        local = Checks()
+        result = validate_f5(raw, gt, local)
+        faults[identity] = result
+        for item in local.items:
+            checks.items.append({**item, "check": item["check"].replace("F5.", f"{identity}.", 1)})
     failed = [item for item in checks.items if item["status"] != "PASS"]
     return {
         "format": "tcc-experiment-v2-raw-semantic-validation-v1",
@@ -700,12 +718,10 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
             for name, manifest in source_manifests.items()
         },
         "normal_raw": str(args.normal_raw),
-        "f4_raw": str(args.f4_raw),
-        "f5_raw": str(args.f5_raw),
+        "fault_raw_roots": {name: str(path) for name, path in raw_roots.items() if name != "normal"},
         "bundles": bundles,
         "normal_operation": normal,
-        "F4": f4,
-        "F5": f5,
+        "fault_instances": faults,
         "checks": checks.items,
         "check_count": len(checks.items),
         "failed_checks": failed,
@@ -716,12 +732,20 @@ def validate(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--normal-raw", type=Path, required=True)
-    parser.add_argument("--f4-raw", type=Path, required=True)
-    parser.add_argument("--f4-ground-truth", type=Path, required=True)
-    parser.add_argument("--f5-raw", type=Path, required=True)
-    parser.add_argument("--f5-ground-truth", type=Path, required=True)
+    parser.add_argument("--f4-raw", type=Path)
+    parser.add_argument("--f4-ground-truth", type=Path)
+    parser.add_argument("--f5-raw", type=Path)
+    parser.add_argument("--f5-ground-truth", type=Path)
+    parser.add_argument("--f4-instance", nargs=3, action="append", metavar=("ID", "RAW", "GT"),
+                        help="repeatable F4 instance identity and its RAW/Ground Truth paths")
+    parser.add_argument("--f5-instance", nargs=3, action="append", metavar=("ID", "RAW", "GT"),
+                        help="repeatable F5 instance identity and its RAW/Ground Truth paths")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    args.f4_instances = [(identity, Path(raw), Path(gt)) for identity, raw, gt in (args.f4_instance or [])]
+    args.f5_instances = [(identity, Path(raw), Path(gt)) for identity, raw, gt in (args.f5_instance or [])]
+    if (args.f4_raw is None) != (args.f4_ground_truth is None) or (args.f5_raw is None) != (args.f5_ground_truth is None):
+        parser.error("legacy F4/F5 RAW and Ground Truth paths must be supplied as pairs")
     try:
         report = validate(args)
         args.output.parent.mkdir(parents=True, exist_ok=True)

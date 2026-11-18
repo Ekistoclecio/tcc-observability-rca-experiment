@@ -10,7 +10,9 @@ from pathlib import Path
 import statistics
 from typing import Any, Mapping, Sequence
 
-from scripts.experiment.result_layout import FAULTS, TREATMENTS, expected_case_ids, parse_case_id
+from scripts.experiment.result_layout import (
+    FAULTS, TREATMENTS, expected_case_ids, parse_case_id, repetition_plan,
+)
 
 EXPECTED_LOCATION_KINDS = {"service", "service_edge", "operation", "datastore"}
 EXPECTED_FAULT_TYPES = {"cpu_saturation", "network_latency", "service_unavailable",
@@ -181,10 +183,18 @@ def evaluate_run_layout(run_root: Path) -> dict[str, Any]:
     """Evaluate all response files against independent run Ground Truth."""
     run_root = run_root.resolve(strict=True)
     manifest = _read_json(run_root / "manifest.json")
-    repetitions = manifest.get("repetitions_per_fault")
-    if type(repetitions) is not int or repetitions < 1:
-        raise EvaluationError("manifest repetitions_per_fault must be a positive integer")
-    expected = set(expected_case_ids(repetitions))
+    repetitions = manifest.get("fault_repetitions")
+    if repetitions is None:
+        uniform = manifest.get("repetitions_per_fault")
+        if type(uniform) is not int or uniform < 1:
+            raise EvaluationError("manifest must contain a valid fault repetition plan")
+        repetitions = {fault: uniform for fault in FAULTS}
+    try:
+        plan = repetition_plan(repetitions)
+    except ValueError as exc:
+        raise EvaluationError(f"manifest fault repetition plan is invalid: {exc}") from exc
+    active_faults = [fault for fault in FAULTS if plan[fault] > 0]
+    expected = set(expected_case_ids(plan))
     gt_tree = _read_json(run_root / "ground-truth.json")
     response_dir = run_root / "llm" / "responses"
     response_files = {path.stem: path for path in response_dir.glob("*.json")}
@@ -214,20 +224,22 @@ def evaluate_run_layout(run_root: Path) -> dict[str, Any]:
                   "input_file": f"llm/inputs/{identity}.json", **metrics}
         cases.setdefault(fault, {}).setdefault(rep_key, {})[treatment] = record
     fault_results: dict[str, Any] = {}
-    for fault in FAULTS:
+    for fault in active_faults:
         # Build rows directly from the nested case map to avoid relying on order.
         by_treatment = {t: [rep[t] for rep in cases[fault].values()] for t in TREATMENTS}
         a, b = _aggregate(by_treatment["A"]), _aggregate(by_treatment["B"])
-        fault_results[fault] = {"repetitions": repetitions, "treatment_A": a,
+        fault_results[fault] = {"repetitions": plan[fault], "treatment_A": a,
                                 "treatment_B": b, "delta_B_minus_A": _paired(a, b)}
     overall = {}
-    all_rows = {t: [cases[fault][rep][t] for fault in FAULTS for rep in sorted(cases[fault])]
+    all_rows = {t: [cases[fault][rep][t] for fault in active_faults for rep in sorted(cases[fault])]
                 for t in TREATMENTS}
     a, b = _aggregate(all_rows["A"]), _aggregate(all_rows["B"])
     overall = {"treatment_A": a, "treatment_B": b, "delta_B_minus_A": _paired(a, b)}
     return {"evaluation_version": "deterministic-rca-evaluation-v2",
             "run_id": manifest.get("run_id"), "purpose": manifest.get("purpose"),
-            "repetitions_per_fault": repetitions, "physical_fault_instances": 5 * repetitions,
+            "repetitions_per_fault": (next(iter({plan[f] for f in active_faults}))
+                                       if len({plan[f] for f in active_faults}) == 1 else None),
+            "fault_repetitions": plan, "physical_fault_instances": sum(plan.values()),
             "cases": cases, "faults": fault_results, "overall": overall,
             "delta_convention": "B - A", "llm_judge": "NONE",
             "statistical_generalization_claim": False}
@@ -254,7 +266,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps({"status": "BLOCKED", "error_type": type(exc).__name__}, sort_keys=True))
         return 2
     print(json.dumps({"status": "PASS", "run_id": result["run_id"],
-                      "cases": 10 * result["repetitions_per_fault"], "api_calls": 0}, sort_keys=True))
+                      "cases": result["physical_fault_instances"] * 2, "api_calls": 0}, sort_keys=True))
     return 0
 
 

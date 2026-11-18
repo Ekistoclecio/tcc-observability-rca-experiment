@@ -50,6 +50,14 @@ O bundle global contém metrics, logs A/B, traces A/B e control, com `control/wo
 
 Usar setup limpo com versões fixadas de Kind/Kubernetes/Chaos Mesh e storage novo A/B. O setup bloqueia coexistência com outros clusters Kind relevantes no WSL devido ao limite compartilhado de inotify observado; não altera sysctls nem encerra clusters alheios. Antes da bateria, observar estabilidade idle, workload normal e consultas em janela; confirmar ausência de fault ativo, OOM/restarts inesperados e saturação não resolvida. O preflight também executa dry-run de coleta, Builder, RCA Input, montagem do novo layout e integridade sem faults nem chamadas LLM.
 
+## Configuração e entrypoint reproduzível
+
+`./run-experiment.sh` é o entrypoint recomendado. O shell resolve a raiz do repositório e delega ao CLI Python; não replica lógica científica. `.env.example` define somente contagens independentes de repetições F1–F5, seleção/configuração RCA, chave OpenAI e habilitação do evaluator. `0` omite a fault; valores positivos geram `R01..RN` em ordem fault-major e repetition-minor. O plano e a execução usam a mesma `ExperimentConfig`, validada antes de side effects, e a configuração não secreta fica registrada em `manifest.json`.
+
+O loader carrega a `.env` da raiz sem sobrescrever o ambiente do processo; variáveis já exportadas têm precedência. Counts precisam ser inteiros não negativos e pelo menos uma fault deve estar ativa. Modelo, reasoning e service tier são validados contra o registry de protocolo/pricing existente; a chave é exigida somente com RCA habilitado e nunca é copiada para configuração serializável. `EVALUATION_ENABLED=true` depende de RCA habilitado. `--dry-run` imprime o plano e termina sem consultar cluster, executar faults, chamar OpenAI ou criar run.
+
+`scripts/experiment/result_layout.py`, o evaluator e o executor aceitam contagens por fault (inclusive faults desabilitadas), sem assumir grid uniforme. O manifest guarda `fault_repetitions`; Ground Truth inclui apenas instâncias executadas, e `telemetry/`, `llm/inputs/` e `llm/responses/` usam `F{n}-R{nn}-{A|B}.json`. Agregação geral considera somente instâncias ativas. O layout e as definições métricas não mudam com a configuração.
+
 ## Problemas relevantes e solução final
 
 - F2 originalmente dependia de endpoint fixo; substituído por descoberta dinâmica de ClusterIP e target externo específico.
@@ -69,4 +77,6 @@ Usar setup limpo com versões fixadas de Kind/Kubernetes/Chaos Mesh e storage no
 
 Testes offline exercitam N=1 e N=5: 5/25 instâncias GT e 10/50 IDs por tratamento/case, sem colisões; o evaluator agrega por fault, repetition, tratamento e no total. A identidade `F{n}-R{nn}` permite N maior sem alterar a estrutura. Cada run possui um único `hashes.sha256`; não há manifests aninhados publicados nem outputs de staging, control smoke, plano de execução ou protocolo duplicado. O propósito de uma execução de validação fica explícito no manifest e não deve ser interpretado como resultado definitivo do TCC.
 
-Implementação integrada pronta para nova execução física do zero. Baterias de desenvolvimento anteriores não permanecem como dataset, resultados ou auditoria no working tree.
+Implementação integrada pronta para nova execução física do zero. O `docs/experiment/results/run-001/` que já está versionado é um artifact de validação da implementação/layout; não é o dataset definitivo nem deve ser interpretado como resultado generalizável. Novas execuções recebem o próximo ID livre e preservam essa run sem sobrescrevê-la.
+
+A documentação de preparação de máquina nova e os pré-requisitos operacionais estão em `docs/experiment/README.md`. O sistema está implementado e pronto para execução configurada; esta camada foi validada offline e não inicia uma run científica por si só.

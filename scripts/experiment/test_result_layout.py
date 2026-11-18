@@ -37,7 +37,8 @@ def prediction() -> dict:
     ]}
 
 
-def make_run(root: Path, repetitions: int) -> None:
+def make_run(root: Path, repetitions: int | dict[str, int], *, rca_enabled: bool = True,
+             evaluation_enabled: bool = True) -> None:
     (root / "raw").mkdir(parents=True)
     for side in "AB":
         for modality in ("metrics", "logs", "traces"):
@@ -45,7 +46,10 @@ def make_run(root: Path, repetitions: int) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("{}\n")
     instances = {}
-    for identity in instance_ids(repetitions):
+    identities = instance_ids(repetitions)
+    from scripts.experiment.result_layout import repetition_plan
+    plan = repetition_plan(repetitions)
+    for identity in identities:
         fault, rep = identity.split("-R")
         instances[identity] = {"ground_truth": ground_truth(identity)}
         repetition = int(rep)
@@ -57,22 +61,28 @@ def make_run(root: Path, repetitions: int) -> None:
             write_json(root / "llm" / "inputs" / f"{case}.json", {
                 "model": "gpt-6-luna", "input": [{"role": "user", "content": "synthetic"}],
             })
-            write_json(root / "llm" / "responses" / f"{case}.json", {
-                "status": "COMPLETED", "prediction": prediction(),
-                "validation": {"semantic": "PASS"}, "latency_ms": 1000 + repetition,
-                "usage": {"input_tokens": 100, "cached_input_tokens": 10,
-                          "output_tokens": 20, "reasoning_tokens": 5,
-                          "total_tokens": 120, "estimated_cost_usd": "0.001"},
-            })
+            if rca_enabled:
+                write_json(root / "llm" / "responses" / f"{case}.json", {
+                    "status": "COMPLETED", "prediction": prediction(),
+                    "validation": {"semantic": "PASS"}, "latency_ms": 1000 + repetition,
+                    "usage": {"input_tokens": 100, "cached_input_tokens": 10,
+                              "output_tokens": 20, "reasoning_tokens": 5,
+                              "total_tokens": 120, "estimated_cost_usd": "0.001"},
+                })
     (root / "evaluation").mkdir()
-    write_json(root / "evaluation" / "results.json", {})
+    write_json(root / "evaluation" / "results.json", {} if evaluation_enabled else
+               {"status": "NOT_RUN", "reason": "EVALUATION_DISABLED"})
     write_json(root / "ground-truth.json", build_ground_truth(instances))
     write_json(root / "manifest.json", {
         "run_id": "run-001", "status": "SUCCESS",
         "purpose": "result_layout_end_to_end_validation",
-        "repetitions_per_fault": repetitions, "physical_fault_instances": 5 * repetitions,
-        "rca_inputs": 10 * repetitions, "faults": list(FAULTS),
+        "repetitions_per_fault": (next(iter({plan[f] for f in FAULTS if plan[f] > 0}))
+                                   if len({plan[f] for f in FAULTS if plan[f] > 0}) == 1 else None),
+        "fault_repetitions": plan, "physical_fault_instances": len(identities),
+        "rca_inputs": 2 * len(identities), "faults": [f for f in FAULTS if plan[f] > 0],
         "treatments": list(TREATMENTS),
+        "configuration": {"rca": {"enabled": rca_enabled},
+                           "evaluation": {"enabled": evaluation_enabled}},
     })
     outer_hashes(root)
 
@@ -107,7 +117,7 @@ class RepetitionLayoutTests(unittest.TestCase):
             self.assertEqual(results["overall"]["treatment_A"]["cases"], 5)
             self.assertEqual(results["overall"]["treatment_B"]["accuracy_at_1"], 1.0)
             self.assertEqual(set(results), {"evaluation_version", "run_id", "purpose",
-                "repetitions_per_fault", "physical_fault_instances", "cases", "faults",
+                "repetitions_per_fault", "fault_repetitions", "physical_fault_instances", "cases", "faults",
                 "overall", "delta_convention", "llm_judge", "statistical_generalization_claim"})
 
     def test_complete_tree_and_fault_pairs_scale_for_n5(self):
@@ -123,6 +133,36 @@ class RepetitionLayoutTests(unittest.TestCase):
             self.assertTrue(all(len(reps) == 5 for reps in result["cases"].values()))
             self.assertEqual(result["overall"]["treatment_A"]["cases"], 25)
             self.assertEqual(result["faults"]["F4"]["treatment_B"]["cases"], 5)
+
+    def test_mixed_fault_repetitions_preserve_only_enabled_instances(self):
+        plan = {"F1": 3, "F2": 0, "F3": 2, "F4": 1, "F5": 4}
+        self.assertEqual(len(instance_ids(plan)), 10)
+        self.assertEqual(len(expected_case_ids(plan)), 20)
+        self.assertNotIn("F2-R01", instance_ids(plan))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "run-001"
+            make_run(root, plan)
+            integrity = verify_run(root, plan)
+            self.assertEqual(integrity["physical_fault_instances"], 10)
+            results = evaluate_run_layout(root)
+            self.assertEqual(set(results["faults"]), {"F1", "F3", "F4", "F5"})
+            self.assertEqual(results["overall"]["treatment_A"]["cases"], 10)
+            self.assertEqual(results["faults"]["F3"]["repetitions"], 2)
+
+    def test_naming_supports_repetition_numbers_above_nine(self):
+        ids = expected_case_ids({"F1": 12})
+        self.assertIn("F1-R09-A", ids)
+        self.assertIn("F1-R10-B", ids)
+        self.assertIn("F1-R12-B", ids)
+
+    def test_rca_disabled_run_has_inputs_but_no_responses_or_evaluation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "run-001"
+            make_run(root, 1, rca_enabled=False, evaluation_enabled=False)
+            result = verify_run(root, 1)
+            self.assertEqual(result["rca_inputs"], 10)
+            self.assertEqual(len(list((root / "llm" / "inputs").glob("*.json"))), 10)
+            self.assertEqual(list((root / "llm" / "responses").glob("*.json")), [])
 
     def test_next_run_id_does_not_create_results_root_or_reuse_ids(self):
         with tempfile.TemporaryDirectory() as tmp:
