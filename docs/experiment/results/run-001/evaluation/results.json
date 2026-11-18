@@ -427,14 +427,14 @@
           "delta_B_minus_A": 0.0
         },
         "cached_input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
         },
         "estimated_cost_usd": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0.0049768,
+          "B": 0.006143425,
+          "delta_B_minus_A": 0.001166625
         },
         "fault_type_accuracy": {
           "A": 0.0,
@@ -442,14 +442,14 @@
           "delta_B_minus_A": 0.0
         },
         "input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 33159,
+          "B": 44680,
+          "delta_B_minus_A": 11521.0
         },
         "latency_ms": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 14456.229,
+          "B": 10686.041,
+          "delta_B_minus_A": -3770.188
         },
         "location_accuracy": {
           "A": 0.0,
@@ -457,14 +457,14 @@
           "delta_B_minus_A": 0.0
         },
         "output_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1664,
+          "B": 1117,
+          "delta_B_minus_A": -547.0
         },
         "reasoning_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1208,
+          "B": 494,
+          "delta_B_minus_A": -714.0
         },
         "reciprocal_rank": {
           "A": 0.0,
@@ -552,14 +552,14 @@
           "delta_B_minus_A": 0.0
         },
         "cached_input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
         },
         "estimated_cost_usd": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0.004712675,
+          "B": 0.006131675,
+          "delta_B_minus_A": 0.001419
         },
         "fault_type_accuracy": {
           "A": 1.0,
@@ -567,14 +567,14 @@
           "delta_B_minus_A": 0.0
         },
         "input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 33086,
+          "B": 45282,
+          "delta_B_minus_A": 12196.0
         },
         "latency_ms": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 10781.478,
+          "B": 9934.462,
+          "delta_B_minus_A": -847.016
         },
         "location_accuracy": {
           "A": 0.0,
@@ -582,14 +582,14 @@
           "delta_B_minus_A": 0.0
         },
         "output_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1154,
+          "B": 943,
+          "delta_B_minus_A": -211.0
         },
         "reasoning_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 709,
+          "B": 511,
+          "delta_B_minus_A": -198.0
         },
         "reciprocal_rank": {
           "A": 0.5,
@@ -677,14 +677,14 @@
           "delta_B_minus_A": 1.0
         },
         "cached_input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
         },
         "estimated_cost_usd": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0.004172425,
+          "B": 0.0054658,
+          "delta_B_minus_A": 0.001293375
         },
         "fault_type_accuracy": {
           "A": 1.0,
@@ -692,14 +692,14 @@
           "delta_B_minus_A": 0.0
         },
         "input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 27716,
+          "B": 40351,
+          "delta_B_minus_A": 12635.0
         },
         "latency_ms": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 12727.578,
+          "B": 7995.393,
+          "delta_B_minus_A": -4732.185
         },
         "location_accuracy": {
           "A": 0.0,
@@ -707,14 +707,14 @@
           "delta_B_minus_A": 1.0
         },
         "output_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1416,
+          "B": 844,
+          "delta_B_minus_A": -572.0
         },
         "reasoning_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1000,
+          "B": 478,
+          "delta_B_minus_A": -522.0
         },
         "reciprocal_rank": {
           "A": 0.0,
@@ -802,14 +802,14 @@
           "delta_B_minus_A": 0.0
         },
         "cached_input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
         },
         "estimated_cost_usd": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0.00458005,
+          "B": 0.005713175,
+          "delta_B_minus_A": 0.001133125
         },
         "fault_type_accuracy": {
           "A": 1.0,
@@ -817,14 +817,14 @@
           "delta_B_minus_A": 0.0
         },
         "input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 30889,
+          "B": 41718,
+          "delta_B_minus_A": 10829.0
         },
         "latency_ms": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 12675.984,
+          "B": 9895.786,
+          "delta_B_minus_A": -2780.198
         },
         "location_accuracy": {
           "A": 0.0,
@@ -832,14 +832,14 @@
           "delta_B_minus_A": 0.0
         },
         "output_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 1438,
+          "B": 997,
+          "delta_B_minus_A": -441.0
         },
         "reasoning_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 935,
+          "B": 621,
+          "delta_B_minus_A": -314.0
         },
         "reciprocal_rank": {
           "A": 0.0,
@@ -927,14 +927,14 @@
           "delta_B_minus_A": 0.0
         },
         "cached_input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0,
+          "B": 0,
+          "delta_B_minus_A": 0.0
         },
         "estimated_cost_usd": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 0.002400175,
+          "B": 0.0031133,
+          "delta_B_minus_A": 0.000713125
         },
         "fault_type_accuracy": {
           "A": 1.0,
@@ -942,14 +942,14 @@
           "delta_B_minus_A": 0.0
         },
         "input_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 16362,
+          "B": 21471,
+          "delta_B_minus_A": 5109.0
         },
         "latency_ms": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 5818.731,
+          "B": 6932.887,
+          "delta_B_minus_A": 1114.156
         },
         "location_accuracy": {
           "A": 1.0,
@@ -957,14 +957,14 @@
           "delta_B_minus_A": 0.0
         },
         "output_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 710,
+          "B": 859,
+          "delta_B_minus_A": 149.0
         },
         "reasoning_tokens": {
-          "A": null,
-          "B": null,
-          "delta_B_minus_A": null
+          "A": 202,
+          "B": 372,
+          "delta_B_minus_A": 170.0
         },
         "reciprocal_rank": {
           "A": 1.0,
@@ -1054,14 +1054,14 @@
         "delta_B_minus_A": 0.2
       },
       "cached_input_tokens": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 0,
+        "B": 0,
+        "delta_B_minus_A": 0.0
       },
       "estimated_cost_usd": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 0.020842125,
+        "B": 0.026567375,
+        "delta_B_minus_A": 0.00572525
       },
       "fault_type_accuracy": {
         "A": 0.8,
@@ -1069,14 +1069,14 @@
         "delta_B_minus_A": 0.0
       },
       "input_tokens": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 141212,
+        "B": 193502,
+        "delta_B_minus_A": 52290.0
       },
       "latency_ms": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 11292.0,
+        "B": 9088.913799999998,
+        "delta_B_minus_A": -2203.086200000002
       },
       "location_accuracy": {
         "A": 0.2,
@@ -1084,14 +1084,14 @@
         "delta_B_minus_A": 0.2
       },
       "output_tokens": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 6382,
+        "B": 4760,
+        "delta_B_minus_A": -1622.0
       },
       "reasoning_tokens": {
-        "A": null,
-        "B": null,
-        "delta_B_minus_A": null
+        "A": 4054,
+        "B": 2476,
+        "delta_B_minus_A": -1578.0
       },
       "reciprocal_rank": {
         "A": 0.3,
