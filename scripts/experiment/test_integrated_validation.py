@@ -1,5 +1,6 @@
-import unittest
+import ast
 import json
+import unittest
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -55,6 +56,17 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_integrated_pipeline_uses_only_resolved_json_writer_symbol(self):
+        module_path = Path(__file__).with_name("run_integrated_validation.py")
+        tree = ast.parse(module_path.read_text(encoding="utf-8"))
+        unresolved_calls = [
+            node.lineno for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "write_json"
+        ]
+        self.assertEqual(unresolved_calls, [])
+
     def test_integrated_final_manifest_writer_uses_canonical_utf8_json_helper(self):
         self.assertIs(_write_json, write_json)
         with TemporaryDirectory() as tmp:

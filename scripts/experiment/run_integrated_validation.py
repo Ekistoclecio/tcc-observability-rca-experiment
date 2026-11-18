@@ -1481,7 +1481,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 if gt.get("fault_id") != identity:
                     raise IntegratedRunError(f"{identity} Ground Truth identity mismatch")
                 workload_record = fault_work / "workload.json"
-                write_json(workload_record, report.get("active_probe"))
+                _write_json(workload_record, report.get("active_probe"))
                 raw = fault_work / "raw"
                 collected = collect(raw, gt["confirmed_start"], gt["confirmed_end"],
                                     workload_record, commit, envvars, env)
@@ -1528,8 +1528,8 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
         global_end_ns = time.time_ns()
         global_end = datetime_from_epoch_ns(global_end_ns)
         control_workload = work / "run-workloads.json"
-        write_json(control_workload, {"normal": normal_summary,
-                                     "faults": {key: value["semantic_facts"] for key, value in fault_results.items()}})
+        _write_json(control_workload, {"normal": normal_summary,
+                                      "faults": {key: value["semantic_facts"] for key, value in fault_results.items()}})
         global_raw = work / "global-raw"
         global_collection = collect(global_raw, time_text(start_time), time_text(global_end),
                                     control_workload, commit, envvars, env,
