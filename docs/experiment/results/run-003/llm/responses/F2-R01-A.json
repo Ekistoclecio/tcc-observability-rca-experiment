@@ -1,0 +1,111 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:45:00.523Z",
+      "latency_ms": 9466.653,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:44:47.470Z"
+    }
+  ],
+  "created_at": 1795041890.0,
+  "estimated_cost_usd": "0.004644425",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 9467.979,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.72,
+        "evidence_ids": [
+          "ev_5f491f2504bc4379757c",
+          "ev_8d609e6945a65a1d21f9",
+          "ev_11ac3080796db746c05b",
+          "ev_ef29074ccc6c01e08e0a",
+          "ev_8f74c1e6a165c36709c3",
+          "ev_a5fe65e103d43df560db"
+        ],
+        "explanation": "Frontend server spans report ERROR across several endpoints, while their downstream calls generally succeed, pointing to errors within frontend request handling.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.66,
+        "evidence_ids": [
+          "ev_9ca1dd7acff611db7fff",
+          "ev_46e2bf32698f36cc97d6",
+          "ev_be66129fa2ee177ff183",
+          "ev_14d2fd10ecb13cf147ed",
+          "ev_853d80af82852a30fafd"
+        ],
+        "explanation": "Several frontend currency client spans take 63–91 ms while currency-service request durations average about 0.24 ms, consistent with latency on this service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.51,
+        "evidence_ids": [
+          "ev_7732c61b01125ce06072",
+          "ev_9f143740364a5f0f3431",
+          "ev_3ee30a53ffb2c8ddde75",
+          "ev_9ac0c76c490613fa8183"
+        ],
+        "explanation": "Some frontend product-catalog client calls take 19–62 ms despite near-zero server durations and low service-side request latency, suggesting intermittent edge latency.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "productcatalogservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.72,\"evidence_ids\":[\"ev_5f491f2504bc4379757c\",\"ev_8d609e6945a65a1d21f9\",\"ev_11ac3080796db746c05b\",\"ev_ef29074ccc6c01e08e0a\",\"ev_8f74c1e6a165c36709c3\",\"ev_a5fe65e103d43df560db\"],\"explanation\":\"Frontend server spans report ERROR across several endpoints, while their downstream calls generally succeed, pointing to errors within frontend request handling.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.66,\"evidence_ids\":[\"ev_9ca1dd7acff611db7fff\",\"ev_46e2bf32698f36cc97d6\",\"ev_be66129fa2ee177ff183\",\"ev_14d2fd10ecb13cf147ed\",\"ev_853d80af82852a30fafd\"],\"explanation\":\"Several frontend currency client spans take 63–91 ms while currency-service request durations average about 0.24 ms, consistent with latency on this service edge.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"productcatalogservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.51,\"evidence_ids\":[\"ev_7732c61b01125ce06072\",\"ev_9f143740364a5f0f3431\",\"ev_3ee30a53ffb2c8ddde75\",\"ev_9ac0c76c490613fa8183\"],\"explanation\":\"Some frontend product-catalog client calls take 19–62 ms despite near-zero server durations and low service-side request latency, suggesting intermittent edge latency.\"}]}",
+  "request_fingerprint": "0afd4a1f745dfb08e1fa8268eb026e8cadc19b3c71df8c969abaaf50debc56a0",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_07a40fb085fa7d7f016afe2a62e11c87d295fdbe27fd1d0609",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 33201,
+    "cache_write_tokens": 33201,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004644425",
+    "input_tokens": 33204,
+    "long_context_pricing_applied": false,
+    "output_tokens": 988,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 516,
+    "total_tokens": 34192
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

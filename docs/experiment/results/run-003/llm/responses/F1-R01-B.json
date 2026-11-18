@@ -1,0 +1,112 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:45:48.219Z",
+      "latency_ms": 11249.696,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:45:36.970Z"
+    }
+  ],
+  "created_at": 1795041937.0,
+  "estimated_cost_usd": "0.006171675",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 11251.047,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.76,
+        "evidence_ids": [
+          "ev_0ed11f8794bd910d7db1",
+          "ev_60582a75d2b8ebb164c4",
+          "ev_443ee5cac56ca5102eef",
+          "ev_e589e645e366729883dd",
+          "ev_077c9bebe491e87de17c",
+          "ev_1caadfb892699af0facb"
+        ],
+        "explanation": "Frontend-to-currency client spans take 49–84 ms while the corresponding currency server spans take under 1 ms; currency operation metrics are also low-latency and successful.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.69,
+        "evidence_ids": [
+          "ev_fde232685cf322994f06",
+          "ev_3146ca4e85f3c16ff3b8",
+          "ev_0400baee5da35b91e341",
+          "ev_68fa73b9439d636c6fef",
+          "ev_67501fd5a9ba87fcc07c",
+          "ev_364d3b1f7cf9b49bcac6"
+        ],
+        "explanation": "Frontend product-catalog client calls take about 29–57 ms, whereas corresponding server spans are around 0.1 ms, indicating excess time on the service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "productcatalogservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.62,
+        "evidence_ids": [
+          "ev_cff8ddffb7c8b1e64147",
+          "ev_cea8f57746b6d757de07",
+          "ev_40561522687c5b4d1bf8",
+          "ev_34b43a92398db21e1454"
+        ],
+        "explanation": "Frontend ad-service client spans take about 60–63 ms, while adservice server spans take about 5–7 ms.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "adservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.76,\"evidence_ids\":[\"ev_0ed11f8794bd910d7db1\",\"ev_60582a75d2b8ebb164c4\",\"ev_443ee5cac56ca5102eef\",\"ev_e589e645e366729883dd\",\"ev_077c9bebe491e87de17c\",\"ev_1caadfb892699af0facb\"],\"explanation\":\"Frontend-to-currency client spans take 49–84 ms while the corresponding currency server spans take under 1 ms; currency operation metrics are also low-latency and successful.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"productcatalogservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.69,\"evidence_ids\":[\"ev_fde232685cf322994f06\",\"ev_3146ca4e85f3c16ff3b8\",\"ev_0400baee5da35b91e341\",\"ev_68fa73b9439d636c6fef\",\"ev_67501fd5a9ba87fcc07c\",\"ev_364d3b1f7cf9b49bcac6\"],\"explanation\":\"Frontend product-catalog client calls take about 29–57 ms, whereas corresponding server spans are around 0.1 ms, indicating excess time on the service edge.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"adservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.62,\"evidence_ids\":[\"ev_cff8ddffb7c8b1e64147\",\"ev_cea8f57746b6d757de07\",\"ev_40561522687c5b4d1bf8\",\"ev_34b43a92398db21e1454\"],\"explanation\":\"Frontend ad-service client spans take about 60–63 ms, while adservice server spans take about 5–7 ms.\"}]}",
+  "request_fingerprint": "78729df41f20eb791432a3a6acf1d75eb3cd03c7cc5759061e1a6e91216e47bd",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0719965eb34a33d1016afe2a91edf487d2975293e693344c88",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 44467,
+    "cache_write_tokens": 44467,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.006171675",
+    "input_tokens": 44470,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1226,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 729,
+    "total_tokens": 45696
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

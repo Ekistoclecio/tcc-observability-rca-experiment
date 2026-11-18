@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:44:20.128Z",
+      "latency_ms": 12032.314,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:44:04.509Z"
+    }
+  ],
+  "created_at": 1795041847.0,
+  "estimated_cost_usd": "0.004217675",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 12033.795,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.84,
+        "evidence_ids": [
+          "ev_f996ff406abcbfb9c1fe",
+          "ev_205a118612dad3f532b8",
+          "ev_1e65c8d5583c2141babe",
+          "ev_742bf9642c52d9c159e2"
+        ],
+        "explanation": "The checkout service's PaymentService/Charge call errors, causing PlaceOrder and the frontend checkout call to fail. No payment server span is present, and the payment gRPC server is logged as starting later.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.58,
+        "evidence_ids": [
+          "ev_e71ea2978ce66d73b09c",
+          "ev_a2d101f2dc4b3617e1ac",
+          "ev_01d63ab276fe2c87465f",
+          "ev_78074f3a1a8776925df9"
+        ],
+        "explanation": "Two frontend currency conversion client spans take about 72 ms and 92 ms, while the corresponding currency service spans are about 0.2 ms, consistent with delay on the call edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.43,
+        "evidence_ids": [
+          "ev_65a743286333138556f3",
+          "ev_aa1a644f07f1a7b5d3b3",
+          "ev_22d41f225e8a2d10ee8b",
+          "ev_0a3c0f561648a37cd4aa",
+          "ev_c83e0ceef61cf91c60e1"
+        ],
+        "explanation": "Frontend product, cart, and checkout server spans report errors even though their traced downstream calls mostly succeed; the frontend also logs a request error.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.84,\"evidence_ids\":[\"ev_f996ff406abcbfb9c1fe\",\"ev_205a118612dad3f532b8\",\"ev_1e65c8d5583c2141babe\",\"ev_742bf9642c52d9c159e2\"],\"explanation\":\"The checkout service's PaymentService/Charge call errors, causing PlaceOrder and the frontend checkout call to fail. No payment server span is present, and the payment gRPC server is logged as starting later.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.58,\"evidence_ids\":[\"ev_e71ea2978ce66d73b09c\",\"ev_a2d101f2dc4b3617e1ac\",\"ev_01d63ab276fe2c87465f\",\"ev_78074f3a1a8776925df9\"],\"explanation\":\"Two frontend currency conversion client spans take about 72 ms and 92 ms, while the corresponding currency service spans are about 0.2 ms, consistent with delay on the call edge.\"},{\"rank\":3,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.43,\"evidence_ids\":[\"ev_65a743286333138556f3\",\"ev_aa1a644f07f1a7b5d3b3\",\"ev_22d41f225e8a2d10ee8b\",\"ev_0a3c0f561648a37cd4aa\",\"ev_c83e0ceef61cf91c60e1\"],\"explanation\":\"Frontend product, cart, and checkout server spans report errors even though their traced downstream calls mostly succeed; the frontend also logs a request error.\"}]}",
+  "request_fingerprint": "40b79de774f248025507bbf774fbd782e3f549153bc65020dc411551d4687096",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_07f054e1b74042b3016afe2a3723f087d29370b6789e6eb820",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 28331,
+    "cache_write_tokens": 28331,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004217675",
+    "input_tokens": 28334,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1352,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 877,
+    "total_tokens": 29686
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

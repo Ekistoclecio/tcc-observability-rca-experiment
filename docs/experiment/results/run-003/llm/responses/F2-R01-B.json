@@ -1,0 +1,49 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:44:35.641Z",
+      "latency_ms": 8360.452,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:44:27.280Z"
+    }
+  ],
+  "created_at": 1795041868.0,
+  "estimated_cost_usd": "0.0061583",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 8361.862,
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.87,\"evidence_ids\":[\"ev_19e0757cbb5b89b66299\",\"ev_c63b955d2adab59c1229\",\"ev_b254e745b2eef380344d\",\"ev_3d8f9779ad567357081ae\",\"ev_e47962dd9c5d2581ab2e\"],\"explanation\":\"Several frontend Convert client spans take 63–91 ms while corresponding currencyservice server spans complete in under 1.4 ms; the frontend aggregate mean is 21 ms, pointing to excess latency on this edge.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"productcatalogservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.73,\"evidence_ids\":[\"ev_1188579483e187228d85\",\"ev_74e8464533e6effdeb55\",\"ev_80e73a5dfadf7f485da0\"],\"explanation\":\"A frontend GetProduct client span takes 62 ms while its server span takes about 0.04 ms; the frontend aggregate for this call is higher than the product catalog service's server-side duration.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"recommendationservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.66,\"evidence_ids\":[\"ev_8ae9390cde9e99e0e21d\",\"ev_fb7c6f67029d24eb9be7\",\"ev_e1c9d460a468a1cbea30\"],\"explanation\":\"A frontend recommendations client span takes 64 ms while recommendationservice handles the request in about 4 ms, consistent with excess latency outside the server operation.\"}]}",
+  "request_fingerprint": "737ad396c5b78aa37800060739fff73eb7e9bf6dfdadcc2a0fd59dd4ecb3598c",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_036e840ce0eecf67016afe2a4c760087d2aa13c482a359b0e5",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "SEMANTICALLY_INVALID",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 45448,
+    "cache_write_tokens": 45448,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0061583",
+    "input_tokens": 45451,
+    "long_context_pricing_applied": false,
+    "output_tokens": 954,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 508,
+    "total_tokens": 46405
+  },
+  "validation": {
+    "detail": {
+      "code": "UNKNOWN_EVIDENCE_ID",
+      "detail": "rank 1 references unknown IDs: ['ev_3d8f9779ad567357081ae']",
+      "status": "FAIL"
+    },
+    "semantic": "FAIL",
+    "structured_output": "FAIL"
+  }
+}

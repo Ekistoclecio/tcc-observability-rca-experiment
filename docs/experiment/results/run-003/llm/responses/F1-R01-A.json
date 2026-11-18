@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:45:36.933Z",
+      "latency_ms": 15483.05,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:45:17.865Z"
+    }
+  ],
+  "created_at": 1795041921.0,
+  "estimated_cost_usd": "0.004981425",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 15484.502,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.78,
+        "evidence_ids": [
+          "ev_3c6e93a1b919bfdb1aa0",
+          "ev_d0163598a3a76e8c3a37",
+          "ev_fd75ef4e5614eaad3e1d",
+          "ev_7d8d9469979bd89fd0b1"
+        ],
+        "explanation": "Frontend currency-conversion calls average about 23 ms while currencyservice handles them in about 0.28 ms; a traced client call takes 84 ms while the server span is about 0.21 ms, indicating delay on the edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.68,
+        "evidence_ids": [
+          "ev_3c8896f4017917cf617f",
+          "ev_b6bbb349e404119c533f",
+          "ev_5bb6f5cd22d99789b355",
+          "ev_9f07388c83ececda9175",
+          "ev_bc6d17c814f2f82f5848"
+        ],
+        "explanation": "Frontend calls to AdService average about 61 ms, and traced client calls take about 60 ms while the corresponding server spans take about 4–6 ms.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "adservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.62,
+        "evidence_ids": [
+          "ev_a5ff698e3a59a7c4b585",
+          "ev_4086222c76d1ffc00743",
+          "ev_f95f56c838c5f3550c9d",
+          "ev_645da9a16ad9130b534d"
+        ],
+        "explanation": "Frontend product lookups average about 9 ms, compared with roughly 0.002 ms in productcatalogservice; a traced client call takes 57 ms while its server span is about 0.002 ms.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "productcatalogservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\n  \"hypotheses\": [\n    {\n      \"rank\": 1,\n      \"location\": {\n        \"kind\": \"service_edge\",\n        \"service\": \"frontend\",\n        \"peer_service\": \"currencyservice\",\n        \"operation\": null,\n        \"datastore\": null\n      },\n      \"fault_type\": \"network_latency\",\n      \"confidence\": 0.78,\n      \"evidence_ids\": [\n        \"ev_3c6e93a1b919bfdb1aa0\",\n        \"ev_d0163598a3a76e8c3a37\",\n        \"ev_fd75ef4e5614eaad3e1d\",\n        \"ev_7d8d9469979bd89fd0b1\"\n      ],\n      \"explanation\": \"Frontend currency-conversion calls average about 23 ms while currencyservice handles them in about 0.28 ms; a traced client call takes 84 ms while the server span is about 0.21 ms, indicating delay on the edge.\"\n    },\n    {\n      \"rank\": 2,\n      \"location\": {\n        \"kind\": \"service_edge\",\n        \"service\": \"frontend\",\n        \"peer_service\": \"adservice\",\n        \"operation\": null,\n        \"datastore\": null\n      },\n      \"fault_type\": \"network_latency\",\n      \"confidence\": 0.68,\n      \"evidence_ids\": [\n        \"ev_3c8896f4017917cf617f\",\n        \"ev_b6bbb349e404119c533f\",\n        \"ev_5bb6f5cd22d99789b355\",\n        \"ev_9f07388c83ececda9175\",\n        \"ev_bc6d17c814f2f82f5848\"\n      ],\n      \"explanation\": \"Frontend calls to AdService average about 61 ms, and traced client calls take about 60 ms while the corresponding server spans take about 4–6 ms.\"\n    },\n    {\n      \"rank\": 3,\n      \"location\": {\n        \"kind\": \"service_edge\",\n        \"service\": \"frontend\",\n        \"peer_service\": \"productcatalogservice\",\n        \"operation\": null,\n        \"datastore\": null\n      },\n      \"fault_type\": \"network_latency\",\n      \"confidence\": 0.62,\n      \"evidence_ids\": [\n        \"ev_a5ff698e3a59a7c4b585\",\n        \"ev_4086222c76d1ffc00743\",\n        \"ev_f95f56c838c5f3550c9d\",\n        \"ev_645da9a16ad9130b534d\"\n      ],\n      \"explanation\": \"Frontend product lookups average about 9 ms, compared with roughly 0.002 ms in productcatalogservice; a traced client call takes 57 ms while its server span is about 0.002 ms.\"\n    }\n  ]\n}",
+  "request_fingerprint": "e0b459c85133819db93ca3116b42c9ad17c6ccea67242dbbd172e601893430e7",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0ac4a6607a6f97d8016afe2a80f86c87d28d4c251e6eb897ad",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 32701,
+    "cache_write_tokens": 32701,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004981425",
+    "input_tokens": 32704,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1787,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1154,
+    "total_tokens": 34491
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

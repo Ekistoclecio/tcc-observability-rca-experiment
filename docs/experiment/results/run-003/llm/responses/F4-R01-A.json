@@ -1,0 +1,106 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:44:47.439Z",
+      "latency_ms": 11775.002,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:44:35.664Z"
+    }
+  ],
+  "created_at": 1795041877.0,
+  "estimated_cost_usd": "0.004446675",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 11776.343,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.94,
+        "evidence_ids": [
+          "ev_99f8f5eb03839cae4a79",
+          "ev_7ee6814947bf5f8034fc",
+          "ev_8c3b7bcb97faf222fadd",
+          "ev_b4e6f2ee68271b980ea2",
+          "ev_0cb9913e8f626799a8e3"
+        ],
+        "explanation": "PaymentService logs a charge failure and its Charge server span returns ERROR; the error propagates to PlaceOrder and checkout.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.48,
+        "evidence_ids": [
+          "ev_8c3b7bcb97faf222fadd",
+          "ev_7ee6814947bf5f8034fc"
+        ],
+        "explanation": "The checkout client span lasts about 74 ms while the PaymentService server span lasts about 3 ms, indicating substantial time outside server processing.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.31,
+        "evidence_ids": [
+          "ev_b2fbfdd9e507fd76aa42",
+          "ev_5bfdc9db1ebc691f23c3",
+          "ev_8a410f36b33e31b6e868"
+        ],
+        "explanation": "The frontend product-page span errors despite a successful, brief ProductCatalogService call, pointing to a possible frontend-side failure.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "GET /product/{id}",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.94,\"evidence_ids\":[\"ev_99f8f5eb03839cae4a79\",\"ev_7ee6814947bf5f8034fc\",\"ev_8c3b7bcb97faf222fadd\",\"ev_b4e6f2ee68271b980ea2\",\"ev_0cb9913e8f626799a8e3\"],\"explanation\":\"PaymentService logs a charge failure and its Charge server span returns ERROR; the error propagates to PlaceOrder and checkout.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.48,\"evidence_ids\":[\"ev_8c3b7bcb97faf222fadd\",\"ev_7ee6814947bf5f8034fc\"],\"explanation\":\"The checkout client span lasts about 74 ms while the PaymentService server span lasts about 3 ms, indicating substantial time outside server processing.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"GET /product/{id}\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.31,\"evidence_ids\":[\"ev_b2fbfdd9e507fd76aa42\",\"ev_5bfdc9db1ebc691f23c3\",\"ev_8a410f36b33e31b6e868\"],\"explanation\":\"The frontend product-page span errors despite a successful, brief ProductCatalogService call, pointing to a possible frontend-side failure.\"}]}",
+  "request_fingerprint": "50bc008fe5f44860d225f8fbebff3ab66e77b0f595c3beab518278fdf7193e41",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_03f2d4bdf9037250016afe2a55f61487d2af33f57651bafd03",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 30495,
+    "cache_write_tokens": 30495,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004446675",
+    "input_tokens": 30498,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1269,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 860,
+    "total_tokens": 31767
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

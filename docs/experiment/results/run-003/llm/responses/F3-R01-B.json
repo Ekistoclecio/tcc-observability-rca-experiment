@@ -1,0 +1,104 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:45:17.831Z",
+      "latency_ms": 6322.782,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:45:11.508Z"
+    }
+  ],
+  "created_at": 1795041913.0,
+  "estimated_cost_usd": "0.005378925",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 6324.038,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.97,
+        "evidence_ids": [
+          "ev_02c9ea33c5445926d977",
+          "ev_375899e3e4affbda5f1c",
+          "ev_db9ff94b575ae8134899"
+        ],
+        "explanation": "Checkout's Charge RPC returned UNAVAILABLE with a connection-refused error; paymentservice reported its gRPC server started later.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.88,
+        "evidence_ids": [
+          "ev_02c9ea33c5445926d977",
+          "ev_dc60220d406c8454a85d"
+        ],
+        "explanation": "The checkout-to-payment call failed as UNAVAILABLE, and the resulting PlaceOrder RPC returned INTERNAL.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.62,
+        "evidence_ids": [
+          "ev_e80f6121af4b4c0b9131",
+          "ev_375899e3e4affbda5f1c",
+          "ev_593e5457ee89df4d6ac6"
+        ],
+        "explanation": "PlaceOrder failed and propagated an error to the frontend, which returned HTTP 500; the trace attributes the failure to the unavailable payment call.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CheckoutService/PlaceOrder",
+          "peer_service": null,
+          "service": "checkoutservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.97,\"evidence_ids\":[\"ev_02c9ea33c5445926d977\",\"ev_375899e3e4affbda5f1c\",\"ev_db9ff94b575ae8134899\"],\"explanation\":\"Checkout's Charge RPC returned UNAVAILABLE with a connection-refused error; paymentservice reported its gRPC server started later.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.88,\"evidence_ids\":[\"ev_02c9ea33c5445926d977\",\"ev_dc60220d406c8454a85d\"],\"explanation\":\"The checkout-to-payment call failed as UNAVAILABLE, and the resulting PlaceOrder RPC returned INTERNAL.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"checkoutservice\",\"peer_service\":null,\"operation\":\"hipstershop.CheckoutService/PlaceOrder\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.62,\"evidence_ids\":[\"ev_e80f6121af4b4c0b9131\",\"ev_375899e3e4affbda5f1c\",\"ev_593e5457ee89df4d6ac6\"],\"explanation\":\"PlaceOrder failed and propagated an error to the frontend, which returned HTTP 500; the trace attributes the failure to the unavailable payment call.\"}]}",
+  "request_fingerprint": "1976a0ea69e0f5b74a432efd78b61499870ab64db7d11251115a55cafb799b66",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0716319903af77eb016afe2a799d6487d28d9f6e17ba17bebd",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 40253,
+    "cache_write_tokens": 40253,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.005378925",
+    "input_tokens": 40256,
+    "long_context_pricing_applied": false,
+    "output_tokens": 694,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 325,
+    "total_tokens": 40950
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:44:04.486Z",
+      "latency_ms": 8509.612,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:43:55.977Z"
+    }
+  ],
+  "created_at": 1795041837.0,
+  "estimated_cost_usd": "0.005392925",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 8514.04,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.96,
+        "evidence_ids": [
+          "ev_0a132c58798d66fba6f6",
+          "ev_7d02b1f7cc83c3a0f6a4",
+          "ev_e313fc48340f13e434ac",
+          "ev_d54df37d542c446e3c80"
+        ],
+        "explanation": "PaymentService/Charge returns INTERNAL and logs “Payment charge failed”; the checkout error propagates this failure to the frontend.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.67,
+        "evidence_ids": [
+          "ev_acb276db97b913322b2b",
+          "ev_28ce3bab47c42e419cfc",
+          "ev_dc3a46c1824721b43d87",
+          "ev_6083817844c97200a8af"
+        ],
+        "explanation": "PlaceOrder ends with an INTERNAL error, consistent with its failed PaymentService charge; cart, currency, and shipping calls succeeded.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CheckoutService/PlaceOrder",
+          "peer_service": null,
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.31,
+        "evidence_ids": [
+          "ev_e313fc48340f13e434ac",
+          "ev_7d02b1f7cc83c3a0f6a4"
+        ],
+        "explanation": "The checkout-side Charge RPC lasted about 74 ms while the payment service span lasted about 4.7 ms, leaving additional time on the RPC edge; the server-side charge error is stronger evidence of the failure.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.96,\"evidence_ids\":[\"ev_0a132c58798d66fba6f6\",\"ev_7d02b1f7cc83c3a0f6a4\",\"ev_e313fc48340f13e434ac\",\"ev_d54df37d542c446e3c80\"],\"explanation\":\"PaymentService/Charge returns INTERNAL and logs “Payment charge failed”; the checkout error propagates this failure to the frontend.\"},{\"rank\":2,\"location\":{\"kind\":\"operation\",\"service\":\"checkoutservice\",\"peer_service\":null,\"operation\":\"hipstershop.CheckoutService/PlaceOrder\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.67,\"evidence_ids\":[\"ev_acb276db97b913322b2b\",\"ev_28ce3bab47c42e419cfc\",\"ev_dc3a46c1824721b43d87\",\"ev_6083817844c97200a8af\"],\"explanation\":\"PlaceOrder ends with an INTERNAL error, consistent with its failed PaymentService charge; cart, currency, and shipping calls succeeded.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.31,\"evidence_ids\":[\"ev_e313fc48340f13e434ac\",\"ev_7d02b1f7cc83c3a0f6a4\"],\"explanation\":\"The checkout-side Charge RPC lasted about 74 ms while the payment service span lasted about 4.7 ms, leaving additional time on the RPC edge; the server-side charge error is stronger evidence of the failure.\"}]}",
+  "request_fingerprint": "070b881f7d64994ef331519a36ee9dd8e38f22ace4c4b4913423a9a5cbbdd0c0",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_07ab9ba2d6a900d7016afe2a2dd85087d289865f1466d63994",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 39957,
+    "cache_write_tokens": 39957,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.005392925",
+    "input_tokens": 39960,
+    "long_context_pricing_applied": false,
+    "output_tokens": 796,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 370,
+    "total_tokens": 40756
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}
