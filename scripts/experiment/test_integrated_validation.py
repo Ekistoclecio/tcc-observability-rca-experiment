@@ -24,6 +24,7 @@ from run_integrated_validation import (
     verify_global_raw_hashes,
     verify_hash_manifest,
     write_hashes,
+    _export_llm_responses,
 )
 
 
@@ -45,6 +46,103 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_export_llm_responses_preserves_valid_and_semantically_invalid_outcomes(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            temporary_run = root / "private-llm"
+            staged_run = root / "staged-run"
+            protocol_path = root / "protocol.json"
+            (staged_run / "llm" / "responses").mkdir(parents=True)
+            case_rows = [
+                ("case-valid", "F1-R01-A.json", "COMPLETED", "PASS"),
+                ("case-invalid", "F1-R01-B.json", "SEMANTICALLY_INVALID", "FAIL"),
+            ]
+            private_map = []
+            plan_cases = []
+            for opaque_id, filename, status, semantic_status in case_rows:
+                relative_input = f"inputs/{filename}"
+                source_input = root / relative_input
+                source_input.parent.mkdir(parents=True, exist_ok=True)
+                source_input.write_text(json.dumps({"_request_id": opaque_id}) + "\n",
+                                        encoding="utf-8")
+                private_map.append({"opaque_case_id": opaque_id,
+                                    "input_path": relative_input})
+                plan_cases.append({"opaque_case_id": opaque_id})
+
+                case_dir = temporary_run / "cases" / opaque_id
+                case_dir.mkdir(parents=True)
+                request_meta = {
+                    "status": status,
+                    "latency_ms": 1250.0,
+                    "latency_clean": True,
+                    "attempt_count": 1,
+                    "attempts": [{"attempt": 1, "status": "COMPLETED"}],
+                    "request_fingerprint": f"fingerprint-{opaque_id}",
+                }
+                (case_dir / "request-metadata.json").write_text(
+                    json.dumps(request_meta), encoding="utf-8")
+                response_meta = {
+                    "response_id": f"resp-{opaque_id}",
+                    "requested_model": "gpt-6-luna",
+                    "returned_model": "gpt-6-luna",
+                    "usage": {"input_tokens": 100, "cached_input_tokens": 10,
+                              "output_tokens": 20, "reasoning_tokens": 5,
+                              "total_tokens": 120, "estimated_cost_usd": "0.001"},
+                }
+                (case_dir / "response-metadata.json").write_text(
+                    json.dumps(response_meta), encoding="utf-8")
+                validation = {"status": semantic_status,
+                              "errors": [] if semantic_status == "PASS" else ["UNKNOWN_EVIDENCE_ID"]}
+                (case_dir / "validation.json").write_text(
+                    json.dumps(validation), encoding="utf-8")
+                raw_output = f"original raw output for {opaque_id}\n"
+                (case_dir / "raw-output.txt").write_text(raw_output, encoding="utf-8")
+                if semantic_status == "PASS":
+                    prediction = {"hypotheses": [{"rank": 1}, {"rank": 2}, {"rank": 3}]}
+                    (case_dir / "prediction.json").write_text(
+                        json.dumps(prediction), encoding="utf-8")
+
+                archived_dir = staged_run / "llm" / "inputs"
+                archived_dir.mkdir(parents=True, exist_ok=True)
+                request = {"request": opaque_id}
+                archived_text = json.dumps(request, ensure_ascii=False, sort_keys=True,
+                                           indent=2, allow_nan=False) + "\n"
+                (archived_dir / filename).write_text(archived_text, encoding="utf-8")
+
+            (temporary_run / "run-manifest.json").write_text(json.dumps({
+                "case_map_private": private_map,
+            }), encoding="utf-8")
+            (temporary_run / "execution-plan.json").write_text(json.dumps({
+                "cases": plan_cases,
+            }), encoding="utf-8")
+
+            with patch("run_integrated_validation.ROOT", root), \
+                    patch("scripts.experiment.llm.protocol.build_openai_rca_request",
+                          side_effect=lambda value: {"request": value["_request_id"]}):
+                result = _export_llm_responses(temporary_run, staged_run, protocol_path)
+
+            self.assertEqual(result["outcomes"], {
+                "F1-R01-A": "COMPLETED",
+                "F1-R01-B": "SEMANTICALLY_INVALID",
+            })
+            responses = staged_run / "llm" / "responses"
+            self.assertEqual(sorted(path.name for path in responses.glob("*.json")),
+                             ["F1-R01-A.json", "F1-R01-B.json"])
+            valid = json.loads((responses / "F1-R01-A.json").read_text(encoding="utf-8"))
+            self.assertEqual(valid["status"], "COMPLETED")
+            self.assertEqual(valid["prediction"]["hypotheses"][0]["rank"], 1)
+            self.assertEqual(valid["usage"]["input_tokens"], 100)
+            self.assertEqual(valid["latency_ms"], 1250.0)
+            invalid = json.loads((responses / "F1-R01-B.json").read_text(encoding="utf-8"))
+            self.assertEqual(invalid["status"], "SEMANTICALLY_INVALID")
+            self.assertEqual(invalid["validation"]["semantic"], "FAIL")
+            self.assertEqual(invalid["validation"]["detail"]["errors"],
+                             ["UNKNOWN_EVIDENCE_ID"])
+            self.assertNotIn("prediction", invalid)
+            self.assertEqual(invalid["raw_model_output"],
+                             "original raw output for case-invalid\n")
+            self.assertEqual(invalid["attempt_count"], 1)
+
     def make_global_raw_fixture(self, root, native_count=44):
         import hashlib
 
