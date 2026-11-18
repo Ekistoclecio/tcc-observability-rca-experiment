@@ -145,6 +145,8 @@ EVALUATION_ENABLED=true
 
 O processo lê a `.env` da raiz com `override=False`: variáveis já definidas no ambiente do processo têm precedência. A mesma configuração resolvida é exibida antes de operações caras e registrada em `manifest.json`, sem incluir a chave nem qualquer derivação dela.
 
+Antes de criar o cluster, o preflight verifica em conjunto as ferramentas, versões e pacotes Python necessários. Se algo estiver ausente ou incompatível, a saída lista cada dependência afetada e a versão esperada, sem iniciar faults nem chamadas à API. Helm pode ser baixado pelo setup na versão fixada; os demais binários principais precisam estar disponíveis no `PATH` ou configurados pelos overrides documentados.
+
 ## Validar e executar
 
 Para validar configuração e plano sem efeitos colaterais:

@@ -14,6 +14,9 @@ from scripts.experiment.configuration import (
     ConfigurationError, ROOT, format_plan, resolve_config,
 )
 from scripts.experiment.llm.credentials import verify_env_git_safety
+from scripts.experiment.prerequisites import (
+    DependencyPreflightError, check_git_available, check_runtime_dependencies,
+)
 
 
 def _run(script: Path, env: dict[str, str]) -> None:
@@ -39,6 +42,7 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
         raise ConfigurationError("configuration file must be inside the repository root")
     if not selected_env.is_file():
         raise ConfigurationError(f"repository environment file not found: {selected_env.name}; copy .env.example to .env")
+    check_git_available(os.environ)
     try:
         verify_env_git_safety(ROOT)
     except Exception as exc:
@@ -57,6 +61,9 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
     pinned = dotenv_values(versions, encoding="utf-8")
     if not pinned.get("KIND_VERSION") or not pinned.get("KIND_CLUSTER_NAME"):
         raise ConfigurationError("experiment environment version manifest is missing Kind settings")
+    notes = check_runtime_dependencies(env, pinned)
+    for note in notes:
+        print(f"DEPENDENCY NOTE: {note}", flush=True)
     clusters = _active_kind_clusters(kind_bin, pinned["KIND_VERSION"])
     if clusters:
         raise ConfigurationError(
@@ -102,6 +109,9 @@ def main(argv: list[str] | None = None) -> int:
         return run_experiment(args.env_file, args.dry_run)
     except ConfigurationError as exc:
         print(f"CONFIGURATION ERROR: {exc}", file=sys.stderr)
+        return 2
+    except DependencyPreflightError as exc:
+        print(f"DEPENDENCY PREFLIGHT FAILED:\n{exc}", file=sys.stderr)
         return 2
     except subprocess.CalledProcessError as exc:
         print(f"EXPERIMENT FAILED: setup or integrated runner exited {exc.returncode}", file=sys.stderr)

@@ -13,4 +13,4 @@ command -v "$PYTHON_BIN" >/dev/null 2>&1 || {
   printf 'ERROR: Python 3 not found: %s\n' "$PYTHON_BIN" >&2
   exit 127
 }
-exec "$PYTHON_BIN" -m scripts.experiment.cli "$@"
+exec "$PYTHON_BIN" -m scripts.experiment.bootstrap "$@"
