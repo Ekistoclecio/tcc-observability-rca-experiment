@@ -290,6 +290,9 @@ class AccountingTests(unittest.TestCase):
 
 class MockedEndToEndTests(unittest.TestCase):
     def setUp(self):
+        progress_patch = patch.object(runner, "_print_progress")
+        progress_patch.start()
+        self.addCleanup(progress_patch.stop)
         self.synthetic_root = install_synthetic_protocol(self)
         verify_protocol_artifacts()
         verify_frozen_inputs()

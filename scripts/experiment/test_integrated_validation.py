@@ -1,4 +1,6 @@
 import ast
+from contextlib import redirect_stderr
+from io import StringIO
 import json
 import unittest
 from pathlib import Path
@@ -56,6 +58,18 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_progress_mode_streams_stderr_and_preserves_machine_readable_stdout(self):
+        output = StringIO()
+        with redirect_stderr(output):
+            result = run([
+                sys.executable, "-c",
+                "import sys; print('{\"status\": \"PASS\"}'); "
+                "print('{\"event\": \"STEP\"}', file=sys.stderr, flush=True)",
+            ], progress_label="TEST")
+        self.assertEqual(json.loads(result.stdout), {"status": "PASS"})
+        self.assertIn('{"event": "STEP"}', result.stderr)
+        self.assertIn("[TEST] {\"event\": \"STEP\"}", output.getvalue())
+
     def test_integrated_pipeline_uses_only_resolved_json_writer_symbol(self):
         module_path = Path(__file__).with_name("run_integrated_validation.py")
         tree = ast.parse(module_path.read_text(encoding="utf-8"))

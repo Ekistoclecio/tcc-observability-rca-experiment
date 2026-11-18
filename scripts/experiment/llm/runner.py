@@ -229,11 +229,15 @@ def request_fingerprint(request: Mapping[str, Any], input_sha256: str) -> str:
 def _perform_logical_call(client: Any, request: Mapping[str, Any], rca_input: Mapping[str, Any],
                           sleeper: Callable[[float], None] = time.sleep,
                           max_attempts: int = MAX_TRANSPORT_ATTEMPTS,
-                          first_attempt_number: int = 1) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+                          first_attempt_number: int = 1,
+                          progress_callback: Callable[[str, dict[str, Any]], None] | None = None
+                          ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     attempts: list[dict[str, Any]] = []
     logical_start = time.monotonic()
     for offset in range(max_attempts):
         number = first_attempt_number + offset
+        if progress_callback:
+            progress_callback("RCA_ATTEMPT_STARTED", {"attempt": number})
         wall_started = utc_now()
         attempt_start = time.monotonic()
         try:
@@ -244,6 +248,12 @@ def _perform_logical_call(client: Any, request: Mapping[str, Any], rca_input: Ma
             attempts.append({"attempt": number, "started_at": wall_started,
                              "finished_at": utc_now(), "latency_ms": round(latency, 3), "outcome": "TRANSPORT_ERROR",
                              "error": error})
+            if progress_callback:
+                progress_callback("RCA_ATTEMPT_FINISHED", {
+                    "attempt": number, "outcome": "TRANSPORT_ERROR",
+                    "latency_ms": round(latency, 3),
+                    "retrying": _is_transient(exc) and offset + 1 < max_attempts,
+                })
             if _is_transient(exc) and offset + 1 < max_attempts:
                 sleeper(BACKOFF_SECONDS[min(offset, len(BACKOFF_SECONDS) - 1)])
                 continue
@@ -257,6 +267,11 @@ def _perform_logical_call(client: Any, request: Mapping[str, Any], rca_input: Ma
         outcome["logical_latency_ms"] = round((time.monotonic() - logical_start) * 1000, 3)
         outcome["attempt_latency_ms"] = round(latency, 3)
         outcome["latency_clean"] = number == 1
+        if progress_callback:
+            progress_callback("RCA_ATTEMPT_FINISHED", {
+                "attempt": number, "outcome": outcome["status"],
+                "latency_ms": round(latency, 3), "retrying": False,
+            })
         return outcome, attempts
     raise AssertionError("bounded attempt loop exited unexpectedly")
 
@@ -453,6 +468,8 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
     write_hash_manifest(run_dir)
     verify_hash_manifest(run_dir)
     outcomes: list[dict[str, Any]] = []
+    _print_progress("RCA_RUN_STARTED", logical_cases=len(plan["cases"]),
+                    parallelism=1, resumed=resume)
     for case in plan["cases"]:
         verify_protocol_artifacts()
         current_hashes = verify_frozen_inputs()
@@ -476,6 +493,9 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
                 if response_metadata_path.exists():
                     existing["usage"] = _read_json(response_metadata_path).get("usage")
                 outcomes.append(existing)
+                _print_progress("RCA_CASE_ALREADY_FINAL", ordinal=case["ordinal"],
+                                logical_cases=len(plan["cases"]),
+                                opaque_case_id=case_id, status=status)
                 continue
             if status == "TRANSPORT_FAILED" and not resume:
                 raise PilotStopError("transport-failed case requires explicit resume")
@@ -521,10 +541,19 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
         _atomic_status(case_dir, "IN_PROGRESS", record)
         write_hash_manifest(run_dir)
         verify_hash_manifest(run_dir)
+
+        _print_progress("RCA_CASE_STARTED", ordinal=case["ordinal"],
+                        logical_cases=len(plan["cases"]), opaque_case_id=case_id)
+
+        def attempt_progress(event: str, fields: dict[str, Any]) -> None:
+            _print_progress(event, ordinal=case["ordinal"],
+                            opaque_case_id=case_id, **fields)
+
         outcome, attempts = _perform_logical_call(
             client, request, rca_input, sleeper=sleeper,
             max_attempts=MAX_TRANSPORT_ATTEMPTS - len(prior_attempts),
-            first_attempt_number=len(prior_attempts) + 1)
+            first_attempt_number=len(prior_attempts) + 1,
+            progress_callback=attempt_progress)
         record["request_finished_at"] = utc_now()
         record["attempts"] = prior_attempts + attempts
         record["attempt_count"] = len(record["attempts"])
@@ -556,6 +585,15 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
         _write_json(run_dir / "summary.json", _summary(outcomes))
         write_hash_manifest(run_dir)
         verify_hash_manifest(run_dir)
+        usage = record.get("usage") or {}
+        _print_progress("RCA_CASE_FINISHED", ordinal=case["ordinal"],
+                        logical_cases=len(plan["cases"]), opaque_case_id=case_id,
+                        status=record["status"], attempts=record["attempt_count"],
+                        latency_ms=record.get("latency_ms"),
+                        input_tokens=usage.get("input_tokens"),
+                        output_tokens=usage.get("output_tokens"),
+                        total_tokens=usage.get("total_tokens"),
+                        estimated_cost_usd=usage.get("estimated_cost_usd"))
         if record["status"] == "TRANSPORT_FAILED":
             raise PilotStopError(f"transport attempts exhausted for opaque case {case_id}; run stopped")
     run_manifest["case_map_private"] = sorted(run_manifest["case_map_private"],
@@ -764,6 +802,11 @@ def assert_no_secret_in_artifacts(paths: list[Path]) -> bool:
 
 def _print_safe(label: str, **fields: Any) -> None:
     print(json.dumps({"event": label, **fields}, sort_keys=True, allow_nan=False))
+
+
+def _print_progress(label: str, **fields: Any) -> None:
+    print(json.dumps({"event": label, **fields}, sort_keys=True, allow_nan=False),
+          file=sys.stderr, flush=True)
 
 
 def main(argv: list[str] | None = None) -> int:

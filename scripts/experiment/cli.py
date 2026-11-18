@@ -19,8 +19,10 @@ from scripts.experiment.prerequisites import (
 )
 
 
-def _run(script: Path, env: dict[str, str]) -> None:
+def _run(script: Path, env: dict[str, str], label: str) -> None:
+    print(f"\n[{label}] Iniciando...", flush=True)
     subprocess.run(["bash", str(script)], cwd=ROOT, env=env, check=True)
+    print(f"[{label}] Concluído.", flush=True)
 
 
 def _active_kind_clusters(kind_bin: str, expected_version: str) -> list[str]:
@@ -70,23 +72,41 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
             "exclusive Kind runtime required; remove conflicting clusters before running: "
             + ", ".join(clusters)
         )
+    print("\n[Preflight] Dependências válidas; runtime Kind exclusivo confirmado.", flush=True)
 
     cluster_name = pinned["KIND_CLUSTER_NAME"]
     creation_started = False
     try:
         creation_started = True
-        _run(ROOT / "scripts/experiment/environment/create.sh", env)
-        _run(ROOT / "scripts/experiment/environment/install-chaos-mesh.sh", env)
-        _run(ROOT / "scripts/experiment/environment/deploy.sh", env)
-        _run(ROOT / "scripts/experiment/observability-a/deploy.sh", env)
-        _run(ROOT / "scripts/experiment/observability-b/deploy.sh", env)
+        _run(ROOT / "scripts/experiment/environment/create.sh", env, "Ambiente 1/5 — Kind")
+        _run(ROOT / "scripts/experiment/environment/install-chaos-mesh.sh", env,
+             "Ambiente 2/5 — Chaos Mesh")
+        _run(ROOT / "scripts/experiment/environment/deploy.sh", env,
+             "Ambiente 3/5 — aplicação e provenance")
+        _run(ROOT / "scripts/experiment/observability-a/deploy.sh", env,
+             "Ambiente 4/5 — observabilidade A")
+        _run(ROOT / "scripts/experiment/observability-b/deploy.sh", env,
+             "Ambiente 5/5 — observabilidade B")
         experiment_scripts = str(ROOT / "scripts/experiment")
         if experiment_scripts not in sys.path:
             sys.path.insert(0, experiment_scripts)
         from scripts.experiment.run_integrated_validation import execute
-        execute((ROOT / "docs/experiment/results").resolve(),
-                fault_repetitions=config.fault_repetitions, purpose="configured_experiment_run",
-                experiment_config=config)
+        result = execute((ROOT / "docs/experiment/results").resolve(),
+                         fault_repetitions=config.fault_repetitions,
+                         purpose="configured_experiment_run", experiment_config=config)
+        print(f"\n[Concluído] Run {result['run_id']} publicada em {result['result_path']}.",
+              flush=True)
+        print(f"[Concluído] Fault instances: {result['physical_fault_instances']}; "
+              f"RCA inputs: {result['rca_inputs']}; integrity: PASS.", flush=True)
+        if config.rca.enabled:
+            pilot = result.get("pilot", {})
+            print("[Concluído] Diagnósticos: "
+                  f"{pilot.get('completed_valid', 0)} válidos, "
+                  f"{pilot.get('semantic_invalid', 0)} semanticamente inválidos, "
+                  f"{pilot.get('refused', 0)} recusas, "
+                  f"{pilot.get('incomplete', 0)} incompletos.", flush=True)
+        print(f"[Concluído] Avaliação: {'PASS' if config.evaluation_enabled else 'desabilitada'}.",
+              flush=True)
         return 0
     finally:
         if creation_started:
@@ -95,8 +115,11 @@ def run_experiment(env_file: Path | None = None, dry_run: bool = False) -> int:
             except (ConfigurationError, OSError, subprocess.CalledProcessError):
                 current = []
             if cluster_name in current:
+                print(f"\n[Limpeza] Removendo cluster experimental efêmero {cluster_name}...",
+                      flush=True)
                 subprocess.run([kind_bin, "delete", "cluster", "--name", cluster_name],
                                cwd=ROOT, env=env, check=False)
+                print("[Limpeza] Cluster experimental removido.", flush=True)
 
 
 def main(argv: list[str] | None = None) -> int:

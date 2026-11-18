@@ -14,6 +14,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import threading
 import tempfile
 import traceback
 import time
@@ -243,8 +244,31 @@ def parse_time(value: str) -> datetime:
 
 
 def run(args: list[str], *, env: dict[str, str] | None = None,
-        cwd: Path = ROOT, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(args, cwd=cwd, env=env, text=True, capture_output=True, check=False)
+        cwd: Path = ROOT, check: bool = True,
+        progress_label: str | None = None) -> subprocess.CompletedProcess[str]:
+    if progress_label is None:
+        result = subprocess.run(args, cwd=cwd, env=env, text=True,
+                                capture_output=True, check=False)
+    else:
+        process = subprocess.Popen(args, cwd=cwd, env=env, text=True, bufsize=1,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout_parts: list[str] = []
+
+        def drain_stdout() -> None:
+            assert process.stdout is not None
+            stdout_parts.extend(process.stdout)
+
+        stdout_thread = threading.Thread(target=drain_stdout, daemon=True)
+        stdout_thread.start()
+        stderr_parts: list[str] = []
+        assert process.stderr is not None
+        for line in process.stderr:
+            stderr_parts.append(line)
+            print(f"[{progress_label}] {line}", end="", file=sys.stderr, flush=True)
+        return_code = process.wait()
+        stdout_thread.join()
+        result = subprocess.CompletedProcess(args, return_code,
+                                             "".join(stdout_parts), "".join(stderr_parts))
     if check and result.returncode:
         raise IntegratedRunError(
             f"command failed ({result.returncode}): {' '.join(args)}\n"
@@ -261,6 +285,10 @@ def json_output(result: subprocess.CompletedProcess[str], label: str) -> dict[st
     if not isinstance(value, dict):
         raise IntegratedRunError(f"{label} JSON must be an object")
     return value
+
+
+def progress(message: str) -> None:
+    print(f"[Experimento] {message}", file=sys.stderr, flush=True)
 
 
 def git_state() -> tuple[str, str, str]:
@@ -421,22 +449,29 @@ def preflight(output: Path, branch: str, commit: str, envvars: dict[str, str]) -
         ("scenario_a", ROOT / "scripts/experiment/observability-a/verify.sh"),
         ("scenario_b", ROOT / "scripts/experiment/observability-b/verify.sh"),
     ):
+        progress(f"Preflight: verificando {name}.")
         result = run(["bash", str(script)], env=env)
         checks[name] = {"status": "PASS", "stdout": result.stdout[-4000:]}
+        progress(f"Preflight: {name} PASS.")
     provenance_path = output / "deployment-provenance.json"
+    progress("Preflight: verificando provenance Git → imagem → Pods (10 serviços).")
     provenance = run_script(PROVENANCE_VALIDATOR, "--output", str(provenance_path), env=env)
     if provenance.get("status") != "PASS" or provenance.get("validated_service_count") != 10:
         raise IntegratedRunError(f"deployment provenance gate failed: {provenance}")
     checks["deployment_provenance"] = {"status": "PASS", "services": 10}
+    progress("Preflight: deployment provenance 10/10 PASS.")
     cluster = envvars["KIND_CLUSTER_NAME"]
     context = f"kind-{cluster}"
+    progress("Preflight: verificando Jaeger Badger/PVC A/B.")
     checks["jaeger_persistence"] = check_jaeger_persistence(
         env.get("KUBECTL_BIN", "kubectl"), context
     )
+    progress("Preflight: Jaeger Badger/PVC PASS; verificando ausência de faults residuais.")
     checks["residual_fault_state"] = check_no_residual_fault_state(
         env.get("KUBECTL_BIN", "kubectl"), context, envvars["SUT_NAMESPACE"]
     )
     checks["residual_fault_state"]["status"] = "PASS"
+    progress("Preflight: nenhum Chaos residual; ambiente pronto.")
     return {"branch": branch, "tested_commit": commit, "working_tree_clean": True,
             "checks": checks, "deployment_provenance": provenance}
 
@@ -566,6 +601,7 @@ def wait_for_duration_baseline(envvars: dict[str, str], env: dict[str, str],
 
         expressions = duration_baseline_expressions()
         deadline = time.monotonic() + timeout
+        next_progress_at = time.monotonic() + 15
         last_observation: dict[str, Any] = {}
         while time.monotonic() < deadline:
             observations: dict[str, Any] = {}
@@ -599,6 +635,9 @@ def wait_for_duration_baseline(envvars: dict[str, str], env: dict[str, str],
                     "ready_at": time_text(utc_now()),
                     "scenarios": observations,
                 }
+            if time.monotonic() >= next_progress_at:
+                progress("Workload normal: aguardando amostras recentes de duração em Prometheus A/B.")
+                next_progress_at = time.monotonic() + 15
             time.sleep(1.0)
         raise IntegratedRunError(
             "Prometheus A/B did not expose fresh PlaceOrder duration count+sum samples "
@@ -618,19 +657,23 @@ def wait_for_duration_baseline(envvars: dict[str, str], env: dict[str, str],
 
 def run_normal_baseline(envvars: dict[str, str], env: dict[str, str],
                         output_path: Path) -> dict[str, Any]:
+    progress("Workload normal: warm-up.")
     warmup = run_normal_workload_with_forward(
         envvars, env, None, ("--steady-flows", "0")
     )
     if warmup.get("status") != "PASS" or not warmup.get("warmup"):
         raise IntegratedRunError(f"normal workload warmup failed: {warmup}")
+    progress("Workload normal: warm-up concluído; aguardando métricas frescas A/B.")
     baseline_readiness = wait_for_duration_baseline(
         envvars, env, warmup["warmup_finished_at"]
     )
+    progress("Workload normal: métricas de duração prontas; iniciando workload medido.")
     measured = run_normal_workload_with_forward(
         envvars, env, None, ("--warmup-flows", "0")
     )
     if measured.get("status") != "PASS" or not measured.get("steady"):
         raise IntegratedRunError(f"normal measured workload failed: {measured}")
+    progress("Workload normal: carga medida concluída.")
     summary = {
         "status": "PASS",
         "base_url": measured["base_url"],
@@ -666,7 +709,8 @@ def collect(raw: Path, start: str, end: str, record: Path, commit: str,
         raise IntegratedRunError("exact RAW bounds must include both start_ns and end_ns")
     if start_ns is not None and end_ns is not None:
         args.extend(["--start-ns", str(start_ns), "--end-ns", str(end_ns)])
-    result = run(args, env=env)
+    progress(f"RAW: iniciando coleta ({raw.name}).")
+    result = run(args, env=env, progress_label="RAW")
     report = json_output(result, "RAW collector")
     trace_query_diagnostics = []
     for line in result.stderr.splitlines():
@@ -681,10 +725,12 @@ def collect(raw: Path, start: str, end: str, record: Path, commit: str,
             trace_query_diagnostics.append(event)
     if report.get("status") != "PASS":
         raise IntegratedRunError(f"RAW collection failed: {report}")
+    progress("RAW: coleta concluída; verificando hashes nativos.")
     verify = run([sys.executable, str(COLLECTOR), "--verify-existing", str(raw)], env=env)
     verification = json_output(verify, "RAW integrity verifier")
     if verification.get("status") != "PASS":
         raise IntegratedRunError(f"RAW integrity failed: {verification}")
+    progress("RAW: integridade verificada.")
     return {
         "collection": report,
         "integrity": verification,
@@ -693,10 +739,12 @@ def collect(raw: Path, start: str, end: str, record: Path, commit: str,
 
 
 def build_dataset(raw: Path, destination: Path, env: dict[str, str]) -> dict[str, Any]:
+    progress(f"Builder: construindo Dataset A/B para {raw.name}.")
     result = run([sys.executable, str(BUILDER), "--raw", str(raw), "--output-dir", str(destination)], env=env)
     report = json_output(result, "Dataset Builder")
     if report.get("status") != "PASS":
         raise IntegratedRunError(f"Dataset Builder failed: {report}")
+    progress(f"Builder: Dataset A/B concluído para {raw.name}.")
     return report
 
 
@@ -1302,9 +1350,10 @@ def publish_finalization(scratch: Path, publication_root: Path, execution: dict[
 
 def _run_llm_command(protocol_path: Path, command: str, env: dict[str, str],
                      *arguments: str) -> dict[str, Any]:
+    progress(f"LLM: iniciando etapa `{command}`.")
     result = run([sys.executable, "-m", "scripts.experiment.llm.runner",
                   "--protocol", str(protocol_path), command, *arguments],
-                 env=env, check=False)
+                 env=env, check=False, progress_label="LLM")
     try:
         payload = json_output(result, f"LLM runner {command}")
     except IntegratedRunError as exc:
@@ -1324,6 +1373,7 @@ def _run_llm_command(protocol_path: Path, command: str, env: dict[str, str],
         raise IntegratedRunError(f"LLM control smoke did not complete: {payload}")
     if command == "run" and payload.get("transport_failed") != 0:
         raise IntegratedRunError(f"LLM runner reported transport failure: {payload}")
+    progress(f"LLM: etapa `{command}` concluída ({payload.get('event')}).")
     return payload
 
 
@@ -1427,6 +1477,11 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
     env.setdefault("KIND_BIN", "kind")
     env.setdefault("KUBECTL_BIN", "kubectl")
     run_id = next_run_id(output_root)
+    planned_instances = [f"{fault}-R{repetition:02d}"
+                         for fault in FAULTS if selected_plan[fault] > 0
+                         for repetition in range(1, selected_plan[fault] + 1)]
+    progress(f"Run {run_id}: pipeline iniciado; {physical_count} instâncias físicas, "
+             f"{case_count} casos A/B; instâncias: {', '.join(planned_instances)}.")
     run_store = ROOT / "artifacts/experiment"
     run_store.mkdir(parents=True, exist_ok=True)
     staging_run = run_store / f".{run_id}-staging"
@@ -1445,14 +1500,18 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
         raise IntegratedRunError("temporary paths for the next run ID already exist; refusing reuse")
     with PreserveWorkOnError() as work:
         work.mkdir(exist_ok=True)
+        progress("Preflight científico: verificando working tree, provenance, PVCs, Chaos residual e serviços.")
         preflight_report = preflight(work / "preflight", branch, commit, envvars)
+        progress("Preflight científico: PASS.")
         if rca_enabled:
             _run_llm_command(ROOT / "scripts/experiment/llm/resources/protocol-v1.json",
                              "preflight", env)
         global_start_ns = time.time_ns()
         start_time = datetime_from_epoch_ns(global_start_ns)
         normal_record = work / "normal-workload.json"
+        progress("Workload normal: executando warm-up, carga medida e readiness das métricas.")
         normal_summary = run_normal_baseline(envvars, env, normal_record)
+        progress("Workload normal: PASS.")
         normal_start = normal_summary["measurement_started_at"]
         normal_end = time_text(parse_time(normal_summary["finished_at"]) + timedelta(seconds=20))
         normal_raw = work / "normal-raw"
@@ -1460,6 +1519,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
         normal_dataset = work / "normal-dataset"
         build_dataset(normal_raw, normal_dataset, env)
         normal_facts = {side: facts_from(normal_dataset / f"dataset-{side}.json") for side in "AB"}
+        progress("Baseline normal: telemetria A/B construída e pronta para comparação dos faults.")
 
         physical_instances: dict[str, Any] = {}
         fault_results: dict[str, Any] = {}
@@ -1469,6 +1529,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             fault_type, _, _ = FAULTS[fault]
             for repetition in range(1, selected_plan[fault] + 1):
                 identity = f"{fault}-R{repetition:02d}"
+                progress(f"{identity}: iniciando injeção, confirmação, workload ativo e recuperação.")
                 fault_work = work / "instances" / identity
                 fault_work.mkdir(parents=True)
                 gt_path = fault_work / "ground-truth.json"
@@ -1485,6 +1546,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                     ) from exc
                 if result.returncode or report.get("status") != "PASS":
                     raise IntegratedRunError(f"{identity} injection/recovery smoke failed: {report}")
+                progress(f"{identity}: fault confirmado; recuperação e remoção do Chaos passaram.")
                 check_no_residual_fault_state(env.get("KUBECTL_BIN", "kubectl"),
                                               f"kind-{envvars['KIND_CLUSTER_NAME']}", envvars["SUT_NAMESPACE"])
                 gt = verify_gt(fault, gt_path)
@@ -1493,6 +1555,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 workload_record = fault_work / "workload.json"
                 _write_json(workload_record, report.get("active_probe"))
                 raw = fault_work / "raw"
+                progress(f"{identity}: coletando RAW de A/B na janela confirmada.")
                 collected = collect(raw, gt["confirmed_start"], gt["confirmed_end"],
                                     workload_record, commit, envvars, env)
                 dataset_dir = fault_work / "dataset"
@@ -1503,6 +1566,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                     facts[side] = facts_from(dataset_path)
                     input_path = input_root / f"{identity}-{side}.json"
                     input_path.parent.mkdir(parents=True, exist_ok=True)
+                    progress(f"{identity}-{side}: validando Dataset e gerando RCA Input.")
                     inputs[side] = build_input(dataset_path, input_path,
                                                fault_work / f"rca-input-provenance-{side}.json", env)
                 evidence = validate_fault_facts(fault, facts["A"], facts["B"],
@@ -1520,6 +1584,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                     "dataset_build": built, "rca_input": inputs, "semantic_facts": evidence,
                     "recovery": "PASS", "cleanup": "PASS",
                 }
+                progress(f"{identity}: Ground Truth, RAW, Dataset, RCA Inputs, recovery e cleanup: PASS.")
 
         semantic_path = work / "semantic-validation.json"
         semantic_args = ["--normal-raw", str(normal_raw)]
@@ -1530,10 +1595,12 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 semantic_args.extend([option, identity, str(fault_dir / "raw"),
                                       str(fault_dir / "ground-truth.json")])
         semantic_args.extend(["--output", str(semantic_path)])
+        progress("Validação semântica temporal: iniciando sobre RAW normal e faults aplicáveis.")
         semantic = run_script(SEMANTIC_VALIDATOR, *semantic_args, env=env)
         if semantic.get("status") != "PASS":
             raise IntegratedRunError(f"semantic validation failed: {semantic}")
         semantic_results = semantic
+        progress("Validação semântica temporal: PASS.")
 
         global_end_ns = time.time_ns()
         global_end = datetime_from_epoch_ns(global_end_ns)
@@ -1541,6 +1608,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
         _write_json(control_workload, {"normal": normal_summary,
                                       "faults": {key: value["semantic_facts"] for key, value in fault_results.items()}})
         global_raw = work / "global-raw"
+        progress("RAW global: coletando intervalo completo da execução nos tratamentos A/B.")
         global_collection = collect(global_raw, time_text(start_time), time_text(global_end),
                                     control_workload, commit, envvars, env,
                                     start_ns=global_start_ns, end_ns=global_end_ns)
@@ -1580,6 +1648,7 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             input_paths = sorted(input_root.glob("F[1-5]-R*-?.json"))
             if len(input_paths) != case_count:
                 raise IntegratedRunError("current physical run did not produce the complete RCA Input set")
+            progress(f"RCA Inputs: {len(input_paths)}/{case_count} encontrados; preparando árvore temporária da run.")
             create_run_tree(
                 staging_run, run_id, selected_plan, physical_instances, global_raw,
                 {"purpose": purpose, "git_commit": commit,
@@ -1619,13 +1688,16 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 (staging_run / "llm" / "inputs" / name).write_text(
                     json.dumps(request, ensure_ascii=False, sort_keys=True, indent=2,
                                allow_nan=False) + "\n", encoding="utf-8")
+            progress("Requests model-visible arquivados; nenhuma Ground Truth ou identificação de tratamento é incluída no payload.")
             if rca_enabled:
                 _run_llm_command(temporary_protocol, "preflight", env)
                 frozen_plan = _run_llm_command(temporary_protocol, "freeze-plan", env)
                 control = _run_llm_command(temporary_protocol, "control-smoke", env)
                 pilot = _run_llm_command(temporary_protocol, "run", env,
                                          "--run-dir", str(temporary_llm))
+                progress("LLM: exportando outcomes preservados para a árvore da run.")
                 exported = _export_llm_responses(temporary_llm, staging_run, temporary_protocol)
+                progress(f"LLM: {len(exported['outcomes'])}/{case_count} outcomes exportados sem reparo.")
                 control_record = next(control_root.glob("attempt-*/control-smoke.json"), None)
                 control_data = json.loads(control_record.read_text(encoding="utf-8")) if control_record else {}
             else:
@@ -1651,9 +1723,11 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             _write_json(manifest_path, published_manifest)
             if evaluation_enabled:
                 from scripts.experiment.evaluation.evaluator import write_evaluation
+                progress("Evaluator determinístico: calculando métricas e agregações A/B.")
                 evaluation = write_evaluation(staging_run)
                 published_manifest["llm"]["evaluation_status"] = "PASS"
                 published_manifest["evaluation_status"] = "PASS"
+                progress("Evaluator determinístico: PASS.")
             else:
                 evaluation = {"overall": None}
                 _write_json(staging_run / "evaluation" / "results.json",
@@ -1669,11 +1743,13 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
                 elif temporary.exists():
                     temporary.unlink()
             from scripts.experiment.llm.runner import assert_no_secret_in_artifacts
+            progress("Finalização: verificando segredo, inventário de hashes e layout publicado.")
             assert_no_secret_in_artifacts([staging_run])
             outer_hashes(staging_run)
             integrity = verify_run(staging_run, selected_plan)
             destination = publish_atomic(staging_run, output_root, run_id)
             FINALIZATION_SCRATCH = None
+            progress(f"Finalização: PASS; {run_id} publicado em {destination}.")
             return {"status": "PASS", "run_id": run_id, "tested_commit": commit,
                     "repetitions_per_fault": (next(iter({selected_plan[f] for f in FAULTS
                                                           if selected_plan[f] > 0}))
