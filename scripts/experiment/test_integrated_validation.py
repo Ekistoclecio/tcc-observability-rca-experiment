@@ -25,6 +25,15 @@ from run_integrated_validation import (
     verify_hash_manifest,
     write_hashes,
     _export_llm_responses,
+    _write_json,
+)
+from scripts.experiment.evaluation.evaluator import write_evaluation
+from scripts.experiment.result_layout import (
+    create_run_tree,
+    outer_hashes,
+    publish_atomic,
+    verify_run,
+    write_json,
 )
 
 
@@ -46,6 +55,20 @@ def span(service, target, outcome="SUCCESS", duration=20, operation="call"):
 
 
 class IntegratedValidationTests(unittest.TestCase):
+    def test_integrated_final_manifest_writer_uses_canonical_utf8_json_helper(self):
+        self.assertIs(_write_json, write_json)
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest.json"
+            value = {"status": "FINALIZING", "evaluation_status": "PASS",
+                     "label": "validação", "nested": {"b": 2, "a": 1}}
+            _write_json(path, value)
+            encoded = path.read_bytes()
+            self.assertEqual(json.loads(encoded), value)
+            self.assertTrue(encoded.endswith(b"\n"))
+            self.assertIn("validação".encode("utf-8"), encoded)
+            self.assertEqual(encoded, json.dumps(value, ensure_ascii=False, sort_keys=True,
+                                                 indent=2, allow_nan=False).encode("utf-8") + b"\n")
+
     def test_export_llm_responses_preserves_valid_and_semantically_invalid_outcomes(self):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -142,6 +165,151 @@ class IntegratedValidationTests(unittest.TestCase):
             self.assertEqual(invalid["raw_model_output"],
                              "original raw output for case-invalid\n")
             self.assertEqual(invalid["attempt_count"], 1)
+
+    def test_offline_export_evaluation_manifest_hash_and_publication_path(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            raw = root / "global-raw"
+            for side in "AB":
+                base = raw / f"dataset{side}"
+                for modality in ("logs", "traces"):
+                    (base / modality).mkdir(parents=True)
+                    (base / modality / "chunk-0001.json").write_text("{}\n", encoding="utf-8")
+                (base / "metrics.json").write_text("{}\n", encoding="utf-8")
+            (raw / "manifest.json").write_text(json.dumps({"window": {"kind": "synthetic"}}),
+                                                encoding="utf-8")
+            (raw / "hashes.sha256").write_text("synthetic fixture\n", encoding="utf-8")
+
+            temp_llm = root / "mock-llm"
+            private_inputs = root / "private-inputs"
+            input_paths_by_case = {}
+            instances = {}
+            for fault_number in range(1, 6):
+                identity = f"F{fault_number}-R01"
+                gt = {
+                    "schema_version": "1.0", "fault_id": identity,
+                    "fault_type": "cpu_saturation",
+                    "root_location": {"kind": "service", "value": "service-alpha"},
+                    "status": "RECOVERED", "execution_eligible": True,
+                    "requested_start": "2026-01-01T00:00:00Z",
+                    "confirmed_start": "2026-01-01T00:00:01Z",
+                    "confirmed_end": "2026-01-01T00:00:20Z",
+                }
+                fault_root = root / "physical" / identity
+                dataset_root = fault_root / "dataset"
+                dataset_root.mkdir(parents=True)
+                datasets = {}
+                input_cases = {}
+                for side in "AB":
+                    dataset_path = dataset_root / f"dataset-{side}.json"
+                    dataset_path.write_text(json.dumps({"schema_version": "1.0", "facts": []}),
+                                            encoding="utf-8")
+                    write_json(dataset_root / "build-manifest.json", {
+                        "builder_script_sha256": "a" * 64,
+                    })
+                    datasets[side] = dataset_path
+                    case_id = f"{identity}-{side}"
+                    input_path = private_inputs / f"{case_id}.json"
+                    payload = {"_test_payload_id": case_id}
+                    write_json(input_path, payload)
+                    input_paths_by_case[case_id] = input_path
+                    input_cases[side] = input_path
+
+                instances[identity] = {
+                    "ground_truth": gt, "raw_bundle": raw,
+                    "datasets": datasets, "inputs": input_cases,
+                }
+
+            staged = root / "staged"
+            create_run_tree(staged, "run-001", 1, instances, raw, {
+                "purpose": "offline_finalization_regression",
+                "git_commit": "a" * 40,
+                "started_at": "2026-01-01T00:00:00Z",
+                "finished_at": "2026-01-01T00:01:00Z",
+                "llm": {"provider": "OpenAI", "model": "synthetic-model"},
+            })
+
+            private_map = []
+            plan_cases = []
+            outcomes = {}
+            for fault_number in range(1, 6):
+                identity = f"F{fault_number}-R01"
+                for side in "AB":
+                    case = f"{identity}-{side}"
+                    opaque = f"case-{fault_number:02d}-{side.lower()}"
+                    source = input_paths_by_case[case]
+                    relative_input = source.relative_to(root).as_posix()
+                    private_map.append({"opaque_case_id": opaque, "input_path": relative_input})
+                    plan_cases.append({"opaque_case_id": opaque})
+                    case_dir = temp_llm / "cases" / opaque
+                    case_dir.mkdir(parents=True)
+                    invalid = case == "F5-R01-B"
+                    status = "SEMANTICALLY_INVALID" if invalid else "COMPLETED"
+                    write_json(case_dir / "request-metadata.json", {
+                        "status": status, "attempt_count": 1, "attempts": [],
+                        "latency_ms": 1000.0, "latency_clean": True,
+                        "request_fingerprint": f"fingerprint-{case}",
+                    })
+                    write_json(case_dir / "response-metadata.json", {
+                        "response_id": f"response-{case}",
+                        "requested_model": "synthetic-model", "returned_model": "synthetic-model",
+                        "usage": {"input_tokens": 100, "cached_input_tokens": 0,
+                                  "output_tokens": 20, "reasoning_tokens": 5,
+                                  "total_tokens": 120, "estimated_cost_usd": "0.001"},
+                    })
+                    write_json(case_dir / "validation.json", {
+                        "status": "FAIL" if invalid else "PASS",
+                        "code": "UNKNOWN_EVIDENCE_ID" if invalid else None,
+                    })
+                    (case_dir / "raw-output.txt").write_text(
+                        f"original model output {case}\n", encoding="utf-8")
+                    if not invalid:
+                        write_json(case_dir / "prediction.json", {"hypotheses": [
+                            {"rank": rank,
+                             "location": {"kind": "service", "service": "service-alpha",
+                                          "peer_service": None, "operation": None, "datastore": None},
+                             "fault_type": "cpu_saturation"}
+                            for rank in (1, 2, 3)
+                        ]})
+                    with patch("run_integrated_validation.ROOT", root), \
+                            patch("scripts.experiment.llm.protocol.build_openai_rca_request",
+                                  side_effect=lambda value: {"model": "synthetic-model",
+                                                             "input": value["_test_payload_id"]}):
+                        archived = staged / "llm" / "inputs" / f"{case}.json"
+                        archived.write_text(json.dumps(
+                            {"model": "synthetic-model", "input": case},
+                            ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n",
+                            encoding="utf-8")
+                    outcomes[case] = status
+
+            write_json(temp_llm / "run-manifest.json", {"case_map_private": private_map})
+            write_json(temp_llm / "execution-plan.json", {"cases": plan_cases})
+            with patch("run_integrated_validation.ROOT", root), \
+                    patch("scripts.experiment.llm.protocol.build_openai_rca_request",
+                          side_effect=lambda value: {"model": "synthetic-model",
+                                                     "input": value["_test_payload_id"]}):
+                exported = _export_llm_responses(temp_llm, staged, root / "protocol.json")
+            self.assertEqual(exported["outcomes"], outcomes)
+            self.assertEqual(len(list((staged / "llm/responses").glob("*.json"))), 10)
+
+            manifest_path = staged / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["status"] = "FINALIZING"
+            _write_json(manifest_path, manifest)
+            evaluation = write_evaluation(staged)
+            self.assertEqual(evaluation["overall"]["treatment_B"]["accuracy_at_1_valid_cases"], 4)
+            self.assertEqual(evaluation["cases"]["F5"]["R01"]["B"]["response_status"],
+                             "SEMANTICALLY_INVALID")
+            manifest["evaluation_status"] = "PASS"
+            manifest["status"] = "SUCCESS"
+            _write_json(manifest_path, manifest)
+            outer_hashes(staged)
+            self.assertEqual(verify_run(staged, 1)["hash_entries"],
+                             len([p for p in staged.rglob("*") if p.is_file() and p.name != "hashes.sha256"]))
+            published = publish_atomic(staged, root / "results", "run-001")
+            self.assertTrue((published / "evaluation/results.json").is_file())
+            self.assertEqual(json.loads((published / "manifest.json").read_text())["status"], "SUCCESS")
+            self.assertEqual(len(list((published / "llm/responses").glob("*.json"))), 10)
 
     def make_global_raw_fixture(self, root, native_count=44):
         import hashlib

@@ -33,7 +33,7 @@ from collect_raw import (
 from scripts.experiment.fault_smoke import verify_checkout_network_effect_absent
 from scripts.experiment.result_layout import (
     ResultLayoutError, create_run_tree, next_run_id, outer_hashes,
-    publish_atomic, verify_run,
+    publish_atomic, verify_run, write_json as _write_json,
 )
 
 
@@ -1397,7 +1397,6 @@ def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
             repetitions: int = 1, purpose: str = "result_layout_end_to_end_validation") -> dict[str, Any]:
     global FINALIZATION_EVENTS, LAST_FINALIZATION_FAILURE, FINALIZATION_SCRATCH
     global PUBLISHED_FINAL_PATHS, FINALIZATION_TEMP_PATHS
-    from scripts.experiment.result_layout import write_json
     from scripts.experiment.llm import protocol as llm_protocol
     from scripts.experiment.llm.protocol import build_openai_rca_request, verify_protocol_artifacts
     from scripts.experiment.llm.accounting import load_pricing
