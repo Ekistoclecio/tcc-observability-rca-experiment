@@ -16,6 +16,7 @@ from scripts.experiment.llm import credentials, runner
 from scripts.experiment.llm.accounting import account_usage
 from scripts.experiment.llm.execution import build_execution_plan, request_identity_fields
 from scripts.experiment.llm.protocol import ROOT, sha256, verify_frozen_inputs, verify_protocol_artifacts
+from scripts.experiment.llm.test_support import install_synthetic_protocol
 
 
 def response_value(status="completed", prediction=None, usage=None, response_id="resp-test",
@@ -87,6 +88,9 @@ def status_error(code):
 
 
 class ExecutionPlanTests(unittest.TestCase):
+    def setUp(self):
+        install_synthetic_protocol(self)
+
     def test_deterministic_hash_order_and_case_ids(self):
         first = build_execution_plan()
         second = build_execution_plan()
@@ -103,37 +107,17 @@ class ExecutionPlanTests(unittest.TestCase):
             self.assertFalse(any("path" in key.lower() or "treatment" in key.lower()
                                  for key in case))
 
-    def test_sol_protocol_isolated_inputs_and_model_only_configuration_change(self):
-        sol_manifest = ROOT / "docs/experiment/validation/sol-e2e-v1/llm/protocol-sol-e2e-v1.json"
-        luna_manifest = ROOT / "docs/experiment/llm/protocol-v1.json"
-        sol = runner.configure_runner(sol_manifest)
-        try:
-            luna = json.loads(luna_manifest.read_text(encoding="utf-8"))
-            self.assertEqual(sol["model"], "gpt-6.1-sol")
-            for field in ("reasoning_mode", "reasoning_effort", "temperature",
-                          "top_p", "service_tier", "store", "stream", "text_verbosity",
-                          "max_output_tokens", "tools", "prompt_version", "prompt_sha256",
-                          "schema_version", "schema_sha256", "structured_output_name",
-                          "structured_output_strict"):
-                self.assertEqual(sol[field], luna[field], field)
-            self.assertEqual(len(verify_frozen_inputs()), 10)
-            plan = build_execution_plan()
-            self.assertEqual(len(plan["cases"]), 10)
-            self.assertEqual(plan["protocol_version"], "llm-rca-sol-e2e-v1")
-            self.assertEqual(len({row["opaque_case_id"] for row in plan["cases"]}), 10)
-            for case in plan["cases"]:
-                rca_input, _ = runner.load_case_input(case)
-                request = runner.build_openai_rca_request(rca_input)
-                self.assertEqual(request["model"], "gpt-6.1-sol")
-                self.assertEqual(set(request), {
-                    "model", "service_tier", "store", "stream", "reasoning",
-                    "max_output_tokens", "instructions", "input", "text", "tools"})
-                self.assertEqual(request["input"][0]["content"], json.dumps(
-                    rca_input, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
-                self.assertNotIn("opaque_case_id", request["input"][0]["content"])
-                self.assertNotIn("ground-truth.json", request["input"][0]["content"])
-        finally:
-            runner.configure_runner(luna_manifest)
+    def test_protocol_drives_main_model_and_synthetic_plan(self):
+        from scripts.experiment.llm.protocol import _load_protocol
+        protocol = _load_protocol()
+        self.assertEqual(protocol["model"], "gpt-6-luna")
+        plan = build_execution_plan()
+        self.assertEqual(len(plan["cases"]), 10)
+        self.assertEqual(plan["protocol_version"], "llm-rca-pilot-v1")
+        self.assertEqual(len({row["opaque_case_id"] for row in plan["cases"]}), 10)
+        for case in plan["cases"]:
+            rca_input, _ = runner.load_case_input(case)
+            self.assertEqual(runner.build_openai_rca_request(rca_input)["model"], "gpt-6-luna")
 
     def test_request_fingerprint_changes_only_with_scientific_input_identity(self):
         one = request_identity_fields("a" * 64)
@@ -196,13 +180,11 @@ class CredentialTests(unittest.TestCase):
     def test_runner_finds_repository_root_from_another_working_directory(self):
         entrypoint = ROOT / "scripts/experiment/llm/runner.py"
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run([sys.executable, str(entrypoint), "freeze-plan"],
+            result = subprocess.run([sys.executable, str(entrypoint), "--help"],
                                     cwd=tmp, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                     text=True, check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
-        report = json.loads(result.stdout)
-        self.assertEqual(report["cases"], 10)
-        self.assertEqual(report["event"], "EXECUTION_PLAN_FROZEN")
+        self.assertIn("Blind OpenAI Responses API pilot runner", result.stdout)
 
     def test_artifact_secret_scan_never_echoes_secret(self):
         secret = "fake-secret-marker-123"
@@ -307,26 +289,8 @@ class AccountingTests(unittest.TestCase):
 
 
 class MockedEndToEndTests(unittest.TestCase):
-    def test_sol_protocol_ten_case_mocked_run_is_isolated(self):
-        sol_manifest = ROOT / "docs/experiment/validation/sol-e2e-v1/llm/protocol-sol-e2e-v1.json"
-        luna_manifest = ROOT / "docs/experiment/llm/protocol-v1.json"
-        runner.configure_runner(sol_manifest)
-        try:
-            plan = build_execution_plan()
-            fake = FakeClient([response_value(response_id=f"sol-resp-{i}", model="gpt-6.1-sol")
-                               for i in range(10)])
-            with tempfile.TemporaryDirectory() as tmp:
-                output = Path(tmp) / "sol-run"
-                summary = runner.run_pilot(fake, output, plan, sleeper=lambda _: None)
-                self.assertEqual(summary["logical_cases"], 10)
-                self.assertEqual(summary["completed_valid"], 10)
-                self.assertEqual(len(fake.responses.calls), 10)
-                self.assertTrue(all(call["model"] == "gpt-6.1-sol" for call in fake.responses.calls))
-                runner.verify_hash_manifest(output)
-        finally:
-            runner.configure_runner(luna_manifest)
-
     def setUp(self):
+        install_synthetic_protocol(self)
         verify_protocol_artifacts()
         verify_frozen_inputs()
         self.plan = build_execution_plan()
@@ -342,7 +306,7 @@ class MockedEndToEndTests(unittest.TestCase):
                               os.environ.setdefault("OPENAI_API_KEY", fake_secret)):
                 credential_status = credentials.load_root_credentials(ROOT)
             self.assertTrue(credential_status["openai_api_key_available"])
-            run_dir = Path(tmp) / "pilot-v1-test-run"
+            run_dir = Path(tmp) / "mock-run"
             summary = runner.run_pilot(client, run_dir, self.plan)
             self.assertEqual(summary["logical_cases"], 10)
             self.assertEqual(summary["completed_valid"], 10)

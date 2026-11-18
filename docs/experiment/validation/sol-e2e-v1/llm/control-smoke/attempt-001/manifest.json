@@ -1,8 +1,0 @@
-{
-  "execution_plan_cases": 10,
-  "execution_plan_sha256": "0e4f3a13af29f6c7952e95992e526ac1ee2d147ecaecc3ef946ca6cced5cb30f",
-  "included_in_pilot_results": false,
-  "openai_sdk_version": "3.51.0",
-  "runner_commit": "0c264780a2b33213ec763e3f48b979bd154e3c7c",
-  "status": "COMPLETED"
-}

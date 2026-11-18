@@ -9,7 +9,7 @@ from typing import Any, Mapping
 
 from .protocol import ROOT, canonical_json_bytes, sha256, _input_hash_entries, _load_protocol
 
-PLAN_PATH = ROOT / "docs/experiment/llm/execution-plan-v1.json"
+PLAN_PATH = ROOT / "artifacts/experiment/llm/execution-plan-v1.json"
 
 
 def request_identity_fields(input_sha256: str) -> dict[str, Any]:
@@ -74,7 +74,7 @@ def build_execution_plan() -> dict[str, Any]:
 def write_or_verify_execution_plan(path=None) -> tuple[dict[str, Any], str]:
     if path is None:
         protocol = _load_protocol()
-        configured = protocol.get("execution_plan_file", "docs/experiment/llm/execution-plan-v1.json")
+        configured = protocol.get("execution_plan_file", "artifacts/experiment/llm/execution-plan-v1.json")
         path = ROOT / configured
     plan = build_execution_plan()
     serialized = json.dumps(plan, ensure_ascii=False, sort_keys=True, indent=2) + "\n"

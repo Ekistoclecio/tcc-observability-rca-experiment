@@ -1,8 +1,4 @@
-"""Deterministic evaluator for the frozen experiment-v2 RCA pilot.
-
-This module has no OpenAI client or network dependency. Ground Truth is read only
-in the evaluation path, after pilot predictions and evaluator rules are frozen.
-"""
+"""Offline deterministic evaluator for a fresh experiment RCA run."""
 
 from __future__ import annotations
 
@@ -11,26 +7,12 @@ from decimal import Decimal
 import hashlib
 import json
 import math
-import re
 import statistics
 import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
 
 ROOT = Path(__file__).resolve().parents[3]
-EXPERIMENT = ROOT / "docs/experiment"
-RESULTS = EXPERIMENT / "results"
-AUDIT = EXPERIMENT / "teste"
-LLM = EXPERIMENT / "llm"
-PILOT = LLM / "pilot-v1"
-PROMPT = LLM / "rca-prompt-v1.txt"
-SCHEMA = LLM / "rca-schema-v1.json"
-PROTOCOL = LLM / "protocol-v1.json"
-INPUT_MANIFEST = LLM / "rca-inputs.sha256"
-OUTPUT = EXPERIMENT / "evaluation/pilot-v1"
-
-RUNNER_COMMIT = "17e37b7fd07720f1e10cad52865d7974d102eb79"
-PREDICTIONS_COMMIT = "552c114029c66cbd2aa9309757876f69907b2cba"
 EXPECTED_LOCATION_KINDS = {"service", "service_edge", "operation", "datastore"}
 EXPECTED_FAULT_TYPES = {
     "cpu_saturation", "network_latency", "service_unavailable",
@@ -48,7 +30,7 @@ PAIRED_METRICS = QUALITY_METRICS + OPERATIONAL_METRICS
 
 
 class EvaluationError(ValueError):
-    """Raised when frozen pilot, Ground Truth, or evaluator input is invalid."""
+    """Raised when frozen predictions, Ground Truth, or run provenance is invalid."""
 
 
 def _sha(data: bytes) -> str:
@@ -69,11 +51,11 @@ def _read_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise EvaluationError(f"cannot read JSON artifact: {path.relative_to(ROOT)}") from exc
+        raise EvaluationError(f"cannot read JSON artifact: {path}") from exc
 
 
 def verify_hash_manifest(root: Path) -> dict[str, str]:
-    """Verify an outer inventory; exclude only this root's own hashes.sha256."""
+    """Verify complete inventory; only the inventory root's own manifest is omitted."""
     manifest = root / "hashes.sha256"
     if not root.is_dir() or not manifest.is_file():
         raise EvaluationError(f"missing artifact inventory: {root}")
@@ -83,237 +65,156 @@ def verify_hash_manifest(root: Path) -> dict[str, str]:
             digest, relative = line.split("  ", 1)
         except ValueError as exc:
             raise EvaluationError(f"malformed hash entry in {manifest}") from exc
-        posix = PurePosixPath(relative)
+        item = PurePosixPath(relative)
         if (len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest)
-                or posix.is_absolute() or ".." in posix.parts or not relative
-                or relative in expected):
+                or not relative or item.is_absolute() or ".." in item.parts or relative in expected):
             raise EvaluationError(f"invalid or duplicate inventory path: {relative}")
         expected[relative] = digest
-    actual = {
-        path.relative_to(root).as_posix()
-        for path in root.rglob("*") if path.is_file() and path != manifest
-    }
+    actual = {path.relative_to(root).as_posix() for path in root.rglob("*")
+              if path.is_file() and path != manifest}
     if actual != set(expected):
         missing, unlisted = sorted(set(expected) - actual), sorted(actual - set(expected))
-        raise EvaluationError(
-            f"inventory coverage mismatch at {root}: missing={missing[:3]}, unlisted={unlisted[:3]}"
-        )
+        raise EvaluationError(f"inventory coverage mismatch at {root}: missing={missing[:3]}, unlisted={unlisted[:3]}")
     for relative, digest in expected.items():
         if _sha((root / relative).read_bytes()) != digest:
             raise EvaluationError(f"artifact SHA-256 mismatch: {relative}")
     return expected
 
 
-def _read_input_hashes() -> dict[str, str]:
-    protocol = _read_json(PROTOCOL)
-    raw = INPUT_MANIFEST.read_bytes()
-    if _sha(raw) != protocol.get("input_hash_manifest_sha256"):
-        raise EvaluationError("frozen RCA Input manifest hash mismatch")
-    entries: dict[str, str] = {}
-    for line in raw.decode("utf-8").splitlines():
-        digest, relative = line.split("  ", 1)
-        posix = PurePosixPath(relative)
-        if (len(digest) != 64 or posix.is_absolute() or ".." in posix.parts
-                or relative in entries):
-            raise EvaluationError(f"invalid frozen input manifest entry: {relative}")
-        entries[relative] = digest
-    if len(entries) != 10:
-        raise EvaluationError(f"expected ten frozen RCA Inputs, found {len(entries)}")
-    for relative, digest in entries.items():
-        path = (ROOT / relative).resolve(strict=True)
-        if not path.is_relative_to(RESULTS.resolve()) or _sha(path.read_bytes()) != digest:
-            raise EvaluationError(f"frozen RCA Input mismatch: {relative}")
-    return entries
+def load_evaluation_source(protocol_path: Path, run_root: Path, physical_root: Path) -> dict[str, Any]:
+    """Join immutable predictions to independent Ground Truth after inference."""
+    from scripts.experiment.llm import runner
+    from scripts.experiment.llm.protocol import (ROOT as REPO_ROOT, canonical_json_bytes,
+                                                  sha256, verify_frozen_inputs,
+                                                  verify_protocol_artifacts)
+    protocol = runner.configure_runner(protocol_path)
+    protocol_path = protocol_path.resolve(strict=True)
+    run_root = run_root.resolve(strict=True)
+    physical_root = physical_root.resolve(strict=True)
+    prompt, schema = verify_protocol_artifacts()
+    prompt_hash = sha256(prompt.encode("utf-8"))
+    schema_hash = sha256(canonical_json_bytes(schema))
+    input_hashes = verify_frozen_inputs()
+    if len(input_hashes) != 10:
+        raise EvaluationError("expected ten frozen RCA Inputs")
 
+    results_root = runner.protocol_module.RESULTS_ROOT.resolve(strict=True)
+    physical_results = (physical_root / "results").resolve(strict=True)
+    physical_audit = physical_root / "teste"
+    if results_root != physical_results:
+        raise EvaluationError("protocol RCA Input root does not match the supplied physical run")
+    results_inventory = verify_hash_manifest(physical_results)
+    audit_inventory = verify_hash_manifest(physical_audit)
+    run_inventory = verify_hash_manifest(run_root)
 
-def _verify_git_provenance(run_manifest: Mapping[str, Any]) -> None:
-    runner_commit = run_manifest.get("runner_commit")
-    if runner_commit != RUNNER_COMMIT:
-        raise EvaluationError("pilot runner commit does not match frozen provenance")
-    try:
-        prediction_commit = subprocess.check_output(
-            ["git", "log", "-1", "--format=%H", "--",
-             "docs/experiment/llm/pilot-v1/summary.json"],
-            cwd=ROOT, text=True, stderr=subprocess.DEVNULL,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError) as exc:
-        raise EvaluationError("cannot verify pilot prediction commit") from exc
-    if prediction_commit != PREDICTIONS_COMMIT:
-        raise EvaluationError("pilot prediction commit does not match frozen provenance")
-
-
-def verify_frozen_artifacts() -> dict[str, Any]:
-    """Verify all relevant frozen inventories and protocol/input provenance."""
-    results_hashes = verify_hash_manifest(RESULTS)
-    audit_hashes = verify_hash_manifest(AUDIT)
-    pilot_hashes = verify_hash_manifest(PILOT)
-
-    protocol = _read_json(PROTOCOL)
-    prompt_hash = _sha(PROMPT.read_bytes())
-    schema = _read_json(SCHEMA)
-    schema_hash = _sha(_canonical_json(schema))
-    if prompt_hash != protocol.get("prompt_sha256"):
-        raise EvaluationError("frozen prompt hash mismatch")
-    if schema_hash != protocol.get("schema_sha256"):
-        raise EvaluationError("frozen schema hash mismatch")
-
-    input_hashes = _read_input_hashes()
-    plan_path = PILOT / "execution-plan.json"
+    plan_path = REPO_ROOT / protocol["execution_plan_file"]
     plan_bytes = plan_path.read_bytes()
-    plan_hash = _sha(plan_bytes)
     plan = json.loads(plan_bytes)
-    run_manifest = _read_json(PILOT / "run-manifest.json")
-    if plan_hash != run_manifest.get("execution_plan_sha256"):
-        raise EvaluationError("pilot execution-plan hash mismatch")
+    plan_hash = sha256(plan_bytes)
+    run_manifest = _read_json(run_root / "run-manifest.json")
+    if (run_manifest.get("execution_plan_sha256") != plan_hash
+            or run_manifest.get("protocol_manifest_sha256") != sha256(protocol_path.read_bytes())
+            or run_manifest.get("prompt_sha256") != prompt_hash
+            or run_manifest.get("schema_sha256") != schema_hash
+            or run_manifest.get("protocol_version") != protocol.get("protocol_version")
+            or run_manifest.get("request_parallelism") != 1):
+        raise EvaluationError("run provenance does not match frozen protocol/plan")
     if plan.get("logical_call_count") != 10 or len(plan.get("cases", [])) != 10:
-        raise EvaluationError("pilot execution plan does not contain ten cases")
-    if run_manifest.get("prompt_sha256") != prompt_hash:
-        raise EvaluationError("pilot prompt provenance mismatch")
-    if run_manifest.get("schema_sha256") != schema_hash:
-        raise EvaluationError("pilot schema provenance mismatch")
-    if run_manifest.get("protocol_manifest_sha256") != _sha(PROTOCOL.read_bytes()):
-        raise EvaluationError("pilot protocol-manifest hash mismatch")
-    _verify_git_provenance(run_manifest)
+        raise EvaluationError("execution plan must contain ten cases")
 
-    plan_by_id = {case["opaque_case_id"]: case for case in plan["cases"]}
-    if len(plan_by_id) != 10:
-        raise EvaluationError("duplicate opaque IDs in pilot execution plan")
-    ordered_cases = sorted(plan["cases"], key=lambda row: row.get("ordinal", 0))
-    if [row.get("ordinal") for row in ordered_cases] != list(range(1, 11)):
-        raise EvaluationError("pilot execution plan ordinals are not exactly 1 through 10")
-    for planned in ordered_cases:
-        digest = planned.get("input_sha256", "")
-        expected_order = hashlib.sha256(
-            ("llm-rca-pilot-v1-order:" + digest).encode("ascii")
-        ).hexdigest()
-        expected_case_id = "case-" + hashlib.sha256(
-            ("llm-rca-pilot-v1-case:" + digest).encode("ascii")
-        ).hexdigest()[:12]
-        if planned.get("order_key") != expected_order or planned.get("opaque_case_id") != expected_case_id:
-            raise EvaluationError("pilot execution plan ordering or opaque ID is invalid")
-    private_map = run_manifest.get("case_map_private")
-    if not isinstance(private_map, list) or len(private_map) != 10:
-        raise EvaluationError("pilot private case mapping is incomplete")
-    if run_manifest.get("request_parallelism") != 1:
-        raise EvaluationError("pilot did not use the frozen sequential request policy")
-    map_by_id = {row.get("opaque_case_id"): row for row in private_map}
-    if set(map_by_id) != set(plan_by_id):
-        raise EvaluationError("pilot private mapping differs from execution plan")
+    private = run_manifest.get("case_map_private")
+    plan_by_id = {row["opaque_case_id"]: row for row in plan["cases"]}
+    map_by_id = {row["opaque_case_id"]: row for row in private or []}
+    if len(map_by_id) != 10 or set(map_by_id) != set(plan_by_id):
+        raise EvaluationError("private input mapping is incomplete")
 
-    input_to_case: dict[str, dict[str, str]] = {}
-    for opaque_id, row in map_by_id.items():
-        relative = row.get("input_path")
-        digest = row.get("input_sha256")
-        planned = plan_by_id[opaque_id]
-        if (relative not in input_hashes or input_hashes[relative] != digest
-                or planned.get("input_sha256") != digest):
-            raise EvaluationError(f"input mapping/hash mismatch for {opaque_id}")
-        if digest in input_to_case:
-            raise EvaluationError("duplicate frozen input hash in private case mapping")
-        if not relative.endswith(("rca-input-A.json", "rca-input-B.json")):
-            raise EvaluationError(f"unexpected input treatment path: {relative}")
-        treatment = "A" if relative.endswith("rca-input-A.json") else "B"
-        source = (ROOT / relative).resolve(strict=True)
-        if not source.is_relative_to(RESULTS.resolve()):
-            raise EvaluationError("private input mapping escapes frozen results")
-        case_dir = PILOT / "cases" / opaque_id
+    cases = []
+    for case_id, mapping in map_by_id.items():
+        planned = plan_by_id[case_id]
+        relative, digest = mapping["input_path"], mapping["input_sha256"]
+        if input_hashes.get(relative) != digest or planned["input_sha256"] != digest:
+            raise EvaluationError(f"input mapping/hash mismatch for {case_id}")
+        source_path = (REPO_ROOT / relative).resolve(strict=True)
+        if not source_path.is_relative_to(physical_results):
+            raise EvaluationError("RCA Input escapes the physical results tree")
+        source_bytes = source_path.read_bytes()
+        if sha256(source_bytes) != digest:
+            raise EvaluationError(f"RCA Input changed for {case_id}")
+        rca_input = json.loads(source_bytes)
+        case_dir = run_root / "cases" / case_id
         request_meta = _read_json(case_dir / "request-metadata.json")
         response_meta = _read_json(case_dir / "response-metadata.json")
         validation = _read_json(case_dir / "validation.json")
         prediction_path = case_dir / "prediction.json"
         prediction = _read_json(prediction_path)
+        expected_fingerprint = runner.request_fingerprint(
+            runner.build_openai_rca_request(rca_input), digest)
         if (request_meta.get("status") != "COMPLETED"
+                or request_meta.get("opaque_case_id") != case_id
                 or request_meta.get("input_sha256") != digest
-                or request_meta.get("opaque_case_id") != opaque_id
-                or request_meta.get("ordinal") != planned.get("ordinal")
-                or request_meta.get("runner_protocol_version") != protocol.get("protocol_version")
+                or request_meta.get("request_fingerprint") != expected_fingerprint
                 or request_meta.get("attempt_count") != 1
                 or request_meta.get("latency_clean") is not True
-                or validation.get("status") != "PASS"
-                or not response_meta.get("response_id")
-                or response_meta.get("api_status") != "completed"
                 or response_meta.get("requested_model") != protocol.get("model")
                 or response_meta.get("returned_model") != protocol.get("model")
-                or response_meta.get("service_tier_requested") != protocol.get("service_tier")
-                or response_meta.get("service_tier_returned") != protocol.get("service_tier")):
-            raise EvaluationError(f"pilot case is not a clean completed response: {opaque_id}")
-        if _sha(source.read_bytes()) != digest:
-            raise EvaluationError(f"input bytes changed for {opaque_id}")
-
-        # Reuse the frozen offline protocol validator. It has no network or SDK use.
-        from scripts.experiment.llm.protocol import extract_evidence_ids
+                or response_meta.get("api_status") != "completed"
+                or validation.get("status") != "PASS"):
+            raise EvaluationError(f"case is not a valid clean completion: {case_id}")
         from scripts.experiment.llm.response_validator import validate_rca_response
-        rca_input = json.loads(source.read_bytes())
-        extract_evidence_ids(rca_input)
         validate_rca_response(prediction, rca_input)
-        from scripts.experiment.llm.execution import request_identity_fields
-        expected_fingerprint = request_identity_fields(digest)["request_fingerprint"]
-        if request_meta.get("request_fingerprint") != expected_fingerprint:
-            raise EvaluationError(f"request fingerprint mismatch for {opaque_id}")
-
-        gt_path = source.parent / "ground-truth.json"
+        if not relative.endswith(("rca-input-A.json", "rca-input-B.json")):
+            raise EvaluationError(f"unexpected treatment input path: {relative}")
+        treatment = "A" if relative.endswith("rca-input-A.json") else "B"
+        gt_path = source_path.parent / "ground-truth.json"
         gt = _read_json(gt_path)
         if gt.get("status") != "RECOVERED" or gt.get("execution_eligible") is not True:
-            raise EvaluationError(f"Ground Truth is not an eligible recovered execution: {gt_path}")
-        location = ground_truth_location(gt.get("root_location"))
+            raise EvaluationError(f"physical Ground Truth is not eligible: {gt_path}")
         fault_id = gt.get("fault_id")
-        if not isinstance(fault_id, str) or not re.match(r"^F[1-5](?:-|$)", fault_id):
-            raise EvaluationError(f"unexpected physical fault identifier in Ground Truth: {gt_path}")
-        fault_label = fault_id.split("-", 1)[0]
-        audit_fault = _read_json(AUDIT / "faults" / f"{fault_label}.json")
+        fault_label = fault_id.split("-", 1)[0] if isinstance(fault_id, str) else ""
+        audit_fault = _read_json(physical_audit / "faults" / f"{fault_label}.json")
         if (audit_fault.get("fault") != fault_label
                 or audit_fault.get("fault_type") != gt.get("fault_type")
                 or audit_fault.get("location") != gt.get("root_location")):
-            raise EvaluationError(f"Ground Truth does not match independent audit mapping: {fault_label}")
-
+            raise EvaluationError(f"Ground Truth differs from audit mapping: {fault_label}")
         usage = response_meta.get("usage")
-        request_usage = request_meta.get("usage")
-        if not isinstance(usage, dict) or usage != request_usage:
-            raise EvaluationError(f"runner usage metadata mismatch for {opaque_id}")
-        input_to_case[digest] = {
-            "case_id": opaque_id,
-            "input_path": relative,
-            "input_sha256": digest,
-            "treatment": treatment,
-            "fault_id": fault_id,
-            "fault_label": fault_label,
-            "fault_dir": source.parent.name,
-            "ground_truth_path": gt_path.relative_to(ROOT).as_posix(),
-            "ground_truth_sha256": _sha(gt_path.read_bytes()),
-            "ground_truth": {
-                "fault_type": gt["fault_type"],
-                "location": location,
-            },
-            "prediction_path": prediction_path.relative_to(ROOT).as_posix(),
-            "prediction_sha256": _sha(prediction_path.read_bytes()),
-            "prediction": prediction,
-            "usage": usage,
-            "latency_ms": request_meta["latency_ms"],
-            "latency_clean": request_meta["latency_clean"],
+        if usage != request_meta.get("usage"):
+            raise EvaluationError(f"usage metadata mismatch for {case_id}")
+        cases.append({
+            "case_id": case_id, "fault_id": fault_id, "fault_label": fault_label,
+            "fault_dir": source_path.parent.name, "treatment": treatment,
+            "input_path": relative, "input_sha256": digest,
+            "ground_truth_path": gt_path.relative_to(REPO_ROOT).as_posix(),
+            "ground_truth_sha256": sha256(gt_path.read_bytes()),
+            "ground_truth": {"fault_type": gt["fault_type"],
+                             "location": ground_truth_location(gt["root_location"])},
+            "prediction_path": prediction_path.relative_to(REPO_ROOT).as_posix(),
+            "prediction_sha256": sha256(prediction_path.read_bytes()),
+            "prediction": prediction, "usage": usage,
+            "latency_ms": request_meta.get("latency_ms"),
+            "latency_clean": request_meta.get("latency_clean"),
             "request_fingerprint": request_meta.get("request_fingerprint"),
-        }
-    if len(input_to_case) != 10 or set(input_hashes) != {
-            record["input_path"] for record in private_map}:
-        raise EvaluationError("pilot inputs are not a one-to-one match with frozen input manifest")
-
-    by_fault: dict[str, set[str]] = {}
-    for row in input_to_case.values():
-        by_fault.setdefault(row["fault_id"], set()).add(row["treatment"])
-    if len(by_fault) != 5 or any(treatments != {"A", "B"} for treatments in by_fault.values()):
-        raise EvaluationError("expected five physical faults with one A/B pair each")
-
+        })
+    pairs: dict[str, set[str]] = {}
+    for row in cases:
+        pairs.setdefault(row["fault_id"], set()).add(row["treatment"])
+    if len(cases) != 10 or len(pairs) != 5 or any(pair != {"A", "B"} for pair in pairs.values()):
+        raise EvaluationError("predictions must form five same-fault A/B pairs")
+    try:
+        run_summary = (run_root / "summary.json").relative_to(REPO_ROOT).as_posix()
+        predictions_commit = subprocess.check_output(
+            ["git", "log", "-1", "--format=%H", "--", run_summary],
+            cwd=REPO_ROOT, text=True, stderr=subprocess.DEVNULL).strip()
+    except (ValueError, OSError, subprocess.CalledProcessError) as exc:
+        raise EvaluationError("cannot verify committed prediction artifacts") from exc
+    if not predictions_commit:
+        raise EvaluationError("prediction artifacts must be committed before evaluation")
     return {
-        "protocol": protocol,
-        "prompt_sha256": prompt_hash,
-        "schema_sha256": schema_hash,
-        "input_hashes": input_hashes,
-        "plan_sha256": plan_hash,
-        "plan": plan,
-        "run_manifest": run_manifest,
-        "results_inventory_count": len(results_hashes),
-        "audit_inventory_count": len(audit_hashes),
-        "pilot_inventory_count": len(pilot_hashes),
-        "cases": sorted(input_to_case.values(), key=lambda row: (row["fault_id"], row["treatment"])),
+        "protocol": protocol, "prompt_sha256": prompt_hash, "schema_sha256": schema_hash,
+        "input_hashes": input_hashes, "plan_sha256": plan_hash, "plan": plan,
+        "run_manifest": run_manifest, "results_inventory_count": len(results_inventory),
+        "audit_inventory_count": len(audit_inventory), "pilot_inventory_count": len(run_inventory),
+        "runner_commit": run_manifest.get("runner_commit"),
+        "predictions_commit": predictions_commit, "cases": cases,
     }
 
 
@@ -505,7 +406,7 @@ def _markdown_report(evaluation: Mapping[str, Any]) -> str:
         "significância ou avaliação qualitativa foi aplicado. Tokens, custo e latência são "
         "operacionais; `delta = B - A` e sinal positivo não significa automaticamente melhor.", "",
         f"Evaluator commit: `{evaluation['manifest']['evaluator_commit']}`<br>",
-        f"Predictions commit: `{evaluation['manifest'].get('predictions_commit', PREDICTIONS_COMMIT)}`<br>",
+        f"Predictions commit: `{evaluation['manifest'].get('predictions_commit') or 'recorded in run provenance'}`<br>",
         f"Ground Truth mapping and artifact integrity: `{evaluation['manifest']['integrity']}`", "",
         "## Métricas diagnósticas", "",
         "| Treatment | Cases | Acc@1 | Acc@3 | MRR | Location Acc. | Fault Type Acc. |",
@@ -575,8 +476,8 @@ def build_evaluation(source: Mapping[str, Any], evaluator_commit: str) -> dict[s
     manifest = {
         "evaluation_version": "deterministic-rca-pilot-v1",
         "evaluator_commit": evaluator_commit,
-        "runner_commit": source.get("runner_commit", RUNNER_COMMIT),
-        "predictions_commit": source.get("predictions_commit", PREDICTIONS_COMMIT),
+        "runner_commit": source.get("runner_commit"),
+        "predictions_commit": source.get("predictions_commit"),
         "protocol_version": protocol["protocol_version"],
         "prompt_sha256": source["prompt_sha256"],
         "schema_sha256": source["schema_sha256"],
@@ -623,7 +524,7 @@ def build_evaluation(source: Mapping[str, Any], evaluator_commit: str) -> dict[s
             "summary": summary, "manifest": manifest, "files": files}
 
 
-def _write_outputs(evaluation: Mapping[str, Any], output: Path = OUTPUT) -> None:
+def _write_outputs(evaluation: Mapping[str, Any], output: Path) -> None:
     if output.exists():
         raise EvaluationError(f"evaluation output already exists; refusing to overwrite: {output}")
     output.mkdir(parents=True)
@@ -639,8 +540,9 @@ def _write_outputs(evaluation: Mapping[str, Any], output: Path = OUTPUT) -> None
     verify_hash_manifest(output)
 
 
-def evaluate_frozen_pilot(output: Path = OUTPUT) -> dict[str, Any]:
-    source = verify_frozen_artifacts()
+def evaluate_run(protocol_path: Path, run_root: Path, physical_root: Path,
+                 output: Path) -> dict[str, Any]:
+    source = load_evaluation_source(protocol_path, run_root, physical_root)
     head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     dirty = subprocess.check_output(["git", "status", "--porcelain=v1"], cwd=ROOT, text=True).strip()
     if dirty:
@@ -652,16 +554,19 @@ def evaluate_frozen_pilot(output: Path = OUTPUT) -> dict[str, Any]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--protocol", type=Path, required=True)
+    parser.add_argument("--run-root", type=Path, required=True)
+    parser.add_argument("--physical-root", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
-        result = evaluate_frozen_pilot(args.output)
+        result = evaluate_run(args.protocol, args.run_root, args.physical_root, args.output)
     except Exception as exc:
         print(json.dumps({"status": "BLOCKED", "error_type": type(exc).__name__}, sort_keys=True))
         return 2
     print(json.dumps({"status": "PASS", "evaluator_commit": result["manifest"]["evaluator_commit"],
                       "cases": len(result["cases"]), "api_calls": 0,
-                      "output": args.output.relative_to(ROOT).as_posix()}, sort_keys=True))
+                      "output": str(args.output)}, sort_keys=True))
     return 0
 
 

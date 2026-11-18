@@ -38,8 +38,8 @@ from .response_validator import RCAResponseValidationError, validate_rca_respons
 
 MAX_TRANSPORT_ATTEMPTS = 3
 BACKOFF_SECONDS = (1.0, 2.0)
-PILOT_ROOT = ARTIFACTS / "pilot-v1"
-CONTROL_SMOKE_ROOT = ARTIFACTS / "control-smoke"
+PILOT_ROOT = ROOT / "artifacts/experiment/llm/run-v1"
+CONTROL_SMOKE_ROOT = ROOT / "artifacts/experiment/llm/control-smoke"
 TRANSIENT_STATUS_CODES = {408, 409, 429}
 
 
@@ -724,10 +724,10 @@ def configure_runner(protocol_path: Path | str) -> dict[str, Any]:
     selected = Path(protocol_path)
     protocol = configure_protocol(selected)
     ARTIFACTS = protocol_module.ARTIFACTS
-    PILOT_ROOT = ROOT / protocol.get("run_output_root", "docs/experiment/llm/pilot-v1")
-    CONTROL_SMOKE_ROOT = ROOT / protocol.get("control_output_root", "docs/experiment/llm/control-smoke")
+    PILOT_ROOT = ROOT / protocol.get("run_output_root", "artifacts/experiment/llm/run-v1")
+    CONTROL_SMOKE_ROOT = ROOT / protocol.get("control_output_root", "artifacts/experiment/llm/control-smoke")
     execution_module.PLAN_PATH = ROOT / protocol.get(
-        "execution_plan_file", "docs/experiment/llm/execution-plan-v1.json")
+        "execution_plan_file", "artifacts/experiment/llm/execution-plan-v1.json")
     return protocol
 
 
@@ -752,7 +752,7 @@ def _print_safe(label: str, **fields: Any) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--protocol", type=Path,
-                        default=ROOT / "docs/experiment/llm/protocol-v1.json")
+                        default=ROOT / "scripts/experiment/llm/resources/protocol-v1.json")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("preflight")
     subparsers.add_parser("freeze-plan")
@@ -770,8 +770,10 @@ def main(argv: list[str] | None = None) -> int:
                         env_tracked=False, env_ignored=True)
             return 0
         verify_protocol_artifacts()
-        verify_frozen_inputs()
         if args.command == "freeze-plan":
+            if not protocol_module.INPUT_HASHES_PATH.exists():
+                protocol_module.freeze_current_inputs()
+            verify_frozen_inputs()
             plan, digest = write_or_verify_execution_plan()
             _print_safe("EXECUTION_PLAN_FROZEN", cases=len(plan["cases"]), sha256=digest)
             return 0
@@ -790,6 +792,7 @@ def main(argv: list[str] | None = None) -> int:
             _print_safe("CONTROL_SMOKE_COMPLETE", **outcome)
             return 0 if outcome["status"] == "COMPLETED" else 2
         if args.command == "run":
+            verify_frozen_inputs()
             _verify_control_smoke_commit()
             client = _create_client()
             plan, digest = write_or_verify_execution_plan()

@@ -9,11 +9,11 @@ from typing import Any, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[3]
-ARTIFACTS = ROOT / "docs/experiment/llm"
+ARTIFACTS = ROOT / "scripts/experiment/llm/resources"
 PROMPT_PATH = ARTIFACTS / "rca-prompt-v1.txt"
 SCHEMA_PATH = ARTIFACTS / "rca-schema-v1.json"
 PROTOCOL_PATH = ARTIFACTS / "protocol-v1.json"
-INPUT_HASHES_PATH = ARTIFACTS / "rca-inputs.sha256"
+INPUT_HASHES_PATH = ROOT / "docs/experiment/results/rca-inputs.sha256"
 RESULTS_ROOT = ROOT / "docs/experiment/results"
 
 
@@ -30,13 +30,13 @@ def configure_protocol(path: Path | str) -> dict[str, Any]:
     PROTOCOL_PATH = selected
     ARTIFACTS = selected.parent
     def configured_artifact(value: str, legacy_name: str) -> Path:
-        if value.startswith("docs/"):
-            return ROOT / value
-        return ARTIFACTS / (value or legacy_name)
+        selected_path = Path(value or legacy_name)
+        return selected_path if selected_path.is_absolute() else ARTIFACTS / selected_path
     PROMPT_PATH = configured_artifact(protocol.get("prompt_file", ""), "rca-prompt-v1.txt")
     SCHEMA_PATH = configured_artifact(protocol.get("schema_file", ""), "rca-schema-v1.json")
-    INPUT_HASHES_PATH = configured_artifact(protocol.get("input_hash_manifest", ""), "rca-inputs.sha256")
     RESULTS_ROOT = ROOT / protocol.get("input_root", "docs/experiment/results")
+    input_manifest = Path(protocol.get("input_hash_manifest", "rca-inputs.sha256"))
+    INPUT_HASHES_PATH = input_manifest if input_manifest.is_absolute() else RESULTS_ROOT / input_manifest
     return protocol
 
 
@@ -110,14 +110,8 @@ def _input_hash_entries() -> dict[str, str]:
 
 
 def verify_frozen_inputs() -> dict[str, str]:
-    """Verify all ten frozen RCA Inputs by bytes; does not read Ground Truth."""
+    """Verify the current execution's ten frozen RCA Inputs; never reads Ground Truth."""
     protocol = _load_protocol()
-    try:
-        manifest_bytes = INPUT_HASHES_PATH.read_bytes()
-    except OSError as exc:
-        raise ProtocolError(f"cannot read RCA Input hash manifest: {exc}") from exc
-    if sha256(manifest_bytes) != protocol.get("input_hash_manifest_sha256"):
-        raise ProtocolError("RCA Input hash-manifest SHA-256 does not match protocol manifest")
     entries = _input_hash_entries()
     expected_count = protocol.get("pilot_rca_inputs")
     if len(entries) != expected_count or expected_count != 10:
@@ -135,6 +129,25 @@ def verify_frozen_inputs() -> dict[str, str]:
             raise ProtocolError(f"frozen RCA Input SHA-256 mismatch: {relative}")
         verified[relative] = actual
     return verified
+
+
+def freeze_current_inputs() -> dict[str, str]:
+    """Create the per-execution input hash list from newly generated RCA Inputs."""
+    if INPUT_HASHES_PATH.exists():
+        raise ProtocolError("RCA Input hash manifest already exists; refusing to replace frozen inputs")
+    if not RESULTS_ROOT.is_dir():
+        raise ProtocolError("current experiment results directory does not exist")
+    paths = sorted(RESULTS_ROOT.rglob("rca-input-*.json"))
+    paths = [path for path in paths if path.name in {"rca-input-A.json", "rca-input-B.json"}]
+    if len(paths) != 10:
+        raise ProtocolError(f"expected ten new RCA Inputs, found {len(paths)}")
+    lines = []
+    for path in paths:
+        relative = path.relative_to(ROOT).as_posix()
+        lines.append(f"{sha256(path.read_bytes())}  {relative}")
+    INPUT_HASHES_PATH.parent.mkdir(parents=True, exist_ok=True)
+    INPUT_HASHES_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return verify_frozen_inputs()
 
 
 def extract_evidence_ids(rca_input: Mapping[str, Any]) -> set[str]:

@@ -9,14 +9,14 @@ from typing import Any, Mapping
 
 from .protocol import ROOT
 
-PRICING_PATH = ROOT / "docs/experiment/llm/pricing-v1.json"
+PRICING_PATH = ROOT / "scripts/experiment/llm/resources/pricing-luna-default-v1.json"
 MILLION = Decimal(1_000_000)
 
 
 def load_pricing() -> dict[str, Any]:
     from .protocol import _load_protocol, ROOT as REPO_ROOT
     protocol = _load_protocol()
-    configured = protocol.get("pricing_file", "docs/experiment/llm/pricing-v1.json")
+    configured = protocol.get("pricing_file", "scripts/experiment/llm/resources/pricing-luna-default-v1.json")
     return json.loads((REPO_ROOT / configured).read_text(encoding="utf-8"))
 
 

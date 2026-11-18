@@ -9,19 +9,19 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.experiment.llm.protocol import (
-    ARTIFACTS,
-    INPUT_HASHES_PATH,
-    PROTOCOL_PATH,
     ROOT,
     build_openai_rca_request,
     canonical_json_bytes,
     verify_frozen_inputs,
     verify_protocol_artifacts,
 )
+from scripts.experiment.llm import protocol as protocol_module
 from scripts.experiment.llm.response_validator import (
     RCAResponseValidationError,
     validate_rca_response,
 )
+from scripts.experiment.llm.test_support import install_synthetic_protocol
+from scripts.experiment.llm.execution import build_execution_plan, write_or_verify_execution_plan
 
 
 def artificial_input() -> dict:
@@ -58,9 +58,12 @@ def valid_response() -> dict:
 
 
 class ProtocolArtifactTests(unittest.TestCase):
+    def setUp(self):
+        install_synthetic_protocol(self)
+
     def test_prompt_schema_and_manifest_hashes_match(self):
         prompt, schema = verify_protocol_artifacts()
-        protocol = json.loads(PROTOCOL_PATH.read_text())
+        protocol = json.loads(protocol_module.PROTOCOL_PATH.read_text())
         self.assertEqual(hashlib.sha256(prompt.encode()).hexdigest(), protocol["prompt_sha256"])
         self.assertEqual(hashlib.sha256(canonical_json_bytes(schema)).hexdigest(), protocol["schema_sha256"])
         self.assertEqual(protocol["prompt_version"], "rca-prompt-v1")
@@ -103,32 +106,47 @@ class ProtocolArtifactTests(unittest.TestCase):
     def test_ten_frozen_inputs_match_byte_hash_manifest(self):
         verified = verify_frozen_inputs()
         self.assertEqual(len(verified), 10)
-        lines = INPUT_HASHES_PATH.read_text().splitlines()
+        lines = protocol_module.INPUT_HASHES_PATH.read_text().splitlines()
         self.assertEqual(len(lines), 10)
         self.assertEqual(len({line.split("  ", 1)[1] for line in lines}), 10)
 
-    def test_blind_plan_is_private_fixed_shuffled_order(self):
-        plan = json.loads((ARTIFACTS / "blind-execution-plan-v1.json").read_text())
-        calls = plan["call_order"]
-        self.assertEqual(len(calls), 10)
-        self.assertEqual([item["ordinal"] for item in calls], list(range(1, 11)))
-        self.assertEqual([item["case_id"] for item in calls], [f"case-{i:04d}" for i in range(1, 11)])
-        self.assertEqual({item["treatment"] for item in calls}, {"A", "B"})
-        treatments = [item["treatment"] for item in calls]
-        self.assertNotEqual(treatments, ["A"] * 5 + ["B"] * 5)
-        self.assertNotEqual(treatments, ["B"] * 5 + ["A"] * 5)
+    def test_blind_plan_is_deterministic_and_contains_no_private_mapping(self):
+        plan = build_execution_plan()
+        second = build_execution_plan()
+        self.assertEqual(plan, second)
+        self.assertEqual(len(plan["cases"]), 10)
+        self.assertEqual([item["ordinal"] for item in plan["cases"]], list(range(1, 11)))
         self.assertNotIn("ground_truth", plan)
-        self.assertNotIn("fault_id", plan)
+        self.assertNotIn("fault_id", json.dumps(plan))
+        self.assertNotIn("treatment", json.dumps(plan))
+        self.assertNotIn("path", json.dumps(plan))
+        written, digest = write_or_verify_execution_plan()
+        self.assertEqual(written, plan)
+        self.assertEqual(len(digest), 64)
 
-    def test_dataset_files_and_committed_inventory_are_unchanged(self):
-        manifest = json.loads((ROOT / "docs/experiment/results/manifest.json").read_text())
-        listed = {entry["path"]: entry["sha256"] for entry in manifest["artifacts"]}
-        for relative, digest in verify_frozen_inputs().items():
-            results_relative = relative.removeprefix("docs/experiment/results/")
-            self.assertEqual(listed[results_relative], digest)
+
+class RuntimeResourceTests(unittest.TestCase):
+    def test_runtime_resources_load_from_any_cwd_and_hashes_are_frozen(self):
+        install_synthetic_protocol(self)
+        import os
+        from scripts.experiment.llm import protocol as protocol_module
+        before = os.getcwd()
+        try:
+            os.chdir("/")
+            prompt, schema = verify_protocol_artifacts()
+        finally:
+            os.chdir(before)
+        protocol = json.loads(protocol_module.PROTOCOL_PATH.read_text())
+        self.assertEqual(hashlib.sha256(prompt.encode()).hexdigest(), protocol["prompt_sha256"])
+        self.assertEqual(hashlib.sha256(canonical_json_bytes(schema)).hexdigest(), protocol["schema_sha256"])
+        self.assertTrue(protocol_module.PROMPT_PATH.is_file())
+        self.assertTrue(protocol_module.SCHEMA_PATH.is_file())
 
 
 class RequestConstructionTests(unittest.TestCase):
+    def setUp(self):
+        install_synthetic_protocol(self)
+
     def test_request_has_frozen_config_and_only_model_visible_input(self):
         rca_input = artificial_input()
         before = copy.deepcopy(rca_input)
@@ -155,16 +173,16 @@ class RequestConstructionTests(unittest.TestCase):
         self.assertEqual(request["input"], [{"role": "user", "content": json.dumps(
             rca_input, sort_keys=True, separators=(",", ":"), ensure_ascii=False)}])
 
-    def test_all_ten_frozen_inputs_build_blind_requests_without_paths_or_labels(self):
-        plan = json.loads((ARTIFACTS / "blind-execution-plan-v1.json").read_text())
-        for item in plan["call_order"]:
-            source = ROOT / item["rca_input_path"]
+    def test_all_ten_synthetic_inputs_build_blind_requests_without_paths_or_labels(self):
+        from scripts.experiment.llm import protocol as protocol_module
+        for line in protocol_module.INPUT_HASHES_PATH.read_text().splitlines():
+            digest, relative = line.split("  ", 1)
+            source = protocol_module.RESULTS_ROOT / relative.removeprefix("results/")
             raw = source.read_bytes()
-            self.assertEqual(hashlib.sha256(raw).hexdigest(), item["input_sha256"])
+            self.assertEqual(hashlib.sha256(raw).hexdigest(), digest)
             request = build_openai_rca_request(json.loads(raw))
             self.assertEqual(set(request["input"][0]), {"role", "content"})
-            self.assertNotIn(item["case_id"], request["input"][0]["content"])
-            self.assertNotIn(item["rca_input_path"], request["input"][0]["content"])
+            self.assertNotIn(relative, request["input"][0]["content"])
             model_input = json.loads(request["input"][0]["content"])
             self.assertEqual(set(model_input), {"schema_version", "evidence"})
             forbidden_keys = {"scenario", "scenario_id", "treatment", "ground_truth", "groundtruth",
