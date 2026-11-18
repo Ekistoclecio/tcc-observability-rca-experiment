@@ -1,0 +1,137 @@
+{
+  "F1": {
+    "R01": {
+      "confirmed_end": "2026-11-18T19:17:17.256203Z",
+      "confirmed_start": "2026-11-18T19:17:01.840535Z",
+      "execution_eligible": true,
+      "fault_id": "F1-R01",
+      "fault_type": "cpu_saturation",
+      "ineligibility_reason": null,
+      "injection_confirmation": {
+        "control_plane_check": "Chaos Mesh Selected and AllInjected conditions",
+        "evidence": "{\"conditions\": {\"conditions\": [{\"status\": \"False\", \"type\": \"Paused\"}, {\"status\": \"True\", \"type\": \"Selected\"}, {\"status\": \"True\", \"type\": \"AllInjected\"}, {\"status\": \"False\", \"type\": \"AllRecovered\"}], \"experiment\": {\"containerRecords\": [{\"events\": [{\"operation\": \"Apply\", \"timestamp\": \"2026-11-18T19:17:00Z\", \"type\": \"Succeeded\"}], \"id\": \"online-boutique/checkoutservice-94bbf6fd8-xcnrp/server\", \"injectedCount\": 1, \"phase\": \"Injected\", \"recoveredCount\": 0, \"selectorKey\": \".\"}], \"desiredPhase\": \"Run\"}, \"instances\": {\"online-boutique/checkoutservice-94bbf6fd8-xcnrp/server\": {\"memoryStartTime\": \"1970-01-01T00:00:00Z\", \"startTime\": \"2026-11-18T19:17:00Z\", \"uid\": \"8499\"}}}, \"external_target\": null}",
+        "observed_at": "2026-11-18T19:17:01.840535Z"
+      },
+      "recovery_confirmation": {
+        "control_plane_check": "target restored and fault control absent",
+        "evidence": "{\"resource_absent\": true}",
+        "observed_at": "2026-11-18T19:17:17.256203Z"
+      },
+      "requested_start": "2026-11-18T19:17:00.058203Z",
+      "root_location": {
+        "kind": "service",
+        "value": "checkoutservice"
+      },
+      "schema_version": "1.0",
+      "status": "RECOVERED"
+    }
+  },
+  "F2": {
+    "R01": {
+      "confirmed_end": "2026-11-18T19:18:39.191887Z",
+      "confirmed_start": "2026-11-18T19:18:18.387938Z",
+      "execution_eligible": true,
+      "fault_id": "F2-R01",
+      "fault_type": "network_latency",
+      "ineligibility_reason": null,
+      "injection_confirmation": {
+        "control_plane_check": "F2 ClusterIP:port ipset classifier and netem packet counters increased",
+        "evidence": "{\"chaos_mesh\": {\"control_plane_check\": \"Chaos Mesh Selected and AllInjected conditions\", \"evidence\": \"{\\\"conditions\\\": {\\\"conditions\\\": [{\\\"status\\\": \\\"True\\\", \\\"type\\\": \\\"AllInjected\\\"}, {\\\"status\\\": \\\"False\\\", \\\"type\\\": \\\"AllRecovered\\\"}, {\\\"status\\\": \\\"False\\\", \\\"type\\\": \\\"Paused\\\"}, {\\\"status\\\": \\\"True\\\", \\\"type\\\": \\\"Selected\\\"}], \\\"experiment\\\": {\\\"containerRecords\\\": [{\\\"events\\\": [{\\\"operation\\\": \\\"Apply\\\", \\\"timestamp\\\": \\\"2026-11-18T19:18:12Z\\\", \\\"type\\\": \\\"Succeeded\\\"}], \\\"id\\\": \\\"online-boutique/checkoutservice-94bbf6fd8-xcnrp\\\", \\\"injectedCount\\\": 1, \\\"phase\\\": \\\"Injected\\\", \\\"recoveredCount\\\": 0, \\\"selectorKey\\\": \\\".\\\"}], \\\"desiredPhase\\\": \\\"Run\\\"}, \\\"instances\\\": {\\\"online-boutique/checkoutservice-94bbf6fd8-xcnrp\\\": 1}}, \\\"external_target\\\": \\\"10.96.85.247:50051\\\"}\"}, \"network_effect\": {\"after\": {\"chaos_output_packets\": 216, \"classifier_packets\": 5, \"external_target\": \"10.96.85.247:50051\", \"ipset\": {\"classifier_parent\": \"tcc-f_6b27dbfbee7_set_netgt\", \"member\": \"10.96.85.247,tcp:50051\", \"name\": \"tcc-f_6b27dbf_netport_netgt\"}, \"netem\": {\"bytes\": 526, \"packets\": 5}, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-bnllc\", \"container_id\": \"dec447cfac68a281373402ab31ed933c30b688e562b695e9303cbecaf85fe9d2\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 5298, \"pod\": \"checkoutservice-94bbf6fd8-xcnrp\"}, \"observed_at\": \"2026-11-18T19:18:18.387857Z\"}, \"before\": {\"chaos_output_packets\": 20, \"classifier_packets\": 0, \"external_target\": \"10.96.85.247:50051\", \"ipset\": {\"classifier_parent\": \"tcc-f_6b27dbfbee7_set_netgt\", \"member\": \"10.96.85.247,tcp:50051\", \"name\": \"tcc-f_6b27dbf_netport_netgt\"}, \"netem\": {\"bytes\": 0, \"packets\": 0}, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-bnllc\", \"container_id\": \"dec447cfac68a281373402ab31ed933c30b688e562b695e9303cbecaf85fe9d2\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 5298, \"pod\": \"checkoutservice-94bbf6fd8-xcnrp\"}, \"observed_at\": \"2026-11-18T19:18:15.203964Z\"}, \"confirmation_probe_excluded_from_measurement_window\": true, \"deltas\": {\"classifier_packets\": 5, \"netem_bytes\": 526, \"netem_packets\": 5}, \"external_target\": \"10.96.85.247:50051\"}}",
+        "observed_at": "2026-11-18T19:18:18.387938Z"
+      },
+      "recovery_confirmation": {
+        "control_plane_check": "target restored and fault control absent",
+        "evidence": "{\"network_recovery\": {\"active_netem\": false, \"active_network_fault_state_removed\": true, \"chaos_output_hook_active\": false, \"classifier_chain_referenced\": false, \"network_context\": {\"chaos_daemon\": \"chaos-daemon-bnllc\", \"container_id\": \"dec447cfac68a281373402ab31ed933c30b688e562b695e9303cbecaf85fe9d2\", \"node\": \"tcc-experiment-v2-stage1-control-plane\", \"pid\": 5298, \"pod\": \"checkoutservice-94bbf6fd8-xcnrp\"}, \"orphaned_inert_target_ipsets\": [\"tcc-f_6b27dbf_netport_netgt\"]}, \"resource_absent\": true}",
+        "observed_at": "2026-11-18T19:18:39.191887Z"
+      },
+      "requested_start": "2026-11-18T19:18:11.383113Z",
+      "root_location": {
+        "kind": "service_edge",
+        "value": "checkoutservice -> paymentservice"
+      },
+      "schema_version": "1.0",
+      "status": "RECOVERED"
+    }
+  },
+  "F3": {
+    "R01": {
+      "confirmed_end": "2026-11-18T19:20:12.601018Z",
+      "confirmed_start": "2026-11-18T19:19:41.009499Z",
+      "execution_eligible": true,
+      "fault_id": "F3-R01",
+      "fault_type": "service_unavailable",
+      "ineligibility_reason": null,
+      "injection_confirmation": {
+        "control_plane_check": "Deployment replicas and ready EndpointSlice addresses are zero",
+        "evidence": "{\"desired_replicas\": 0, \"pods\": 0, \"ready_endpoints\": 0, \"ready_replicas\": 0}",
+        "observed_at": "2026-11-18T19:19:41.009499Z"
+      },
+      "recovery_confirmation": {
+        "control_plane_check": "target restored and fault control absent",
+        "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+        "observed_at": "2026-11-18T19:20:12.601018Z"
+      },
+      "requested_start": "2026-11-18T19:19:33.209345Z",
+      "root_location": {
+        "kind": "service",
+        "value": "paymentservice"
+      },
+      "schema_version": "1.0",
+      "status": "RECOVERED"
+    }
+  },
+  "F4": {
+    "R01": {
+      "confirmed_end": "2026-11-18T19:21:41.476707Z",
+      "confirmed_start": "2026-11-18T19:21:22.961065Z",
+      "execution_eligible": true,
+      "fault_id": "F4-R01",
+      "fault_type": "application_exception",
+      "ineligibility_reason": null,
+      "injection_confirmation": {
+        "control_plane_check": "F4 flag exists in each Ready paymentservice Pod",
+        "evidence": "{\"paymentservice-75589cd65c-zsz67\": true}",
+        "observed_at": "2026-11-18T19:21:22.961065Z"
+      },
+      "recovery_confirmation": {
+        "control_plane_check": "target restored and fault control absent",
+        "evidence": "{\"flags_absent_by_pod\": {\"paymentservice-75589cd65c-zsz67\": false}, \"pods_unchanged\": {\"paymentservice-75589cd65c-zsz67\": {\"restarts\": 0, \"uid\": \"f9bda282-1d5a-4a3e-8a1c-d7cbba98841b\"}}}",
+        "observed_at": "2026-11-18T19:21:41.476707Z"
+      },
+      "requested_start": "2026-11-18T19:21:22.113112Z",
+      "root_location": {
+        "kind": "operation",
+        "value": "paymentservice/Charge"
+      },
+      "schema_version": "1.0",
+      "status": "RECOVERED"
+    }
+  },
+  "F5": {
+    "R01": {
+      "confirmed_end": "2026-11-18T19:23:10.045591Z",
+      "confirmed_start": "2026-11-18T19:22:34.144692Z",
+      "execution_eligible": true,
+      "fault_id": "F5-R01",
+      "fault_type": "datastore_unavailable",
+      "ineligibility_reason": null,
+      "injection_confirmation": {
+        "control_plane_check": "Deployment replicas and ready EndpointSlice addresses are zero",
+        "evidence": "{\"desired_replicas\": 0, \"pods\": 0, \"ready_endpoints\": 0, \"ready_replicas\": 0}",
+        "observed_at": "2026-11-18T19:22:34.144692Z"
+      },
+      "recovery_confirmation": {
+        "control_plane_check": "target restored and fault control absent",
+        "evidence": "{\"desired_replicas\": 1, \"ready_endpoints\": 1, \"ready_replicas\": 1}",
+        "observed_at": "2026-11-18T19:23:10.045591Z"
+      },
+      "requested_start": "2026-11-18T19:22:31.224526Z",
+      "root_location": {
+        "kind": "datastore",
+        "value": "redis-cart"
+      },
+      "schema_version": "1.0",
+      "status": "RECOVERED"
+    }
+  }
+}

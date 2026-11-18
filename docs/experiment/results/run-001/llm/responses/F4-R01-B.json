@@ -1,0 +1,105 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:25:16.191Z",
+      "latency_ms": 9894.4,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:25:06.296Z"
+    }
+  ],
+  "created_at": 1795029907.0,
+  "estimated_cost_usd": "0.005713175",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 9895.786,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.98,
+        "evidence_ids": [
+          "ev_8d8ff670cc87c6607bef",
+          "ev_807340eee46cbfb501db",
+          "ev_18098b390fd4e7f23b3c"
+        ],
+        "explanation": "The charge operation returns gRPC INTERNAL and logs “Payment charge failed,” directly causing the checkout failure.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.64,
+        "evidence_ids": [
+          "ev_040dcb9e316709d64fee",
+          "ev_f21b303772e2c1a49ddb",
+          "ev_f6562ee21a5af824770f"
+        ],
+        "explanation": "PlaceOrder returns an error during the request that fails at PaymentService/Charge, consistent with a propagated payment failure.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CheckoutService/PlaceOrder",
+          "peer_service": null,
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.48,
+        "evidence_ids": [
+          "ev_bc5b897bbf1265d8311a",
+          "ev_a9ec7d94de6daf5d7bb0",
+          "ev_a2884d38fd3f5605acfd"
+        ],
+        "explanation": "The checkout endpoint returns HTTP 500 after receiving the failed PlaceOrder result, indicating a downstream propagated error.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "POST /cart/checkout",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.98,\"evidence_ids\":[\"ev_8d8ff670cc87c6607bef\",\"ev_807340eee46cbfb501db\",\"ev_18098b390fd4e7f23b3c\"],\"explanation\":\"The charge operation returns gRPC INTERNAL and logs “Payment charge failed,” directly causing the checkout failure.\"},{\"rank\":2,\"location\":{\"kind\":\"operation\",\"service\":\"checkoutservice\",\"peer_service\":null,\"operation\":\"hipstershop.CheckoutService/PlaceOrder\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.64,\"evidence_ids\":[\"ev_040dcb9e316709d64fee\",\"ev_f21b303772e2c1a49ddb\",\"ev_f6562ee21a5af824770f\"],\"explanation\":\"PlaceOrder returns an error during the request that fails at PaymentService/Charge, consistent with a propagated payment failure.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"POST /cart/checkout\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.48,\"evidence_ids\":[\"ev_bc5b897bbf1265d8311a\",\"ev_a9ec7d94de6daf5d7bb0\",\"ev_a2884d38fd3f5605acfd\"],\"explanation\":\"The checkout endpoint returns HTTP 500 after receiving the failed PlaceOrder result, indicating a downstream propagated error.\"}]}",
+  "request_fingerprint": "9c59efdd3b3c2541bc9b3ca8e34c821f7200933a9a396ad464a97f7fef369dd4",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0c8130647cd460c3016afdfb930cb087d2b7b0c8506aaec730",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 41715,
+    "cache_write_tokens": 41715,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.005713175",
+    "input_tokens": 41718,
+    "long_context_pricing_applied": false,
+    "output_tokens": 997,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 621,
+    "total_tokens": 42715
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

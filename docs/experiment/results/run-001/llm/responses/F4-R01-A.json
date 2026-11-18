@@ -1,0 +1,112 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:26:05.133Z",
+      "latency_ms": 12674.665,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:25:52.458Z"
+    }
+  ],
+  "created_at": 1795029954.0,
+  "estimated_cost_usd": "0.00458005",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 12675.984,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.97,
+        "evidence_ids": [
+          "ev_e844655b694093257b3b",
+          "ev_fe2eeb7bdc5e5d6ee57b",
+          "ev_83deeeef580c158c80f6",
+          "ev_8c043a10aa4de3d4480b",
+          "ev_71e897058c97217a7e84"
+        ],
+        "explanation": "PaymentService logs a charge failure, and its Charge server span errors; the enclosing checkout operation also fails.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.76,
+        "evidence_ids": [
+          "ev_0de2f5ce2bb829dae95e",
+          "ev_91ad3cad91df455513ef",
+          "ev_7deec5e1f8c9d3ebb045",
+          "ev_24bcef24a88ef42276f9",
+          "ev_b681c5aee3d4e8865e44"
+        ],
+        "explanation": "Frontend Currency Convert client spans take 72.7 ms and 92.1 ms while the corresponding currency server spans take under 0.5 ms, indicating delay on the frontend-to-currency path.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.66,
+        "evidence_ids": [
+          "ev_639866adf6571169ddd3",
+          "ev_8d246e9f1df890c113c3",
+          "ev_ec3755c67fa8b8c065e9",
+          "ev_5749cb4797b0e101a1ba",
+          "ev_52b25ab83b32e80ed479",
+          "ev_1ad4d28b13c87285d6d9"
+        ],
+        "explanation": "Frontend server requests error across several routes even though their traced downstream calls often succeed, and the checkout route has a matching frontend error log and metric.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.97,\"evidence_ids\":[\"ev_e844655b694093257b3b\",\"ev_fe2eeb7bdc5e5d6ee57b\",\"ev_83deeeef580c158c80f6\",\"ev_8c043a10aa4de3d4480b\",\"ev_71e897058c97217a7e84\"],\"explanation\":\"PaymentService logs a charge failure, and its Charge server span errors; the enclosing checkout operation also fails.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.76,\"evidence_ids\":[\"ev_0de2f5ce2bb829dae95e\",\"ev_91ad3cad91df455513ef\",\"ev_7deec5e1f8c9d3ebb045\",\"ev_24bcef24a88ef42276f9\",\"ev_b681c5aee3d4e8865e44\"],\"explanation\":\"Frontend Currency Convert client spans take 72.7 ms and 92.1 ms while the corresponding currency server spans take under 0.5 ms, indicating delay on the frontend-to-currency path.\"},{\"rank\":3,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.66,\"evidence_ids\":[\"ev_639866adf6571169ddd3\",\"ev_8d246e9f1df890c113c3\",\"ev_ec3755c67fa8b8c065e9\",\"ev_5749cb4797b0e101a1ba\",\"ev_52b25ab83b32e80ed479\",\"ev_1ad4d28b13c87285d6d9\"],\"explanation\":\"Frontend server requests error across several routes even though their traced downstream calls often succeed, and the checkout route has a matching frontend error log and metric.\"}]}",
+  "request_fingerprint": "626cf2c196df23e0f1b3732712328e874bfea45997862718e0a370d24d92277a",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_03754b0f7d2ae59e016afdfbc226a887d2971b21c8f784a52f",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 30886,
+    "cache_write_tokens": 30886,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.00458005",
+    "input_tokens": 30889,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1438,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 935,
+    "total_tokens": 32327
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

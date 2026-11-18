@@ -1,0 +1,103 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:25:24.211Z",
+      "latency_ms": 7993.948,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:25:16.218Z"
+    }
+  ],
+  "created_at": 1795029917.0,
+  "estimated_cost_usd": "0.0054658",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 7995.393,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.96,
+        "evidence_ids": [
+          "ev_227b77aaede49c271c00",
+          "ev_15268dd032c9dfaa56ff",
+          "ev_66c068cff54501835570"
+        ],
+        "explanation": "Checkout’s payment Charge RPC returned UNAVAILABLE with connection refused; the payment service logged that its server started later, consistent with it not accepting connections at the time of checkout.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.79,
+        "evidence_ids": [
+          "ev_15268dd032c9dfaa56ff",
+          "ev_227b77aaede49c271c00"
+        ],
+        "explanation": "The checkoutservice-to-paymentservice call failed immediately with UNAVAILABLE and a refused TCP connection, localizing the failed dependency interaction to this edge.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.48,
+        "evidence_ids": [
+          "ev_86373398fdb9bb90905a",
+          "ev_79cb7c01cc4fc2cb50be"
+        ],
+        "explanation": "PlaceOrder returned an error, and its error request metric is marked unavailable due to a missing baseline; the trace indicates this operation surfaced the failed payment call.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CheckoutService/PlaceOrder",
+          "peer_service": null,
+          "service": "checkoutservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.96,\"evidence_ids\":[\"ev_227b77aaede49c271c00\",\"ev_15268dd032c9dfaa56ff\",\"ev_66c068cff54501835570\"],\"explanation\":\"Checkout’s payment Charge RPC returned UNAVAILABLE with connection refused; the payment service logged that its server started later, consistent with it not accepting connections at the time of checkout.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.79,\"evidence_ids\":[\"ev_15268dd032c9dfaa56ff\",\"ev_227b77aaede49c271c00\"],\"explanation\":\"The checkoutservice-to-paymentservice call failed immediately with UNAVAILABLE and a refused TCP connection, localizing the failed dependency interaction to this edge.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"checkoutservice\",\"peer_service\":null,\"operation\":\"hipstershop.CheckoutService/PlaceOrder\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.48,\"evidence_ids\":[\"ev_86373398fdb9bb90905a\",\"ev_79cb7c01cc4fc2cb50be\"],\"explanation\":\"PlaceOrder returned an error, and its error request metric is marked unavailable due to a missing baseline; the trace indicates this operation surfaced the failed payment call.\"}]}",
+  "request_fingerprint": "93deffabc21b0da376a99cb09d2fee081b1059151eb21ce24ecbb2624fc866cf",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0e4e7ec8b6a84c3a016afdfb9dd5dc87d28744acab30f7f2ff",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 40348,
+    "cache_write_tokens": 40348,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0054658",
+    "input_tokens": 40351,
+    "long_context_pricing_applied": false,
+    "output_tokens": 844,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 478,
+    "total_tokens": 41195
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

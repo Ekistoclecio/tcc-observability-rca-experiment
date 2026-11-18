@@ -1,0 +1,112 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:26:13.915Z",
+      "latency_ms": 5817.351,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:26:05.161Z"
+    }
+  ],
+  "created_at": 1795029968.0,
+  "estimated_cost_usd": "0.002400175",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 5818.731,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.97,
+        "evidence_ids": [
+          "ev_72f2e1bf3353087a073f",
+          "ev_fc44c080f8c25f479464",
+          "ev_404947017c966342d108",
+          "ev_f194bf7b955d41891112",
+          "ev_a51af6b1e2819fdddcb0",
+          "ev_78b26146da78ffe6bdb0",
+          "ev_386338e29c549125727e"
+        ],
+        "explanation": "Cartservice repeatedly reports it cannot connect to redis-cart and Redis operations time out; traces show failed Redis calls preceding cart and checkout errors.",
+        "fault_type": "datastore_unavailable",
+        "location": {
+          "datastore": "redis-cart",
+          "kind": "datastore",
+          "operation": null,
+          "peer_service": null,
+          "service": null
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.78,
+        "evidence_ids": [
+          "ev_72f2e1bf3353087a073f",
+          "ev_a51af6b1e2819fdddcb0",
+          "ev_78b26146da78ffe6bdb0",
+          "ev_eb531b71865fb7e9d9f4"
+        ],
+        "explanation": "Requests from cartservice to redis-cart repeatedly take roughly 5.7–6 seconds and time out while waiting for a connection, consistent with a slow or unreachable service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "redis-cart",
+          "service": "cartservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.52,
+        "evidence_ids": [
+          "ev_d0b9ab98004292bf12c7",
+          "ev_3b1599719a3f2e462131",
+          "ev_0c683d320ab42989413b",
+          "ev_72f2e1bf3353087a073f",
+          "ev_694bae9c1a954fc158d4"
+        ],
+        "explanation": "GetCart repeatedly returns errors after long durations, and cartservice logs FailedPrecondition when cart storage cannot be accessed; successful GetCart metric data also exists, so this appears less likely as an independent cause.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CartService/GetCart",
+          "peer_service": null,
+          "service": "cartservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"datastore\",\"service\":null,\"peer_service\":null,\"operation\":null,\"datastore\":\"redis-cart\"},\"fault_type\":\"datastore_unavailable\",\"confidence\":0.97,\"evidence_ids\":[\"ev_72f2e1bf3353087a073f\",\"ev_fc44c080f8c25f479464\",\"ev_404947017c966342d108\",\"ev_f194bf7b955d41891112\",\"ev_a51af6b1e2819fdddcb0\",\"ev_78b26146da78ffe6bdb0\",\"ev_386338e29c549125727e\"],\"explanation\":\"Cartservice repeatedly reports it cannot connect to redis-cart and Redis operations time out; traces show failed Redis calls preceding cart and checkout errors.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"cartservice\",\"peer_service\":\"redis-cart\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.78,\"evidence_ids\":[\"ev_72f2e1bf3353087a073f\",\"ev_a51af6b1e2819fdddcb0\",\"ev_78b26146da78ffe6bdb0\",\"ev_eb531b71865fb7e9d9f4\"],\"explanation\":\"Requests from cartservice to redis-cart repeatedly take roughly 5.7–6 seconds and time out while waiting for a connection, consistent with a slow or unreachable service edge.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"cartservice\",\"peer_service\":null,\"operation\":\"hipstershop.CartService/GetCart\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.52,\"evidence_ids\":[\"ev_d0b9ab98004292bf12c7\",\"ev_3b1599719a3f2e462131\",\"ev_0c683d320ab42989413b\",\"ev_72f2e1bf3353087a073f\",\"ev_694bae9c1a954fc158d4\"],\"explanation\":\"GetCart repeatedly returns errors after long durations, and cartservice logs FailedPrecondition when cart storage cannot be accessed; successful GetCart metric data also exists, so this appears less likely as an independent cause.\"}]}",
+  "request_fingerprint": "75b2862e7c4d64d229d00f62029d820f0439223cc5032a9c53952f1c6e3f9d2e",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0e1b288a84508960016afdfbd0039487d2a50be846e60f1f36",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 16359,
+    "cache_write_tokens": 16359,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.002400175",
+    "input_tokens": 16362,
+    "long_context_pricing_applied": false,
+    "output_tokens": 710,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 202,
+    "total_tokens": 17072
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

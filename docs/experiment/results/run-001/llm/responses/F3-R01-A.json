@@ -1,0 +1,106 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:26:26.675Z",
+      "latency_ms": 12726.227,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:26:13.949Z"
+    }
+  ],
+  "created_at": 1795029974.0,
+  "estimated_cost_usd": "0.004172425",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 12727.578,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.87,
+        "evidence_ids": [
+          "ev_7fc010b8b796ba41fe2b",
+          "ev_61e13934306f983a11af",
+          "ev_f89c522d1ad0acbbe368"
+        ],
+        "explanation": "Checkout's PaymentService/Charge call failed and PlaceOrder errored; the payment server startup log occurs later, consistent with the destination being unavailable at call time.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.72,
+        "evidence_ids": [
+          "ev_55e2738a407b7ae64f6f",
+          "ev_0a3f660d11a1909f4692",
+          "ev_a4bc6fc0fca37d31a39d",
+          "ev_707a92252e788f1cb6be"
+        ],
+        "explanation": "Frontend currency client spans take 51–92 ms while the corresponding currency server span is sub-millisecond; the frontend metric also shows substantially higher client duration than currencyservice processing.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.48,
+        "evidence_ids": [
+          "ev_9575d74757a8619c69d4",
+          "ev_01cbf00c24152f0802f1",
+          "ev_969431d9ad957e8f0840"
+        ],
+        "explanation": "The frontend product-page server span errors despite successful product-catalog client and server spans, suggesting a frontend-side operation failure.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "GET /product/{id}",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.87,\"evidence_ids\":[\"ev_7fc010b8b796ba41fe2b\",\"ev_61e13934306f983a11af\",\"ev_f89c522d1ad0acbbe368\"],\"explanation\":\"Checkout's PaymentService/Charge call failed and PlaceOrder errored; the payment server startup log occurs later, consistent with the destination being unavailable at call time.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.72,\"evidence_ids\":[\"ev_55e2738a407b7ae64f6f\",\"ev_0a3f660d11a1909f4692\",\"ev_a4bc6fc0fca37d31a39d\",\"ev_707a92252e788f1cb6be\"],\"explanation\":\"Frontend currency client spans take 51–92 ms while the corresponding currency server span is sub-millisecond; the frontend metric also shows substantially higher client duration than currencyservice processing.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"GET /product/{id}\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.48,\"evidence_ids\":[\"ev_9575d74757a8619c69d4\",\"ev_01cbf00c24152f0802f1\",\"ev_969431d9ad957e8f0840\"],\"explanation\":\"The frontend product-page server span errors despite successful product-catalog client and server spans, suggesting a frontend-side operation failure.\"}]}",
+  "request_fingerprint": "3dc7aee781654596ee54a700ebe8819744ae95872534638e39615b8eeebfb4f0",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0171f887963542a5016afdfbd6c2d087d2ba8d7d402a7fa6e2",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 27713,
+    "cache_write_tokens": 27713,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004172425",
+    "input_tokens": 27716,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1416,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1000,
+    "total_tokens": 29132
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

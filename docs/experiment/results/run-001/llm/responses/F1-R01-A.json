@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:25:41.625Z",
+      "latency_ms": 14454.957,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:25:24.235Z"
+    }
+  ],
+  "created_at": 1795029926.0,
+  "estimated_cost_usd": "0.0049768",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 14456.229,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.87,
+        "evidence_ids": [
+          "ev_9fdfc226752226af1323",
+          "ev_6b9359404efcc682a1ec",
+          "ev_8971f470fd90478d8920",
+          "ev_7da7541c102bc4322313"
+        ],
+        "explanation": "The checkout-to-payment client span takes 94.4 ms, while the payment server span and service-side duration metric are under 1 ms; this edge contributes substantially to the slow PlaceOrder call.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.79,
+        "evidence_ids": [
+          "ev_c4b625b302708e2507c1",
+          "ev_b11be921ed63e8dd2109",
+          "ev_631edb0ce2f98b92c33c"
+        ],
+        "explanation": "A checkout-to-currency client span lasts 90.8 ms although the currency server span is 0.322 ms; the checkout-side Convert metric also reports elevated latency.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.55,
+        "evidence_ids": [
+          "ev_843f6f635067d2f7d48d",
+          "ev_9ff8ac32835733d3e471",
+          "ev_8c50bd405368d06b5c8a",
+          "ev_d7d06f14c01949bff94e",
+          "ev_a189ac3b6573c3afaeba",
+          "ev_141816c599d656adecaa"
+        ],
+        "explanation": "Several frontend server spans end with ERROR across distinct routes, while their downstream service spans complete successfully, pointing to errors at the frontend layer.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.87,\"evidence_ids\":[\"ev_9fdfc226752226af1323\",\"ev_6b9359404efcc682a1ec\",\"ev_8971f470fd90478d8920\",\"ev_7da7541c102bc4322313\"],\"explanation\":\"The checkout-to-payment client span takes 94.4 ms, while the payment server span and service-side duration metric are under 1 ms; this edge contributes substantially to the slow PlaceOrder call.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.79,\"evidence_ids\":[\"ev_c4b625b302708e2507c1\",\"ev_b11be921ed63e8dd2109\",\"ev_631edb0ce2f98b92c33c\"],\"explanation\":\"A checkout-to-currency client span lasts 90.8 ms although the currency server span is 0.322 ms; the checkout-side Convert metric also reports elevated latency.\"},{\"rank\":3,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.55,\"evidence_ids\":[\"ev_843f6f635067d2f7d48d\",\"ev_9ff8ac32835733d3e471\",\"ev_8c50bd405368d06b5c8a\",\"ev_d7d06f14c01949bff94e\",\"ev_a189ac3b6573c3afaeba\",\"ev_141816c599d656adecaa\"],\"explanation\":\"Several frontend server spans end with ERROR across distinct routes, while their downstream service spans complete successfully, pointing to errors at the frontend layer.\"}]}",
+  "request_fingerprint": "172256db78be3e3419d70fdbf6295d16aaf04332a533cc3fc4ab39b677427b76",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_01c4abd202b9de3e016afdfba6921887d2a1129aae5a9de3be",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 33156,
+    "cache_write_tokens": 33156,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0049768",
+    "input_tokens": 33159,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1664,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1208,
+    "total_tokens": 34823
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

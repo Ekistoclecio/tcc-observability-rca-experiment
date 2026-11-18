@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:25:52.430Z",
+      "latency_ms": 10779.59,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:25:41.650Z"
+    }
+  ],
+  "created_at": 1795029942.0,
+  "estimated_cost_usd": "0.004712675",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 10781.478,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.79,
+        "evidence_ids": [
+          "ev_1c766a7d1169c9f743e1",
+          "ev_efe92beb585ec4a42b10",
+          "ev_390f77b574626511013b",
+          "ev_2c5e35ca7ff18917255e"
+        ],
+        "explanation": "Currency Convert client spans take 63–85 ms while the corresponding server spans take about 0.2 ms, indicating delay on the frontend-to-currencyservice edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.72,
+        "evidence_ids": [
+          "ev_3397ade37801e49fe490",
+          "ev_cccb120e41041e598a03",
+          "ev_d91a2527d6d1c0cf1d9d"
+        ],
+        "explanation": "The checkoutservice payment client span lasts 102 ms, but paymentservice handles the request in 0.357 ms; the checkout PlaceOrder operation averages 136 ms.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.58,
+        "evidence_ids": [
+          "ev_65da67ed28cd411dab79",
+          "ev_a53b246ba4526158d811",
+          "ev_5c1503a9cdbccfd99022",
+          "ev_7e5ffc2e9305cd1a6d4e",
+          "ev_60eb97dea73c913354b8",
+          "ev_afa12983d7c78b423ee1"
+        ],
+        "explanation": "Multiple frontend server spans are marked ERROR even though their downstream service spans succeed, suggesting errors in frontend request handling.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.79,\"evidence_ids\":[\"ev_1c766a7d1169c9f743e1\",\"ev_efe92beb585ec4a42b10\",\"ev_390f77b574626511013b\",\"ev_2c5e35ca7ff18917255e\"],\"explanation\":\"Currency Convert client spans take 63–85 ms while the corresponding server spans take about 0.2 ms, indicating delay on the frontend-to-currencyservice edge.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.72,\"evidence_ids\":[\"ev_3397ade37801e49fe490\",\"ev_cccb120e41041e598a03\",\"ev_d91a2527d6d1c0cf1d9d\"],\"explanation\":\"The checkoutservice payment client span lasts 102 ms, but paymentservice handles the request in 0.357 ms; the checkout PlaceOrder operation averages 136 ms.\"},{\"rank\":3,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.58,\"evidence_ids\":[\"ev_65da67ed28cd411dab79\",\"ev_a53b246ba4526158d811\",\"ev_5c1503a9cdbccfd99022\",\"ev_7e5ffc2e9305cd1a6d4e\",\"ev_60eb97dea73c913354b8\",\"ev_afa12983d7c78b423ee1\"],\"explanation\":\"Multiple frontend server spans are marked ERROR even though their downstream service spans succeed, suggesting errors in frontend request handling.\"}]}",
+  "request_fingerprint": "727751f07cf7932747469c534e6eadbd64797c3eb806c01d78ff957a9533b3d7",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0ff664bd32a85e43016afdfbb6608887d2873455d19c04ed5d",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 33083,
+    "cache_write_tokens": 33083,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004712675",
+    "input_tokens": 33086,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1154,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 709,
+    "total_tokens": 34240
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

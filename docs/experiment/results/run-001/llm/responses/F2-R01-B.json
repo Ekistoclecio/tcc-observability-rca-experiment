@@ -1,0 +1,107 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T19:24:52.636Z",
+      "latency_ms": 9930.849,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T19:24:42.705Z"
+    }
+  ],
+  "created_at": 1795029886.0,
+  "estimated_cost_usd": "0.006131675",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 9934.462,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.84,
+        "evidence_ids": [
+          "ev_13b8b4522aeb991f3209",
+          "ev_fd818310681b9526f6db",
+          "ev_1fdb87490c4bd493b0fb",
+          "ev_58bc22b6c373962464a9",
+          "ev_999b671c1f6197b485bc",
+          "ev_a7484e800f8baf74cba0",
+          "ev_3b604231b68b59ea3e18"
+        ],
+        "explanation": "Multiple frontend-to-currencyservice client calls take 31–85 ms while corresponding server spans complete in about 0.6–1.1 ms, indicating delay on the service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.76,
+        "evidence_ids": [
+          "ev_33be9a67a254de1821d8",
+          "ev_0d5e1cb5120d160649c0"
+        ],
+        "explanation": "The PaymentService Charge client span takes 102 ms, but the server span takes under 1 ms, pointing to substantial latency outside paymentservice processing.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.69,
+        "evidence_ids": [
+          "ev_7ada4ccc6898c923792c",
+          "ev_c8329e4557d1963d50f8"
+        ],
+        "explanation": "The frontend GetQuote client span takes 51 ms while shippingservice completes the request in about 0.2 ms, supporting latency on this service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "shippingservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.84,\"evidence_ids\":[\"ev_13b8b4522aeb991f3209\",\"ev_fd818310681b9526f6db\",\"ev_1fdb87490c4bd493b0fb\",\"ev_58bc22b6c373962464a9\",\"ev_999b671c1f6197b485bc\",\"ev_a7484e800f8baf74cba0\",\"ev_3b604231b68b59ea3e18\"],\"explanation\":\"Multiple frontend-to-currencyservice client calls take 31–85 ms while corresponding server spans complete in about 0.6–1.1 ms, indicating delay on the service edge.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.76,\"evidence_ids\":[\"ev_33be9a67a254de1821d8\",\"ev_0d5e1cb5120d160649c0\"],\"explanation\":\"The PaymentService Charge client span takes 102 ms, but the server span takes under 1 ms, pointing to substantial latency outside paymentservice processing.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"shippingservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.69,\"evidence_ids\":[\"ev_7ada4ccc6898c923792c\",\"ev_c8329e4557d1963d50f8\"],\"explanation\":\"The frontend GetQuote client span takes 51 ms while shippingservice completes the request in about 0.2 ms, supporting latency on this service edge.\"}]}",
+  "request_fingerprint": "2a146d1cd7051a991c0d777fc80039deb2dd1b1d3d941981a93df6f8b0666d49",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_06faedb07a2bdc84016afdfb7e1f6887d29a977532568bce4f",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 45279,
+    "cache_write_tokens": 45279,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.006131675",
+    "input_tokens": 45282,
+    "long_context_pricing_applied": false,
+    "output_tokens": 943,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 511,
+    "total_tokens": 46225
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}
