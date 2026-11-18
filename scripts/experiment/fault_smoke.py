@@ -839,6 +839,7 @@ def recover(fault: str, state: Any) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fault", required=True, choices=["F1", "F2", "F3", "F4", "F5"])
+    parser.add_argument("--fault-id", help="physical repetition identity, e.g. F1-R01")
     parser.add_argument("--record", required=True, type=Path)
     parser.add_argument("--active-seconds", type=float, default=5.0)
     parser.add_argument("--frontend-port", type=int, default=18080)
@@ -864,7 +865,7 @@ def main() -> int:
         port_forward = start_port_forward(args.frontend_port)
         report["normal_precondition_probe"] = run_workload(None, args.frontend_port)
         record = GroundTruth.request(
-            f"{args.fault}-stage4-smoke",
+            args.fault_id or f"{args.fault}-stage4-smoke",
             fault_definition["fault_type"],
             location["kind"],
             location["value"],

@@ -12,4 +12,12 @@ Métricas preservam unidade/intervalo/serviço; logs preservam mensagem/severida
 
 ## Proveniência, validação e estado
 
-Manifest de build registra inputs/hashes, regras/versão, outputs e mapping de evidência. Testes cobrem determinismo, schema, coverage, leakage, hashes e projeção source→evidence. Fixtures sintéticas permanecem nos testes; outputs antigos foram removidos. Estado: pronto para RAW de nova execução.
+Manifest temporário de build registra inputs/hashes, regras/versão, outputs e mapping de evidência. Na run publicada, a saída relevante do Builder é `telemetry/F{fault}-R{repetition}-{A|B}.json`; ela inclui proveniência compacta para a janela RAW, hashes do bundle e versão/hash do Builder. Cópias intermediárias, staging e manifests de processamento são removidos antes da publicação. Testes cobrem determinismo, schema, coverage, leakage, hashes e projeção source→evidence.
+
+## Escala e invariantes
+
+O Builder executa uma vez por tratamento e instância física. Para N repetições, publica 10N arquivos de telemetry, sem misturar A/B ou janelas de fault. `telemetry` é derivada de Dataset Builder output, não uma cópia de RAW. Ground Truth não é usada para selecionar ou ordenar evidências.
+
+## Estado final
+
+Implementação pronta para N configurável; artifacts de validação anteriores não são mantidos.

@@ -12,4 +12,12 @@ Evidence possui tipos fechados de métrica/log/trace e atributos permitidos. A p
 
 ## Validação e invariantes
 
-Testes verificam schema, IDs únicos, projeção determinística, sinais válidos, leakage e proveniência Dataset→RCA Input. Nova execução gera dois inputs por fault físico. Estado: builder e contrato preservados; inputs anteriores removidos.
+Testes verificam schema, IDs únicos, projeção determinística, sinais válidos, leakage e proveniência Dataset→RCA Input. Para cada instância física, dois inputs são construídos a partir do Dataset A/B correspondente. O payload exato model-visible (configuração congelada do modelo, instruções, telemetria e schema Structured Output) é arquivado como `llm/inputs/Fx-Rnn-T.json` antes da chamada ao SDK; o runner verifica que o request arquivado serializa o mesmo objeto passado a `responses.create`. Esse artifact exclui paths, identidade do caso, tratamento, Ground Truth e segredo.
+
+## Escala e invariantes
+
+A quantidade de repetições é parâmetro da execução, não constante científica no Builder. Uma run com N repetições contém 5N identidades físicas e 10N RCA Inputs. Os nomes usam repetition com dois dígitos e são únicos por fault, repetition e tratamento. O request inclui o conteúdo congelado do RCA Input, nunca o filename local.
+
+## Estado final
+
+Builder e contrato suportam N positivo configurável. Inputs gerados em execuções anteriores não são mantidos.

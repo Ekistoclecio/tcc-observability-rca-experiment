@@ -9,6 +9,7 @@
 .terraform.lock.hcl
 .terraform/*
 .venv/
+/artifacts/experiment/
 .vs/
 .vscode/
 *.iml

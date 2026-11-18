@@ -26,7 +26,7 @@ def install_synthetic_protocol(testcase: Any) -> Path:
     input_rows = []
     for index in range(1, 6):
         for treatment in ("A", "B"):
-            path = results / f"synthetic-{index:02d}" / f"rca-input-{treatment}.json"
+            path = results / f"F{index}-R01-{treatment}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             value = {"schema_version": "1.0", "evidence": [
                 {"id": f"evidence-{index:03d}-{treatment}", "signal": "metric",
@@ -50,6 +50,7 @@ def install_synthetic_protocol(testcase: Any) -> Path:
         "provider": "OpenAI", "reasoning_effort": "medium", "reasoning_mode": "standard",
         "run_output_root": str(root / "mock-run"),
         "control_output_root": str(root / "control-smoke"),
+        "request_archive_root": str(root / "model-requests"),
         "execution_plan_file": str(results / "execution-plan-v1.json"),
         "pricing_file": str(protocol.ROOT / "scripts/experiment/llm/resources/pricing-luna-default-v1.json"),
         "schema_file": str(schema), "schema_sha256": hashlib.sha256(canonical_schema).hexdigest(),

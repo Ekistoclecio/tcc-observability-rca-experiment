@@ -6,7 +6,15 @@ Integrar ambiente, deploy, workload, faults, coleta A/B, semântica, builders, e
 
 ## Fluxo integrado
 
-O runner integrado valida exclusividade do ambiente Kind, working tree/SHA, deployment provenance, SUT e telemetria; executa F1–F5 sequencialmente; para cada fault exige confirmação pelo mecanismo de controle, Ground Truth elegível, RAW A/B, semantic validation, Dataset A/B, RCA Input A/B, recuperação e cleanup. Após F5 coleta o intervalo global e verifica manifests, hashes, staging, pacote de auditoria e publicação. Qualquer gate falho bloqueia a etapa seguinte e invalida a execução correspondente.
+O runner integrado valida exclusividade do ambiente Kind, working tree/SHA, deployment provenance, SUT e telemetria; executa as instâncias físicas em ordem fault-major/repetition-minor (`F1-R01..R0N`, depois F2..F5); para cada instância exige confirmação pelo mecanismo de controle, Ground Truth elegível, RAW A/B, semantic validation, Dataset A/B, RCA Input A/B, recuperação e cleanup. Após a última instância coleta o intervalo global e valida cobertura, builders, inventário e integridade antes de iniciar chamadas LLM.
+
+## Publicação autocontida por run
+
+`scripts/experiment/result_layout.py` define a única estrutura de publicação. `results/run-NNN/` contém apenas `manifest.json`, `ground-truth.json`, `raw/`, `telemetry/`, `llm/` e `evaluation/`, além do manifesto raiz `hashes.sha256`. RAW é separado por tratamento e modalidade; `telemetry`, requests model-visible e respostas são um arquivo por `fault × repetition × treatment`, com nomes `F{n}-R{nn}-{A|B}.json`. Ground Truth fica em uma árvore única `fault → repetition`; nunca é incluída no request. Evaluation fica em `evaluation/results.json`, organizada em `cases`, `faults` e `overall`.
+
+O executor aceita `--repetitions N`; nomes, GT, contagens e agregações derivam de N, sem ramos específicos para N=1 ou N=5. O `manifest.json` registra propósito, commit testado, intervalo, protocolo/modelo e proveniência. Os arquivos de request são gravados antes de chamar o SDK e comparados com o request reconstruído pelo mesmo builder; respostas, usage, validação e latência são consolidados por diagnosis. O único hash inventory publicado é o da raiz da run; ele exclui somente a si próprio e cobre todos os demais arquivos.
+
+Staging e inputs privados vivem fora da árvore publicada e são removidos antes da publicação. A run é montada no workspace temporário, passa por avaliação e inventário, recebe `SUCCESS` apenas após os gates finais e é movida atomicamente para o próximo `run-NNN` livre. IDs existentes nunca são sobrescritos. Falha encerra a execução e não cria uma run canônica de sucesso.
 
 ## Decisões e correções consolidadas
 
@@ -40,7 +48,7 @@ O bundle global contém metrics, logs A/B, traces A/B e control, com `control/wo
 
 ## Validação operacional
 
-Usar setup limpo com versões fixadas de Kind/Kubernetes/Chaos Mesh e storage novo A/B. O setup bloqueia coexistência com outros clusters Kind relevantes no WSL devido ao limite compartilhado de inotify observado; não altera sysctls nem encerra clusters alheios. Antes da bateria, observar estabilidade idle, workload normal e consultas em janela; confirmar ausência de fault ativo, OOM/restarts inesperados e saturação não resolvida.
+Usar setup limpo com versões fixadas de Kind/Kubernetes/Chaos Mesh e storage novo A/B. O setup bloqueia coexistência com outros clusters Kind relevantes no WSL devido ao limite compartilhado de inotify observado; não altera sysctls nem encerra clusters alheios. Antes da bateria, observar estabilidade idle, workload normal e consultas em janela; confirmar ausência de fault ativo, OOM/restarts inesperados e saturação não resolvida. O preflight também executa dry-run de coleta, Builder, RCA Input, montagem do novo layout e integridade sem faults nem chamadas LLM.
 
 ## Problemas relevantes e solução final
 
@@ -57,4 +65,8 @@ Usar setup limpo com versões fixadas de Kind/Kubernetes/Chaos Mesh e storage no
 
 ## Estado final
 
-Implementação integrada pronta para nova execução física do zero. Validações e baterias anteriores foram apenas desenvolvimento e não permanecem como dataset, resultado ou auditoria no working tree.
+## Validação estrutural
+
+Testes offline exercitam N=1 e N=5: 5/25 instâncias GT e 10/50 IDs por tratamento/case, sem colisões; o evaluator agrega por fault, repetition, tratamento e no total. A identidade `F{n}-R{nn}` permite N maior sem alterar a estrutura. Cada run possui um único `hashes.sha256`; não há manifests aninhados publicados nem outputs de staging, control smoke, plano de execução ou protocolo duplicado. O propósito de uma execução de validação fica explícito no manifest e não deve ser interpretado como resultado definitivo do TCC.
+
+Implementação integrada pronta para nova execução física do zero. Baterias de desenvolvimento anteriores não permanecem como dataset, resultados ou auditoria no working tree.

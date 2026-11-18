@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
+import re
 from typing import Any, Mapping
 
 
@@ -13,8 +14,8 @@ ARTIFACTS = ROOT / "scripts/experiment/llm/resources"
 PROMPT_PATH = ARTIFACTS / "rca-prompt-v1.txt"
 SCHEMA_PATH = ARTIFACTS / "rca-schema-v1.json"
 PROTOCOL_PATH = ARTIFACTS / "protocol-v1.json"
-INPUT_HASHES_PATH = ROOT / "docs/experiment/results/rca-inputs.sha256"
-RESULTS_ROOT = ROOT / "docs/experiment/results"
+INPUT_HASHES_PATH = ROOT / "artifacts/experiment/current-inputs/rca-inputs.sha256"
+RESULTS_ROOT = ROOT / "artifacts/experiment/current-inputs"
 
 
 def configure_protocol(path: Path | str) -> dict[str, Any]:
@@ -34,7 +35,7 @@ def configure_protocol(path: Path | str) -> dict[str, Any]:
         return selected_path if selected_path.is_absolute() else ARTIFACTS / selected_path
     PROMPT_PATH = configured_artifact(protocol.get("prompt_file", ""), "rca-prompt-v1.txt")
     SCHEMA_PATH = configured_artifact(protocol.get("schema_file", ""), "rca-schema-v1.json")
-    RESULTS_ROOT = ROOT / protocol.get("input_root", "docs/experiment/results")
+    RESULTS_ROOT = ROOT / protocol.get("input_root", "artifacts/experiment/current-inputs")
     input_manifest = Path(protocol.get("input_hash_manifest", "rca-inputs.sha256"))
     INPUT_HASHES_PATH = input_manifest if input_manifest.is_absolute() else RESULTS_ROOT / input_manifest
     return protocol
@@ -110,12 +111,12 @@ def _input_hash_entries() -> dict[str, str]:
 
 
 def verify_frozen_inputs() -> dict[str, str]:
-    """Verify the current execution's ten frozen RCA Inputs; never reads Ground Truth."""
+    """Verify the current execution's frozen RCA Inputs; never reads Ground Truth."""
     protocol = _load_protocol()
     entries = _input_hash_entries()
     expected_count = protocol.get("pilot_rca_inputs")
-    if len(entries) != expected_count or expected_count != 10:
-        raise ProtocolError(f"expected 10 frozen RCA Inputs, found {len(entries)}")
+    if type(expected_count) is not int or expected_count < 1 or len(entries) != expected_count:
+        raise ProtocolError(f"expected {expected_count!r} frozen RCA Inputs, found {len(entries)}")
     verified: dict[str, str] = {}
     for relative, expected in entries.items():
         path = (ROOT / relative).resolve(strict=True)
@@ -137,10 +138,14 @@ def freeze_current_inputs() -> dict[str, str]:
         raise ProtocolError("RCA Input hash manifest already exists; refusing to replace frozen inputs")
     if not RESULTS_ROOT.is_dir():
         raise ProtocolError("current experiment results directory does not exist")
-    paths = sorted(RESULTS_ROOT.rglob("rca-input-*.json"))
-    paths = [path for path in paths if path.name in {"rca-input-A.json", "rca-input-B.json"}]
-    if len(paths) != 10:
-        raise ProtocolError(f"expected ten new RCA Inputs, found {len(paths)}")
+    paths = sorted(RESULTS_ROOT.rglob("*.json"))
+    paths = [path for path in paths if (
+        path.name in {"rca-input-A.json", "rca-input-B.json"}
+        or re.fullmatch(r"F[1-5]-R[0-9]{2,}-[AB]\.json", path.name, re.ASCII)
+    )]
+    expected_count = _load_protocol().get("pilot_rca_inputs")
+    if type(expected_count) is not int or len(paths) != expected_count:
+        raise ProtocolError(f"expected {expected_count!r} current RCA Inputs, found {len(paths)}")
     lines = []
     for path in paths:
         relative = path.relative_to(ROOT).as_posix()

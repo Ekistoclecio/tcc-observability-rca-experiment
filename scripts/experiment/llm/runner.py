@@ -7,6 +7,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import statistics
 import sys
 import time
@@ -331,8 +332,9 @@ def verify_completed_run(run_dir: Path, plan: Mapping[str, Any]) -> None:
     cases_root = run_dir / "cases"
     actual_case_dirs = {path.name for path in cases_root.iterdir() if path.is_dir()}
     expected_case_ids = {case["opaque_case_id"] for case in plan["cases"]}
-    if len(plan["cases"]) != 10 or actual_case_dirs != expected_case_ids:
-        raise PilotStopError("completed run does not contain exactly ten planned case records")
+    expected_count = protocol_module._load_protocol().get("pilot_rca_inputs")
+    if len(plan["cases"]) != expected_count or actual_case_dirs != expected_case_ids:
+        raise PilotStopError("completed run does not contain the complete planned case set")
     verified_inputs = verify_frozen_inputs()
     for case in plan["cases"]:
         case_dir = _case_path(run_dir, case["opaque_case_id"])
@@ -380,7 +382,7 @@ def _summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     ordered_latency = sorted(clean_latency)
     p95 = ordered_latency[max(0, math.ceil(0.95 * len(ordered_latency)) - 1)] if ordered_latency else None
     return {
-        "expected_logical_cases": 10,
+        "expected_logical_cases": protocol_module._load_protocol().get("pilot_rca_inputs"),
         "logical_cases": len(records),
         "completed_valid": statuses.count("COMPLETED"),
         "refused": statuses.count("REFUSAL"),
@@ -496,6 +498,21 @@ def run_pilot(client: Any, run_dir: Path, plan: Mapping[str, Any], resume: bool 
             raise PilotStopError("case input is absent from frozen hash set")
         request = build_openai_rca_request(rca_input)
         fingerprint = request_fingerprint(request, case["input_sha256"])
+        archive_value = protocol_module._load_protocol().get("request_archive_root")
+        if archive_value:
+            archive_root = Path(archive_value)
+            if not archive_root.is_absolute():
+                archive_root = ROOT / archive_root
+            archive_name = Path(relative_path).name
+            if not re.fullmatch(r"F[1-5]-R[0-9]{2,}-[AB]\.json", archive_name, re.ASCII):
+                raise PilotStopError("request archive requires a fault/repetition/treatment input identity")
+            archive_path = archive_root / archive_name
+            serialized_request = json.dumps(request, ensure_ascii=False, sort_keys=True,
+                                            indent=2, allow_nan=False) + "\n"
+            if archive_path.exists() and archive_path.read_text(encoding="utf-8") != serialized_request:
+                raise PilotStopError("existing model-visible request archive differs from the request")
+            if not archive_path.exists():
+                _write_json(archive_path, request)
         record = _make_request_metadata(case_id, case["ordinal"], case["input_sha256"],
                                         relative_path, fingerprint)
         if prior_attempts:

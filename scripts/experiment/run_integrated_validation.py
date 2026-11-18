@@ -30,6 +30,10 @@ from collect_raw import (
     wait_for_forward,
 )
 from scripts.experiment.fault_smoke import verify_checkout_network_effect_absent
+from scripts.experiment.result_layout import (
+    ResultLayoutError, create_run_tree, next_run_id, outer_hashes,
+    publish_atomic, verify_run,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -407,13 +411,6 @@ def preflight(output: Path, branch: str, commit: str, envvars: dict[str, str]) -
     _, _, status = git_state()
     if status.strip():
         raise IntegratedRunError(f"working tree is dirty:\n{status}")
-    for destination in (EXPERIMENT / "results", EXPERIMENT / "teste",
-                       EXPERIMENT / "stages/12-final-experiment-validation.md",
-                       EXPERIMENT / "stages/12-final-experiment-validation.json"):
-        if destination.exists():
-            raise IntegratedRunError(
-                f"final artifact destination already exists; refusing overwrite: {destination}"
-            )
     env = os.environ.copy()
     env.update(envvars)
     checks = {}
@@ -1302,9 +1299,110 @@ def publish_finalization(scratch: Path, publication_root: Path, execution: dict[
         raise
 
 
-def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> dict[str, Any]:
+def _run_llm_command(protocol_path: Path, command: str, env: dict[str, str],
+                     *arguments: str) -> dict[str, Any]:
+    result = run([sys.executable, "-m", "scripts.experiment.llm.runner",
+                  "--protocol", str(protocol_path), command, *arguments],
+                 env=env, check=False)
+    try:
+        payload = json_output(result, f"LLM runner {command}")
+    except IntegratedRunError as exc:
+        raise IntegratedRunError(
+            f"LLM runner {command} returned no structured status; "
+            f"exit={result.returncode}; stdout={result.stdout[-2000:]!r}; stderr={result.stderr[-2000:]!r}"
+        ) from exc
+    expected_events = {
+        "preflight": "CREDENTIAL_PREFLIGHT_PASS",
+        "freeze-plan": "EXECUTION_PLAN_FROZEN",
+        "control-smoke": "CONTROL_SMOKE_COMPLETE",
+        "run": "PILOT_COMPLETE",
+    }
+    if result.returncode or payload.get("event") != expected_events.get(command):
+        raise IntegratedRunError(f"LLM runner {command} failed: {payload}")
+    if command == "control-smoke" and payload.get("status") != "COMPLETED":
+        raise IntegratedRunError(f"LLM control smoke did not complete: {payload}")
+    if command == "run" and payload.get("transport_failed") != 0:
+        raise IntegratedRunError(f"LLM runner reported transport failure: {payload}")
+    return payload
+
+
+def _export_llm_responses(temporary_run: Path, staged_run: Path, protocol_path: Path) -> dict[str, Any]:
+    from scripts.experiment.llm.runner import _read_json
+    from scripts.experiment.llm.protocol import build_openai_rca_request
+
+    run_manifest = _read_json(temporary_run / "run-manifest.json")
+    plan = _read_json(temporary_run / "execution-plan.json")
+    private = {row["opaque_case_id"]: row for row in run_manifest.get("case_map_private", [])}
+    plan_cases = {row["opaque_case_id"]: row for row in plan["cases"]}
+    if set(private) != set(plan_cases):
+        raise IntegratedRunError("blind runner private mapping does not cover the frozen plan")
+    outcomes: dict[str, Any] = {}
+    for case_id, mapping in private.items():
+        source_name = Path(mapping["input_path"]).name
+        if not re.fullmatch(r"F[1-5]-R[0-9]{2,}-[AB]\.json", source_name, re.ASCII):
+            raise IntegratedRunError("frozen RCA Input does not carry the required local identity")
+        case_dir = temporary_run / "cases" / case_id
+        request_meta = json.loads((case_dir / "request-metadata.json").read_text(encoding="utf-8"))
+        if request_meta.get("status") == "TRANSPORT_FAILED":
+            raise IntegratedRunError(f"transport exhausted for {source_name}; run cannot be published")
+        source_input = ROOT / mapping["input_path"]
+        model_input = json.loads(source_input.read_text(encoding="utf-8"))
+        expected_request = json.dumps(build_openai_rca_request(model_input), ensure_ascii=False,
+                                      sort_keys=True, indent=2, allow_nan=False) + "\n"
+        archived_request = staged_run / "llm" / "inputs" / source_name
+        if not archived_request.is_file() or archived_request.read_text(encoding="utf-8") != expected_request:
+            raise IntegratedRunError(f"published model-visible request differs from SDK payload for {source_name}")
+        response_meta_path = case_dir / "response-metadata.json"
+        response_meta = json.loads(response_meta_path.read_text(encoding="utf-8")) if response_meta_path.is_file() else None
+        validation_path = case_dir / "validation.json"
+        validation = json.loads(validation_path.read_text(encoding="utf-8")) if validation_path.is_file() else {"status": "NOT_AVAILABLE"}
+        prediction_path = case_dir / "prediction.json"
+        raw_output_path = case_dir / "raw-output.txt"
+        response = {
+            "response_id": (response_meta or {}).get("response_id"),
+            "status": request_meta["status"],
+            "requested_model": (response_meta or {}).get("requested_model"),
+            "returned_model": (response_meta or {}).get("returned_model"),
+            "service_tier_requested": (response_meta or {}).get("service_tier_requested"),
+            "service_tier_returned": (response_meta or {}).get("service_tier_returned"),
+            "api_status": (response_meta or {}).get("api_status"),
+            "created_at": (response_meta or {}).get("created_at"),
+            "incomplete_details": (response_meta or {}).get("incomplete_details"),
+            "usage": (response_meta or {}).get("usage"),
+            "estimated_cost_usd": ((response_meta or {}).get("usage") or {}).get("estimated_cost_usd"),
+            "latency_ms": request_meta.get("latency_ms"),
+            "latency_clean": request_meta.get("latency_clean"),
+            "attempt_count": request_meta.get("attempt_count"),
+            "attempts": request_meta.get("attempts", []),
+            "request_fingerprint": request_meta.get("request_fingerprint"),
+            "validation": {
+                "structured_output": "PASS" if validation.get("status") == "PASS" else validation.get("status"),
+                "semantic": "PASS" if validation.get("status") == "PASS" else validation.get("status"),
+                "detail": validation,
+            },
+        }
+        if prediction_path.is_file():
+            response["prediction"] = json.loads(prediction_path.read_text(encoding="utf-8"))
+        if raw_output_path.is_file():
+            response["raw_model_output"] = raw_output_path.read_text(encoding="utf-8")
+        target = staged_run / "llm" / "responses" / source_name
+        target.write_text(json.dumps(response, ensure_ascii=False, sort_keys=True,
+                                     indent=2, allow_nan=False) + "\n", encoding="utf-8")
+        outcomes[source_name.removesuffix(".json")] = request_meta["status"]
+    return {"outcomes": outcomes, "runner_manifest": run_manifest, "plan": plan}
+
+
+def execute(output_root: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS,
+            repetitions: int = 1, purpose: str = "result_layout_end_to_end_validation") -> dict[str, Any]:
     global FINALIZATION_EVENTS, LAST_FINALIZATION_FAILURE, FINALIZATION_SCRATCH
     global PUBLISHED_FINAL_PATHS, FINALIZATION_TEMP_PATHS
+    from scripts.experiment.result_layout import write_json
+    from scripts.experiment.llm import protocol as llm_protocol
+    from scripts.experiment.llm.protocol import build_openai_rca_request, verify_protocol_artifacts
+    from scripts.experiment.llm.accounting import load_pricing
+
+    if type(repetitions) is not int or repetitions < 1:
+        raise IntegratedRunError("repetitions must be a positive integer")
     FINALIZATION_EVENTS = []
     LAST_FINALIZATION_FAILURE = None
     FINALIZATION_SCRATCH = None
@@ -1313,21 +1411,36 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
     branch, commit, status = git_state()
     if status.strip():
         raise IntegratedRunError(f"working tree must be clean before battery:\n{status}")
-    if output.resolve() != (EXPERIMENT / "results").resolve():
-        raise IntegratedRunError(f"integrated battery output must be {EXPERIMENT / 'results'}")
-    if output.exists():
-        raise IntegratedRunError(f"results path already exists: {output}")
+    if output_root.resolve() != (EXPERIMENT / "results").resolve():
+        raise IntegratedRunError(f"run publication root must be {EXPERIMENT / 'results'}")
     envvars = load_env_file(VERSIONS)
+    from scripts.experiment.llm.credentials import load_root_credentials
+    load_root_credentials(ROOT)
     env = os.environ.copy()
     env.setdefault("KIND_BIN", "kind")
     env.setdefault("KUBECTL_BIN", "kubectl")
-    finalization_inputs: dict[str, Any] | None = None
+    run_id = next_run_id(output_root)
+    run_store = ROOT / "artifacts/experiment"
+    run_store.mkdir(parents=True, exist_ok=True)
+    staging_run = run_store / f".{run_id}-staging"
+    if staging_run.exists():
+        raise IntegratedRunError(f"staging path already exists: {staging_run}")
+    FINALIZATION_SCRATCH = staging_run
+    input_root = run_store / f".{run_id}-private-inputs"
+    temporary_llm = run_store / f".{run_id}-llm"
+    temporary_protocol = run_store / f".{run_id}-protocol.json"
+    plan_path = run_store / f".{run_id}-execution-plan.json"
+    control_root = run_store / f".{run_id}-control-smoke"
+    input_hash_path = run_store / f".{run_id}-rca-inputs.sha256"
+    stale_paths = (staging_run, input_root, temporary_llm, temporary_protocol,
+                   plan_path, control_root, input_hash_path)
+    if any(path.exists() or path.is_symlink() for path in stale_paths):
+        raise IntegratedRunError("temporary paths for the next run ID already exist; refusing reuse")
     with PreserveWorkOnError() as work:
-        staging = work / "results"
-        staging.mkdir()
+        work.mkdir(exist_ok=True)
         preflight_report = preflight(work / "preflight", branch, commit, envvars)
-        (staging / "preflight.json").write_text(json.dumps(preflight_report, indent=2, sort_keys=True) + "\n")
-
+        _run_llm_command(ROOT / "scripts/experiment/llm/resources/protocol-v1.json",
+                         "preflight", env)
         global_start_ns = time.time_ns()
         start_time = datetime_from_epoch_ns(global_start_ns)
         normal_record = work / "normal-workload.json"
@@ -1335,247 +1448,254 @@ def execute(output: Path, active_seconds: float = MIN_FAULT_ACTIVE_SECONDS) -> d
         normal_start = normal_summary["measurement_started_at"]
         normal_end = time_text(parse_time(normal_summary["finished_at"]) + timedelta(seconds=20))
         normal_raw = work / "normal-raw"
-        normal_collection = collect(normal_raw, normal_start, normal_end, normal_record,
-                                    commit, envvars, env)
+        collect(normal_raw, normal_start, normal_end, normal_record, commit, envvars, env)
         normal_dataset = work / "normal-dataset"
-        normal_build = build_dataset(normal_raw, normal_dataset, env)
+        build_dataset(normal_raw, normal_dataset, env)
         normal_facts = {side: facts_from(normal_dataset / f"dataset-{side}.json") for side in "AB"}
-        shutil.copytree(normal_raw, staging / "normal-smoke/raw", copy_function=shutil.copy2)
-        shutil.copytree(normal_dataset, staging / "normal-smoke/dataset", copy_function=shutil.copy2)
-        (staging / "normal-smoke/collection.json").write_text(json.dumps(normal_collection, indent=2, sort_keys=True) + "\n")
 
+        physical_instances: dict[str, Any] = {}
         fault_results: dict[str, Any] = {}
-        for ordinal, fault in enumerate(FAULTS, start=1):
-            fault_work = work / fault
-            fault_work.mkdir()
-            gt_path = fault_work / "ground-truth.json"
-            report_path = fault_work / "fault-smoke.json"
-            result = run([sys.executable, "-m", "scripts.experiment.fault_smoke",
-                          "--fault", fault, "--record", str(gt_path),
-                          "--active-seconds", str(active_seconds)], env=env, check=False)
-            try:
-                report = json_output(result, f"{fault} fault smoke")
-            except IntegratedRunError as exc:
-                raise IntegratedRunError(
-                    f"{fault} fault smoke did not return JSON (exit={result.returncode}); "
-                    f"stdout={result.stdout[-2000:]!r}; stderr={result.stderr[-4000:]!r}"
-                ) from exc
-            report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-            if result.returncode or report.get("status") != "PASS":
-                raise IntegratedRunError(f"{fault} injection/recovery smoke failed: {report}")
-            check_no_residual_fault_state(env.get("KUBECTL_BIN", "kubectl"),
-                                          f"kind-{envvars['KIND_CLUSTER_NAME']}",
-                                          envvars["SUT_NAMESPACE"])
-            gt = verify_gt(fault, gt_path)
-            workload_record = fault_work / "workload.json"
-            workload_record.write_text(json.dumps(report.get("active_probe"), indent=2, sort_keys=True) + "\n")
-            raw = fault_work / "raw"
-            collected = collect(raw, gt["confirmed_start"], gt["confirmed_end"], workload_record,
-                                commit, envvars, env)
-            dataset_dir = fault_work / "dataset"
-            built = build_dataset(raw, dataset_dir, env)
-            inputs = {}
-            facts = {}
-            for side in "AB":
-                dataset_path = dataset_dir / f"dataset-{side}.json"
-                facts[side] = facts_from(dataset_path)
-                inputs[side] = build_input(dataset_path, fault_work / f"rca-input-{side}.json",
-                                           fault_work / f"rca-input-provenance-{side}.json", env)
-            evidence = validate_fault_facts(fault, facts["A"], facts["B"],
-                                            normal_facts["A"], normal_facts["B"])
-            name = f"{ordinal:03d}_{FAULTS[fault][0]}_r01"
-            target = staging / name
-            target.mkdir()
-            shutil.copytree(raw, target / "raw", copy_function=shutil.copy2)
-            shutil.copytree(dataset_dir, target / "dataset", copy_function=shutil.copy2)
-            for side in "AB":
-                shutil.copy2(dataset_dir / f"dataset-{side}.json", target / f"dataset{side}.json")
-            shutil.copy2(gt_path, target / "ground-truth.json")
-            shutil.copy2(report_path, target / "fault-smoke.json")
-            for side in "AB":
-                shutil.copy2(fault_work / f"rca-input-{side}.json", target / f"rca-input-{side}.json")
-                shutil.copy2(fault_work / f"rca-input-provenance-{side}.json",
-                             target / f"rca-input-provenance-{side}.json")
-            fault_results[fault] = {"status": "PASS", "ground_truth": gt, "collection": collected,
-                                    "dataset_build": built, "rca_input": inputs, "evidence": evidence,
-                                    "result_directory": name}
+        for fault in FAULTS:
+            fault_type, _, _ = FAULTS[fault]
+            for repetition in range(1, repetitions + 1):
+                identity = f"{fault}-R{repetition:02d}"
+                fault_work = work / "instances" / identity
+                fault_work.mkdir(parents=True)
+                gt_path = fault_work / "ground-truth.json"
+                result = run([sys.executable, "-m", "scripts.experiment.fault_smoke",
+                              "--fault", fault, "--fault-id", identity,
+                              "--record", str(gt_path), "--active-seconds", str(active_seconds)],
+                             env=env, check=False)
+                try:
+                    report = json_output(result, f"{identity} fault smoke")
+                except IntegratedRunError as exc:
+                    raise IntegratedRunError(
+                        f"{identity} fault smoke did not return JSON (exit={result.returncode}); "
+                        f"stdout={result.stdout[-2000:]!r}; stderr={result.stderr[-4000:]!r}"
+                    ) from exc
+                if result.returncode or report.get("status") != "PASS":
+                    raise IntegratedRunError(f"{identity} injection/recovery smoke failed: {report}")
+                check_no_residual_fault_state(env.get("KUBECTL_BIN", "kubectl"),
+                                              f"kind-{envvars['KIND_CLUSTER_NAME']}", envvars["SUT_NAMESPACE"])
+                gt = verify_gt(fault, gt_path)
+                if gt.get("fault_id") != identity:
+                    raise IntegratedRunError(f"{identity} Ground Truth identity mismatch")
+                workload_record = fault_work / "workload.json"
+                write_json(workload_record, report.get("active_probe"))
+                raw = fault_work / "raw"
+                collected = collect(raw, gt["confirmed_start"], gt["confirmed_end"],
+                                    workload_record, commit, envvars, env)
+                dataset_dir = fault_work / "dataset"
+                built = build_dataset(raw, dataset_dir, env)
+                inputs, facts = {}, {}
+                for side in "AB":
+                    dataset_path = dataset_dir / f"dataset-{side}.json"
+                    facts[side] = facts_from(dataset_path)
+                    input_path = input_root / f"{identity}-{side}.json"
+                    input_path.parent.mkdir(parents=True, exist_ok=True)
+                    inputs[side] = build_input(dataset_path, input_path,
+                                               fault_work / f"rca-input-provenance-{side}.json", env)
+                evidence = validate_fault_facts(fault, facts["A"], facts["B"],
+                                                normal_facts["A"], normal_facts["B"])
+                physical_instances[identity] = {
+                    "ground_truth": gt, "raw_bundle": raw,
+                    "datasets": {side: dataset_dir / f"dataset-{side}.json" for side in "AB"},
+                    "inputs": {side: Path(inputs[side]["output"]) if isinstance(inputs[side], dict)
+                               and inputs[side].get("output") else input_root / f"{identity}-{side}.json"
+                               for side in "AB"},
+                }
+                fault_results[identity] = {
+                    "fault": fault, "repetition": repetition, "fault_type": fault_type,
+                    "status": "PASS", "ground_truth": gt, "collection": collected,
+                    "dataset_build": built, "rca_input": inputs, "semantic_facts": evidence,
+                    "recovery": "PASS", "cleanup": "PASS",
+                }
 
-        semantic_path = work / "semantic-validation.json"
-        semantic = run_script(SEMANTIC_VALIDATOR,
-                              "--normal-raw", str(normal_raw),
-                              "--f4-raw", str(work / "F4/raw"),
-                              "--f4-ground-truth", str(work / "F4/ground-truth.json"),
-                              "--f5-raw", str(work / "F5/raw"),
-                              "--f5-ground-truth", str(work / "F5/ground-truth.json"),
-                              "--output", str(semantic_path), env=env)
-        if semantic.get("status") != "PASS":
-            raise IntegratedRunError(f"RAW semantic validation failed: {semantic}")
-        shutil.copy2(semantic_path, staging / "semantic-validation.json")
+        semantic_results = {}
+        for repetition in range(1, repetitions + 1):
+            semantic_path = work / f"semantic-R{repetition:02d}.json"
+            semantic = run_script(SEMANTIC_VALIDATOR,
+                                  "--normal-raw", str(normal_raw),
+                                  "--f4-raw", str(work / "instances" / f"F4-R{repetition:02d}" / "raw"),
+                                  "--f4-ground-truth", str(work / "instances" / f"F4-R{repetition:02d}" / "ground-truth.json"),
+                                  "--f5-raw", str(work / "instances" / f"F5-R{repetition:02d}" / "raw"),
+                                  "--f5-ground-truth", str(work / "instances" / f"F5-R{repetition:02d}" / "ground-truth.json"),
+                                  "--output", str(semantic_path), env=env)
+            if semantic.get("status") != "PASS":
+                raise IntegratedRunError(f"semantic validation failed for repetition R{repetition:02d}: {semantic}")
+            semantic_results[f"R{repetition:02d}"] = semantic
 
         global_end_ns = time.time_ns()
         global_end = datetime_from_epoch_ns(global_end_ns)
-        control_workload = work / "battery-workloads.json"
-        control_workload.write_text(json.dumps({"normal": normal_summary,
-                                                "faults": {key: value["evidence"] for key, value in fault_results.items()}},
-                                               indent=2, sort_keys=True) + "\n")
+        control_workload = work / "run-workloads.json"
+        write_json(control_workload, {"normal": normal_summary,
+                                     "faults": {key: value["semantic_facts"] for key, value in fault_results.items()}})
         global_raw = work / "global-raw"
         global_collection = collect(global_raw, time_text(start_time), time_text(global_end),
                                     control_workload, commit, envvars, env,
                                     start_ns=global_start_ns, end_ns=global_end_ns)
-        (staging / "global-collection.json").write_text(json.dumps(global_collection, indent=2, sort_keys=True) + "\n")
-        package_global_raw(global_raw, staging)
-        (staging / "README.md").write_text(
-            "# Resultados integrados — experiment-v2\n\n"
-            f"Commit executado: `{commit}`. RAW global completo e nativo está em `datasetA/`, `datasetB/` e `control/`; "
-            "`global-raw-manifest.json` e `global-raw-hashes.sha256` preservam a consulta e a integridade da coleta.\n\n"
-            "Cada diretório numerado contém RAW da janela do fault, Dataset A/B, RCA Input A/B e Ground Truth "
-            "separado dos inputs. Os inputs não contêm Ground Truth nem rótulo de cenário. Nenhuma chamada de LLM foi feita.\n"
-        )
 
-        tested_end = utc_now()
-        execution = {"tested_commit": commit, "branch": branch,
-                     "experiment_start": time_text(start_time), "experiment_end": time_text(tested_end),
-                     "experiment_start_ns": str(global_start_ns),
-                     "experiment_end_ns": str(global_end_ns),
-                     "fault_order": list(FAULTS), "workload_configuration": normal_summary["configuration"],
-                     "deployment_provenance_status": "PASS", "normal_workload_status": "PASS",
-                     "faults": {key: value["status"] for key, value in fault_results.items()},
-                     "semantic_validation_status": semantic["status"], "llm_invocations": 0}
-        (staging / "execution.json").write_text(json.dumps(execution, indent=2, sort_keys=True) + "\n")
-        (staging / "fault-validation.json").write_text(json.dumps(fault_results, indent=2, sort_keys=True) + "\n")
-        scratch = Path(tempfile.mkdtemp(prefix=".12-finalization-", dir=EXPERIMENT))
-        FINALIZATION_SCRATCH = scratch
-        staged_results = scratch / "results"
-        integrity = finalize_results(staging, staged_results, execution)
-        audit = create_audit_package(staged_results, execution, fault_results, semantic,
-                                     preflight_report["deployment_provenance"],
-                                     audit_path=scratch / "teste")
-        audit["results_files_hashed"] = verify_hash_manifest(staged_results)
-        finalization_inputs = {
-            "scratch": scratch,
-            "execution": execution,
-            "fault_results": fault_results,
-            "audit": audit,
-            "result": {"status": "PASS", "tested_commit": commit, "faults": fault_results,
-                       "normal_raw": str(output / "normal-smoke/raw"),
-                       "global_raw": str(output / "global-raw"),
-                       "semantic_validation": str(output / "semantic-validation.json"),
-                       "integrity": integrity, "audit_package": audit},
-        }
-
-    if finalization_inputs is None:
-        raise IntegratedRunError("integrated execution did not prepare final artifacts")
-    published = publish_finalization(
-        finalization_inputs["scratch"], EXPERIMENT, finalization_inputs["execution"],
-        finalization_inputs["fault_results"], finalization_inputs["audit"],
-    )
-    FINALIZATION_SCRATCH = None
-    result = finalization_inputs["result"]
-    result["final_publication"] = published
-    return result
+        static_protocol_path = ROOT / "scripts/experiment/llm/resources/protocol-v1.json"
+        protocol = json.loads(static_protocol_path.read_text(encoding="utf-8"))
+        protocol.update({
+            "input_root": str(input_root),
+            "input_hash_manifest": str(run_store / f".{run_id}-rca-inputs.sha256"),
+            "prompt_file": str(ROOT / "scripts/experiment/llm/resources/rca-prompt-v1.txt"),
+            "schema_file": str(ROOT / "scripts/experiment/llm/resources/rca-schema-v1.json"),
+            "pricing_file": str(ROOT / protocol.get(
+                "pricing_file", "scripts/experiment/llm/resources/pricing-luna-default-v1.json")),
+            "pilot_fault_instances": 5 * repetitions,
+            "pilot_rca_inputs": 10 * repetitions,
+            "execution_plan_file": str(plan_path),
+            "run_output_root": str(temporary_llm),
+            "control_output_root": str(control_root),
+            "request_archive_root": str(staging_run / "llm" / "inputs"),
+        })
+        temporary_protocol.write_text(json.dumps(protocol, ensure_ascii=False, sort_keys=True,
+                                                 indent=2) + "\n", encoding="utf-8")
+        try:
+            llm_protocol.configure_protocol(temporary_protocol)
+            verify_protocol_artifacts()
+            pricing = load_pricing()
+            input_paths = sorted(input_root.glob("F[1-5]-R*-?.json"))
+            if len(input_paths) != 10 * repetitions:
+                raise IntegratedRunError("current physical run did not produce the complete RCA Input set")
+            create_run_tree(
+                staging_run, run_id, repetitions, physical_instances, global_raw,
+                {"purpose": purpose, "git_commit": commit,
+                 "started_at": time_text(start_time), "finished_at": time_text(global_end),
+                 "experiment_interval_ns": {"start": str(global_start_ns), "end": str(global_end_ns)},
+                 "workload_configuration": normal_summary.get("configuration"),
+                 "deployment_provenance": preflight_report["deployment_provenance"],
+                 "raw_collection": {"status": global_collection.get("status"),
+                                    "window": global_collection.get("window"),
+                                    "native_manifest_sha256": hashlib.sha256((global_raw / "manifest.json").read_bytes()).hexdigest(),
+                                    "native_hashes_sha256": hashlib.sha256((global_raw / "hashes.sha256").read_bytes()).hexdigest()},
+                 "semantic_validation": {"status": "PASS", "repetitions": semantic_results},
+                 "llm": {"provider": protocol["provider"], "model": protocol["model"],
+                         "protocol_version": protocol["protocol_version"],
+                         "prompt_version": protocol["prompt_version"],
+                         "prompt_sha256": protocol["prompt_sha256"],
+                         "schema_version": protocol["schema_version"],
+                         "schema_sha256": protocol["schema_sha256"],
+                         "reasoning_mode": protocol["reasoning_mode"],
+                         "reasoning_effort": protocol["reasoning_effort"],
+                         "service_tier": protocol["service_tier"],
+                         "max_output_tokens": protocol["max_output_tokens"],
+                         "tools": protocol["tools"],
+                         "pricing_snapshot": pricing,
+                         "sdk_version": None,
+                         "control_smoke": None,
+                         "logical_diagnoses": 10 * repetitions}},
+            )
+            from scripts.experiment.llm.runner import _git_head as _runner_commit
+            llm_protocol.configure_protocol(temporary_protocol)
+            for input_path in input_paths:
+                raw_input = json.loads(input_path.read_text(encoding="utf-8"))
+                request = build_openai_rca_request(raw_input)
+                name = input_path.name
+                (staging_run / "llm" / "inputs" / name).write_text(
+                    json.dumps(request, ensure_ascii=False, sort_keys=True, indent=2,
+                               allow_nan=False) + "\n", encoding="utf-8")
+            _run_llm_command(temporary_protocol, "preflight", env)
+            frozen_plan = _run_llm_command(temporary_protocol, "freeze-plan", env)
+            control = _run_llm_command(temporary_protocol, "control-smoke", env)
+            pilot = _run_llm_command(temporary_protocol, "run", env,
+                                     "--run-dir", str(temporary_llm))
+            exported = _export_llm_responses(temporary_llm, staging_run, temporary_protocol)
+            control_record = next(control_root.glob("attempt-*/control-smoke.json"), None)
+            control_data = json.loads(control_record.read_text(encoding="utf-8")) if control_record else {}
+            manifest_path = staging_run / "manifest.json"
+            published_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            published_manifest["status"] = "FINALIZING"
+            llm_block = published_manifest["llm"]
+            llm_block.update({"runner_commit": _runner_commit(),
+                              "sdk_version": exported["runner_manifest"].get("openai_sdk_version"),
+                              "execution_plan_sha256": frozen_plan.get("sha256"),
+                              "logical_outcomes": {status: list(exported["outcomes"].values()).count(status)
+                                                   for status in sorted(set(exported["outcomes"].values()))},
+                              "transport_attempts": pilot.get("total_transport_attempts"),
+                              "control_smoke": {"status": control.get("status"),
+                                                "response_id": control_data.get("response_metadata", {}).get("response_id"),
+                                                "usage": control_data.get("response_metadata", {}).get("usage"),
+                                                "latency_ms": control_data.get("latency_ms"),
+                                                "included_in_pilot_results": False}})
+            _write_json(manifest_path, published_manifest)
+            from scripts.experiment.evaluation.evaluator import write_evaluation
+            evaluation = write_evaluation(staging_run)
+            published_manifest["llm"]["evaluation_status"] = "PASS"
+            published_manifest["evaluation_status"] = "PASS"
+            published_manifest["finished_at"] = time_text(utc_now())
+            published_manifest["status"] = "SUCCESS"
+            _write_json(manifest_path, published_manifest)
+            remove_temporary_tree(input_root)
+            for temporary in (temporary_llm, control_root, plan_path,
+                              input_hash_path, temporary_protocol):
+                if temporary.is_dir():
+                    shutil.rmtree(temporary)
+                elif temporary.exists():
+                    temporary.unlink()
+            from scripts.experiment.llm.runner import assert_no_secret_in_artifacts
+            assert_no_secret_in_artifacts([staging_run])
+            outer_hashes(staging_run)
+            integrity = verify_run(staging_run, repetitions)
+            destination = publish_atomic(staging_run, output_root, run_id)
+            FINALIZATION_SCRATCH = None
+            return {"status": "PASS", "run_id": run_id, "tested_commit": commit,
+                    "repetitions_per_fault": repetitions, "physical_fault_instances": 5 * repetitions,
+                    "rca_inputs": 10 * repetitions, "result_path": str(destination),
+                    "semantic_validation": semantic_results,
+                    "global_raw_collection": global_collection,
+                    "preflight": preflight_report, "pilot": pilot,
+                    "control_smoke": control, "evaluation": evaluation["overall"],
+                    "integrity": integrity}
+        finally:
+            llm_protocol.configure_protocol(static_protocol_path)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, default=EXPERIMENT / "results")
     parser.add_argument("--active-seconds", type=float, default=MIN_FAULT_ACTIVE_SECONDS)
+    parser.add_argument("--repetitions", type=int, default=1)
+    parser.add_argument("--purpose", default="result_layout_end_to_end_validation")
     args = parser.parse_args()
     if args.active_seconds < MIN_FAULT_ACTIVE_SECONDS:
         parser.error(f"active-seconds must be at least {MIN_FAULT_ACTIVE_SECONDS:g}; "
                      f"cAdvisor scrape interval is {PROMETHEUS_CADVISOR_SCRAPE_SECONDS:g}s")
     try:
-        result = execute(args.output_dir.resolve(), args.active_seconds)
-    except (IntegratedRunError, OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:
-        reports = EXPERIMENT / "reports"
-        report_md = reports / "BLOCKED-12-integrated-validation.md"
-        report_json = reports / "BLOCKED-12-integrated-validation.json"
-        evidence_path = None
-        filename = getattr(exc, "filename", None)
-        filename2 = getattr(exc, "filename2", None)
-        exception_context: dict[str, Any] = {
-            "exception_type": type(exc).__name__, "exception_repr": repr(exc),
-            "errno": getattr(exc, "errno", None), "filename": filename, "filename2": filename2,
+        result = execute(args.output_dir.resolve(), args.active_seconds, args.repetitions, args.purpose)
+    except (IntegratedRunError, ResultLayoutError, OSError, ValueError, KeyError,
+            subprocess.SubprocessError) as exc:
+        reports = ROOT / "artifacts/experiment/diagnostics"
+        reports.mkdir(parents=True, exist_ok=True)
+        report_path = reports / f"{time.time_ns()}-failure.json"
+        report = {
+            "status": "FAILED", "exception_type": type(exc).__name__,
+            "exception_repr": repr(exc), "errno": getattr(exc, "errno", None),
+            "filename": getattr(exc, "filename", None), "filename2": getattr(exc, "filename2", None),
             "traceback": traceback.format_exc(), "cwd": os.getcwd(),
-            "path_snapshots": [filesystem_snapshot(value) for value in (filename, filename2) if value],
-            "process": filesystem_snapshot(Path.cwd())["process"],
             "events": list(FINALIZATION_EVENTS or []),
+            "last_finalization_failure": LAST_FINALIZATION_FAILURE,
             "published_paths": [str(path) for path in PUBLISHED_FINAL_PATHS],
-            "temporary_paths": [str(path) for path in FINALIZATION_TEMP_PATHS],
         }
-        if LAST_FINALIZATION_FAILURE:
-            exception_context["operation_failure"] = LAST_FINALIZATION_FAILURE
-        try:
-            reports.mkdir(parents=True, exist_ok=True)
-            if LAST_WORK_DIR and LAST_WORK_DIR.exists():
-                evidence_path = reports / "BLOCKED-12-artifacts"
-                if evidence_path.exists():
-                    evidence_path = reports / f"BLOCKED-12-artifacts-{time.time_ns()}"
+        report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        for path in (FINALIZATION_SCRATCH,):
+            if path and path.exists():
                 try:
-                    (LAST_WORK_DIR / "finalization-diagnostics.json").write_text(
-                        json.dumps(exception_context, indent=2, sort_keys=True) + "\n"
-                    )
-                except Exception as diagnostic_error:
-                    exception_context["diagnostic_write_error"] = repr(diagnostic_error)
-                shutil.copytree(LAST_WORK_DIR, evidence_path, copy_function=shutil.copy2)
-            if FINALIZATION_SCRATCH and FINALIZATION_SCRATCH.exists():
-                if evidence_path is None:
-                    evidence_path = reports / f"BLOCKED-12-artifacts-{time.time_ns()}"
-                    evidence_path.mkdir(parents=True, exist_ok=False)
-                shutil.copytree(FINALIZATION_SCRATCH, evidence_path / "finalization-scratch")
-            partial_root = evidence_path / "published-attempt" if evidence_path else None
-            if partial_root:
-                for path in PUBLISHED_FINAL_PATHS:
-                    if path.exists() or path.is_symlink():
-                        destination = partial_root / path.relative_to(EXPERIMENT)
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.move(str(path), str(destination))
-                for path in FINALIZATION_TEMP_PATHS:
-                    if path.exists() or path.is_symlink():
-                        destination = partial_root / "temporary" / path.name
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.move(str(path), str(destination))
-            if FINALIZATION_SCRATCH and FINALIZATION_SCRATCH.exists():
-                remove_temporary_tree(FINALIZATION_SCRATCH)
-            branch, commit, status = git_state()
-            detail = {
-                "stage": "12-integrated-validation",
-                "last_successful_commit": commit,
-                "observed": str(exc),
-                "expected": "normal workload, F1-F5, RAW, Dataset, RCA Input, semantic coverage and artifact integrity all PASS",
-                "first_divergence": "integrated runner gate; inspect preserved evidence",
-                "root_cause": "UNKNOWN",
-                "evidence": str(evidence_path) if evidence_path else "no intermediate artifacts were produced",
-                "affected_invariant": "the complete fault-to-RCA-input chain must pass on one frozen commit",
-                "affected_files": [],
-                "scientific_impact": "the integrated battery is not valid and must not be treated as a result",
-                "safe_automatic_correction_possible": False,
-                "recommended_correction": "diagnose the first failing layer from the preserved evidence before changing code/configuration",
-                "physical_rerun_required": True,
-                "working_tree": status,
-                "branch": branch,
-                "exception": exception_context,
-                "canonical_results_present": (EXPERIMENT / "results").exists(),
-                "canonical_teste_present": (EXPERIMENT / "teste").exists(),
-            }
-            report_json.write_text(json.dumps(detail, indent=2, sort_keys=True) + "\n")
-            report_md.write_text(
-                "# BLOCKED — Etapa 12 integrated validation\n\n"
-                f"- Último commit presente: `{commit}` (`{branch}`).\n"
-                f"- Observado: `{exc}`\n"
-                f"- Esperado: {detail['expected']}.\n"
-                "- Primeira divergência: gate integrado; consulte a evidência preservada.\n"
-                "- Root cause: UNKNOWN; não foi aplicada correção automática.\n"
-                f"- Exceção: `{detail['exception']['exception_type']}`; traceback completo no JSON.\n"
-                f"- Evidência: `{detail['evidence']}`.\n"
-                f"- Relatório estruturado: `{report_json.relative_to(ROOT)}`.\n"
-                f"- Working tree: `{status or 'CLEAN'}`.\n"
-            )
-        except Exception as report_error:
-            print(f"Could not preserve blocker report: {report_error}", file=sys.stderr)
-        print(f"Integrated experiment validation stopped: {exc}", file=sys.stderr)
-        return 1
-    print(json.dumps(result, indent=2, sort_keys=True))
+                    remove_temporary_tree(path)
+                except Exception:
+                    pass
+        print(json.dumps({"status": "FAIL", "error_type": type(exc).__name__,
+                          "diagnostic": str(report_path)}, sort_keys=True))
+        return 2
+    print(json.dumps({"status": "PASS", "run_id": result["run_id"],
+                      "repetitions_per_fault": result["repetitions_per_fault"],
+                      "physical_fault_instances": result["physical_fault_instances"],
+                      "rca_inputs": result["rca_inputs"],
+                      "result_path": result["result_path"]}, sort_keys=True))
     return 0
+
 
 
 if __name__ == "__main__":

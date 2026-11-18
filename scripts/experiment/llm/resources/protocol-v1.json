@@ -5,7 +5,7 @@
   "external_tools_enabled": false,
   "ground_truth_visible_to_model": false,
   "input_hash_manifest": "rca-inputs.sha256",
-  "input_root": "docs/experiment/results",
+  "input_root": "artifacts/experiment/current-inputs",
   "interpretation": "fresh_experiment_run",
   "llm_calls_performed_during_13a": 0,
   "max_output_tokens": 16384,

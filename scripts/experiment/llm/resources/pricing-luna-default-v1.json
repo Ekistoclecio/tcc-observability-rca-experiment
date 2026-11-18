@@ -2,7 +2,7 @@
   "pricing_version": "pricing-v1",
   "source": "https://developers.openai.com/api/docs/pricing",
   "model_reference": "https://developers.openai.com/api/docs/models/gpt-6-luna",
-  "retrieved_at_utc": "2026-11-17",
+  "retrieved_at_utc": "2026-11-18",
   "provider": "OpenAI",
   "model": "gpt-6-luna",
   "service_tier": "default",

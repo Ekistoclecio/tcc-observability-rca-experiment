@@ -290,7 +290,7 @@ class AccountingTests(unittest.TestCase):
 
 class MockedEndToEndTests(unittest.TestCase):
     def setUp(self):
-        install_synthetic_protocol(self)
+        self.synthetic_root = install_synthetic_protocol(self)
         verify_protocol_artifacts()
         verify_frozen_inputs()
         self.plan = build_execution_plan()
@@ -327,6 +327,10 @@ class MockedEndToEndTests(unittest.TestCase):
                 request = client.responses.calls[case["ordinal"] - 1]
                 self.assertNotIn(case["opaque_case_id"], json.dumps(request))
                 self.assertNotIn("rca-input-", json.dumps(request))
+                private = next(row for row in manifest["case_map_private"]
+                               if row["opaque_case_id"] == case["opaque_case_id"])
+                archived = self.synthetic_root / "model-requests" / Path(private["input_path"]).name
+                self.assertEqual(json.loads(archived.read_text(encoding="utf-8")), request)
 
     def test_mixed_outcomes_and_transient_retry(self):
         cases = [response_value(), response_value("refusal"), response_value("incomplete"),
