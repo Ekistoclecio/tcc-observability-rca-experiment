@@ -1,0 +1,112 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:13:02.167Z",
+      "latency_ms": 7784.936,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:12:54.382Z"
+    }
+  ],
+  "created_at": 1795039976.0,
+  "estimated_cost_usd": "0.0021858",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 7786.241,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.99,
+        "evidence_ids": [
+          "ev_7a3fde00ff0c7ccfae69",
+          "ev_23b2f231eef881c94434",
+          "ev_b05a594bbef0f9439aa8",
+          "ev_c4e23926b85424b62eb4",
+          "ev_a5b5c07df07bc1b1ce15",
+          "ev_c4c500cdc213b4bab21c"
+        ],
+        "explanation": "Cart storage logs report Redis connection failures and 5-second command timeouts; repeated Redis client spans fail across cart operations.",
+        "fault_type": "datastore_unavailable",
+        "location": {
+          "datastore": "redis-cart",
+          "kind": "datastore",
+          "operation": null,
+          "peer_service": null,
+          "service": null
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.68,
+        "evidence_ids": [
+          "ev_c4e23926b85424b62eb4",
+          "ev_a5b5c07df07bc1b1ce15",
+          "ev_c4c500cdc213b4bab21c",
+          "ev_54257aa6540a4f5f6e06",
+          "ev_1a228a2a79def3731569"
+        ],
+        "explanation": "Redis calls from cartservice repeatedly take about 5–6 seconds before failing, consistent with severe delay or connection trouble on this service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "redis-cart",
+          "service": "cartservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.42,
+        "evidence_ids": [
+          "ev_bfa473ac5a3bf433b55b",
+          "ev_a54b36355d42fef6e199",
+          "ev_c541ae4ef81f8e14c447",
+          "ev_47fe1614700a3e7ebd17",
+          "ev_7a3fde00ff0c7ccfae69"
+        ],
+        "explanation": "GetCart repeatedly returns errors, including a FailedPrecondition stating cart storage cannot be accessed; this appears to be an operation-level manifestation of the Redis failures.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CartService/GetCart",
+          "peer_service": null,
+          "service": "cartservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"datastore\",\"service\":null,\"peer_service\":null,\"operation\":null,\"datastore\":\"redis-cart\"},\"fault_type\":\"datastore_unavailable\",\"confidence\":0.99,\"evidence_ids\":[\"ev_7a3fde00ff0c7ccfae69\",\"ev_23b2f231eef881c94434\",\"ev_b05a594bbef0f9439aa8\",\"ev_c4e23926b85424b62eb4\",\"ev_a5b5c07df07bc1b1ce15\",\"ev_c4c500cdc213b4bab21c\"],\"explanation\":\"Cart storage logs report Redis connection failures and 5-second command timeouts; repeated Redis client spans fail across cart operations.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"cartservice\",\"peer_service\":\"redis-cart\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.68,\"evidence_ids\":[\"ev_c4e23926b85424b62eb4\",\"ev_a5b5c07df07bc1b1ce15\",\"ev_c4c500cdc213b4bab21c\",\"ev_54257aa6540a4f5f6e06\",\"ev_1a228a2a79def3731569\"],\"explanation\":\"Redis calls from cartservice repeatedly take about 5–6 seconds before failing, consistent with severe delay or connection trouble on this service edge.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"cartservice\",\"peer_service\":null,\"operation\":\"hipstershop.CartService/GetCart\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.42,\"evidence_ids\":[\"ev_bfa473ac5a3bf433b55b\",\"ev_a54b36355d42fef6e199\",\"ev_c541ae4ef81f8e14c447\",\"ev_47fe1614700a3e7ebd17\",\"ev_7a3fde00ff0c7ccfae69\"],\"explanation\":\"GetCart repeatedly returns errors, including a FailedPrecondition stating cart storage cannot be accessed; this appears to be an operation-level manifestation of the Redis failures.\"}]}",
+  "request_fingerprint": "6e4492e602a4a0c2093650a33b2e6d5590defb3ef90ed86c67c3e2ecf3dc5dfd",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_093966300418e819016afe22e83e2887d2a8d38daed1912b1c",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 13800,
+    "cache_write_tokens": 13800,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0021858",
+    "input_tokens": 13803,
+    "long_context_pricing_applied": false,
+    "output_tokens": 921,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 424,
+    "total_tokens": 14724
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

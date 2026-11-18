@@ -1,0 +1,355 @@
+{
+  "configuration": {
+    "evaluation": {
+      "enabled": true
+    },
+    "expected_rca_inputs": 10,
+    "faults": {
+      "F1": {
+        "name": "cpu_saturation",
+        "repetitions": 1
+      },
+      "F2": {
+        "name": "network_latency",
+        "repetitions": 1
+      },
+      "F3": {
+        "name": "service_unavailable",
+        "repetitions": 1
+      },
+      "F4": {
+        "name": "application_exception",
+        "repetitions": 1
+      },
+      "F5": {
+        "name": "datastore_unavailable",
+        "repetitions": 1
+      }
+    },
+    "physical_fault_instances": 5,
+    "rca": {
+      "enabled": true,
+      "max_output_tokens": 16384,
+      "model": "gpt-6-luna",
+      "reasoning_effort": "medium",
+      "reasoning_mode": "standard",
+      "service_tier": "default"
+    },
+    "treatment_cases": 10
+  },
+  "deployment_provenance": {
+    "branch": "experiment-v2",
+    "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+    "expected_service_count": 10,
+    "missing_services": [],
+    "services": [
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/frontend:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:59b24f8bdb7f4257997900d6362a290385768c5e8960f4729bead29b98d10cf4",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:7a8165ed6554aa0847e4ef07b49b862678564f3b739dbe3ba552d996973bfdda",
+        "local_image_config_digest": "sha256:59b24f8bdb7f4257997900d6362a290385768c5e8960f4729bead29b98d10cf4",
+        "local_index_manifest_digest": "sha256:7a8165ed6554aa0847e4ef07b49b862678564f3b739dbe3ba552d996973bfdda",
+        "problems": [],
+        "running_image_id": "sha256:59b24f8bdb7f4257997900d6362a290385768c5e8960f4729bead29b98d10cf4",
+        "running_image_reference": "tcc-experiment-v2/frontend:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "frontend-7895f78f6c-24pp9",
+        "service": "frontend",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/checkoutservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:ffd7c712d2db0723a13e834f49844cc799d7456b8148cf91f312e401d895d4da",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:bfc333e0dfdc17d05a6905435b43570bd7901841a4ff3e9f923a62b82513f76e",
+        "local_image_config_digest": "sha256:ffd7c712d2db0723a13e834f49844cc799d7456b8148cf91f312e401d895d4da",
+        "local_index_manifest_digest": "sha256:bfc333e0dfdc17d05a6905435b43570bd7901841a4ff3e9f923a62b82513f76e",
+        "problems": [],
+        "running_image_id": "sha256:ffd7c712d2db0723a13e834f49844cc799d7456b8148cf91f312e401d895d4da",
+        "running_image_reference": "tcc-experiment-v2/checkoutservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "checkoutservice-79c97664c-gsvgb",
+        "service": "checkoutservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/cartservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:4501ebb8966e4c43209f7c9083eaba12363edd4c0aab733436701ec42bd25637",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:5619d56815db7b1eed872f5ae5c74fd752ad8c77092440f711fb4d1e33ad9d10",
+        "local_image_config_digest": "sha256:4501ebb8966e4c43209f7c9083eaba12363edd4c0aab733436701ec42bd25637",
+        "local_index_manifest_digest": "sha256:5619d56815db7b1eed872f5ae5c74fd752ad8c77092440f711fb4d1e33ad9d10",
+        "problems": [],
+        "running_image_id": "sha256:4501ebb8966e4c43209f7c9083eaba12363edd4c0aab733436701ec42bd25637",
+        "running_image_reference": "tcc-experiment-v2/cartservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "cartservice-745bbdbd64-94jnl",
+        "service": "cartservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/productcatalogservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:6f5e8c2ebefd8fbd67fa862e2814915aa1c46f0a7daeb0e05f65ea131c2cbad2",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:bda9ae9b3882dab0ae8e551ca6b7e082a4f4b1a9551348a63247b824a0f0a2f6",
+        "local_image_config_digest": "sha256:6f5e8c2ebefd8fbd67fa862e2814915aa1c46f0a7daeb0e05f65ea131c2cbad2",
+        "local_index_manifest_digest": "sha256:bda9ae9b3882dab0ae8e551ca6b7e082a4f4b1a9551348a63247b824a0f0a2f6",
+        "problems": [],
+        "running_image_id": "sha256:6f5e8c2ebefd8fbd67fa862e2814915aa1c46f0a7daeb0e05f65ea131c2cbad2",
+        "running_image_reference": "tcc-experiment-v2/productcatalogservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "productcatalogservice-68c94797d7-6qxhn",
+        "service": "productcatalogservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/currencyservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:f491128d2598ccef242a566354a9453f95e3644d1e3ba7080853905bbfd90b25",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:185e1dc3ee297d56f8ce84407e2fb491a9dcc022f1f07fb4283fc090a40f7d19",
+        "local_image_config_digest": "sha256:f491128d2598ccef242a566354a9453f95e3644d1e3ba7080853905bbfd90b25",
+        "local_index_manifest_digest": "sha256:185e1dc3ee297d56f8ce84407e2fb491a9dcc022f1f07fb4283fc090a40f7d19",
+        "problems": [],
+        "running_image_id": "sha256:f491128d2598ccef242a566354a9453f95e3644d1e3ba7080853905bbfd90b25",
+        "running_image_reference": "tcc-experiment-v2/currencyservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "currencyservice-77799fbd97-2pk74",
+        "service": "currencyservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/paymentservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:6ae4734af83e47331610f60d0c57cf4627887c7a19484f816baa95caf52e9cbc",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:e91df10f228510b9b4629bde094f65cfe825397c1286958c5a2fe34ef94b2992",
+        "local_image_config_digest": "sha256:6ae4734af83e47331610f60d0c57cf4627887c7a19484f816baa95caf52e9cbc",
+        "local_index_manifest_digest": "sha256:e91df10f228510b9b4629bde094f65cfe825397c1286958c5a2fe34ef94b2992",
+        "problems": [],
+        "running_image_id": "sha256:6ae4734af83e47331610f60d0c57cf4627887c7a19484f816baa95caf52e9cbc",
+        "running_image_reference": "tcc-experiment-v2/paymentservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "paymentservice-577985b66b-lwwfs",
+        "service": "paymentservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/shippingservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:6757ca214ca6ff3ade2a9ff17baff8ae3c20b8414af5e43d972c3db2c9abc01b",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:7a46f57324ec6b96eddb4e3749f1cafc1e06bcee9c4f1a530556c0592f9696d0",
+        "local_image_config_digest": "sha256:6757ca214ca6ff3ade2a9ff17baff8ae3c20b8414af5e43d972c3db2c9abc01b",
+        "local_index_manifest_digest": "sha256:7a46f57324ec6b96eddb4e3749f1cafc1e06bcee9c4f1a530556c0592f9696d0",
+        "problems": [],
+        "running_image_id": "sha256:6757ca214ca6ff3ade2a9ff17baff8ae3c20b8414af5e43d972c3db2c9abc01b",
+        "running_image_reference": "tcc-experiment-v2/shippingservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "shippingservice-b5ccdbd8f-dbz4k",
+        "service": "shippingservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/emailservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:b39ce7357fae0f0eacf62f45fb6a79ea06dacdfd226fd1254a94d59a9ce516da",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:6ff7848ee45f29fbe47677c236f0d7090b32536666b028b0c995b13d4908d73b",
+        "local_image_config_digest": "sha256:b39ce7357fae0f0eacf62f45fb6a79ea06dacdfd226fd1254a94d59a9ce516da",
+        "local_index_manifest_digest": "sha256:6ff7848ee45f29fbe47677c236f0d7090b32536666b028b0c995b13d4908d73b",
+        "problems": [],
+        "running_image_id": "sha256:b39ce7357fae0f0eacf62f45fb6a79ea06dacdfd226fd1254a94d59a9ce516da",
+        "running_image_reference": "tcc-experiment-v2/emailservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "emailservice-785cdb45c5-gblfp",
+        "service": "emailservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/recommendationservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:ecc152343e9f8a761f7a0b9b0a0c026c83dd10e0880278ed215b810f48fc597a",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:aaf514a9d34c5a00e32f2ee9128ffe59ee058f1c3ed71be99e8f1e5b7076390c",
+        "local_image_config_digest": "sha256:ecc152343e9f8a761f7a0b9b0a0c026c83dd10e0880278ed215b810f48fc597a",
+        "local_index_manifest_digest": "sha256:aaf514a9d34c5a00e32f2ee9128ffe59ee058f1c3ed71be99e8f1e5b7076390c",
+        "problems": [],
+        "running_image_id": "sha256:ecc152343e9f8a761f7a0b9b0a0c026c83dd10e0880278ed215b810f48fc597a",
+        "running_image_reference": "tcc-experiment-v2/recommendationservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "recommendationservice-647c679d59-vlp47",
+        "service": "recommendationservice",
+        "status": "PASS"
+      },
+      {
+        "comparison_method": "local config digest == Kind CRI config ID; Pod imageID equals that config digest or the matching CRI repo digest; OCI revision label read from local Docker and Kind CRI image config",
+        "expected_git_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_reference": "tcc-experiment-v2/adservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "kind_image_id": "sha256:c307c955bed3639b1b4421ac60f41a48810c716d42c0ad6acd6cb6644207433d",
+        "kind_image_revision": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "local_docker_image_id": "sha256:91657b19e58c0e567a7fa64b058f07d09f7a754584d92cad914066e003ccc817",
+        "local_image_config_digest": "sha256:c307c955bed3639b1b4421ac60f41a48810c716d42c0ad6acd6cb6644207433d",
+        "local_index_manifest_digest": "sha256:91657b19e58c0e567a7fa64b058f07d09f7a754584d92cad914066e003ccc817",
+        "problems": [],
+        "running_image_id": "docker.io/library/import-2026-11-18@sha256:cee3eb5bfe5570a3f15c6014fd5291dc71fd917826b665b980de9eef7f451a1f",
+        "running_image_reference": "tcc-experiment-v2/adservice:024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+        "running_pod": "adservice-77cbc4c8dc-7qqwn",
+        "service": "adservice",
+        "status": "PASS"
+      }
+    ],
+    "status": "PASS",
+    "unexpected_services": [],
+    "validated_pod_count": 10,
+    "validated_service_count": 10,
+    "working_tree": "CLEAN"
+  },
+  "evaluation_status": "PASS",
+  "expected_treatment_cases": 10,
+  "experiment_interval_ns": {
+    "end": "1795039769298660269",
+    "start": "1795039295286528014"
+  },
+  "fault_repetitions": {
+    "F1": 1,
+    "F2": 1,
+    "F3": 1,
+    "F4": 1,
+    "F5": 1
+  },
+  "faults": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5"
+  ],
+  "finished_at": "2026-11-18T22:13:10.895974Z",
+  "git_commit": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+  "llm": {
+    "control_smoke": {
+      "included_in_pilot_results": false,
+      "latency_ms": 8809.212,
+      "response_id": "resp_04bc5393971342b8016afe225d46f487d2b9d2e8aa0c64591d",
+      "status": "COMPLETED",
+      "usage": {
+        "cache_write_12h_tokens": 0,
+        "cache_write_30m_tokens": 0,
+        "cache_write_tokens": 0,
+        "cached_input_tokens": 0,
+        "cost_status": "ESTIMATED",
+        "estimated_cost_usd": "0.0004100",
+        "input_tokens": 705,
+        "long_context_pricing_applied": false,
+        "output_tokens": 679,
+        "pricing_version": "pricing-v1",
+        "reasoning_tokens": 418,
+        "total_tokens": 1384
+      }
+    },
+    "evaluation_status": "PASS",
+    "execution_plan_sha256": "02f3fb01388bfe1e2bd6bbbca51eb60a3b420549872a19c749158f93f667e9a1",
+    "logical_diagnoses": 10,
+    "logical_outcomes": {
+      "COMPLETED": 9,
+      "SEMANTICALLY_INVALID": 1
+    },
+    "max_output_tokens": 16384,
+    "model": "gpt-6-luna",
+    "pricing_snapshot": {
+      "billing_mode": "standard",
+      "currency": "USD",
+      "default_prompt_cache_write_ttl": "30m",
+      "long_context": {
+        "input_and_cache_rate_multiplier": "2",
+        "output_rate_multiplier": "1.5",
+        "threshold_input_tokens_exclusive": 272000
+      },
+      "model": "gpt-6-luna",
+      "model_reference": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "notes": [
+        "The request omits prompt_cache_options; GPT-6 models use the documented 30-minute default cache-write lifetime.",
+        "Reasoning tokens are included in output_tokens and are not charged a second time.",
+        "Regional processing or non-default processing tiers are outside this snapshot; cost is null if returned processing metadata indicates such a tier."
+      ],
+      "pricing_version": "pricing-v1",
+      "provider": "OpenAI",
+      "retrieved_at_utc": "2026-11-18",
+      "service_tier": "default",
+      "short_context_rates": {
+        "cache_write_12h": "0.25",
+        "cache_write_30m": "0.125",
+        "cached_input": "0.01",
+        "input": "0.10",
+        "output": "0.50"
+      },
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "unit": "per_1m_tokens"
+    },
+    "prompt_sha256": "2e107e3c7f45b843bdad435f8c233dfe5085f3589c56ddd2bf04da12998fa86b",
+    "prompt_version": "rca-prompt-v1",
+    "protocol_version": "llm-rca-pilot-v1",
+    "provider": "OpenAI",
+    "reasoning_effort": "medium",
+    "reasoning_mode": "standard",
+    "runner_commit": "024f525bac1e4e0fa77249b928e7e5afa7ec2f01",
+    "schema_sha256": "00f6a92d2946e1e9d2482eb75e69e7244763562b422d73f35b3cb6b6a3c540c7",
+    "schema_version": "rca-schema-v1",
+    "sdk_version": "3.51.0",
+    "service_tier": "default",
+    "tools": [],
+    "transport_attempts": 10
+  },
+  "physical_fault_instances": 5,
+  "purpose": "configured_experiment_run",
+  "raw_collection": {
+    "native_hashes_sha256": "ad501e03d6ba374689eee79e22cc8ba0d610aba9d83a59d8355998f302996da5",
+    "native_manifest_sha256": "30ea2fbdf3cf0494e4ff595a16a9265d8cfbd3f527aa1c934091592efd842e3b",
+    "status": null,
+    "window": null
+  },
+  "rca_inputs": 10,
+  "repetitions_per_fault": 1,
+  "run_id": "run-002",
+  "semantic_validation": {
+    "repetitions": {
+      "check_count": 31,
+      "failed_checks": [],
+      "output": "/tmp/tcc-experiment-v2-battery-4z6w7e0v/semantic-validation.json",
+      "status": "PASS"
+    },
+    "status": "PASS"
+  },
+  "started_at": "2026-11-18T22:01:35.286528Z",
+  "status": "SUCCESS",
+  "treatments": [
+    "A",
+    "B"
+  ],
+  "workload_configuration": {
+    "arrival_interval_seconds": 2.0,
+    "configured_arrival_rate_flows_per_second": 0.5,
+    "drain_timeout_seconds": 60,
+    "expected_statuses": {},
+    "max_concurrent_flows": 2,
+    "request_timeout_seconds": 10,
+    "steady_flows": 3,
+    "warmup_flows": 1
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:12:54.345Z",
+      "latency_ms": 14676.153,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:12:39.668Z"
+    }
+  ],
+  "created_at": 1795039960.0,
+  "estimated_cost_usd": "0.0042773",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 14677.497,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.79,
+        "evidence_ids": [
+          "ev_f2f5be0d9f8c84ed2450",
+          "ev_dd7b995f59cdc618a146",
+          "ev_0d19a461a8f406026b82"
+        ],
+        "explanation": "The checkout-to-payment Charge client span errors, and the checkout PlaceOrder server span and its frontend caller also fail; the other observed checkout dependencies succeed.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.61,
+        "evidence_ids": [
+          "ev_57cbd9de7873a9bd4b50",
+          "ev_e1aff4acca641c41a815",
+          "ev_92e4390a0c08d8835f8f",
+          "ev_89c72427837dceb20d14"
+        ],
+        "explanation": "A frontend Currency Convert client span lasts about 97 ms while the corresponding currency-service server span is about 0.25 ms; frontend call durations also exceed currency-service durations.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.46,
+        "evidence_ids": [
+          "ev_d2a61fc6652fb66bed8e",
+          "ev_d7cc5af7dd3b41eb497d",
+          "ev_9b7bb8011c35e75fa63b",
+          "ev_a1e3f99901402e65e066"
+        ],
+        "explanation": "Two GET /cart server spans fail although the cart-service GetCart and Redis calls shown in their traces succeed, suggesting failure within the frontend operation.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "GET /cart",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"service_unavailable\",\"confidence\":0.79,\"evidence_ids\":[\"ev_f2f5be0d9f8c84ed2450\",\"ev_dd7b995f59cdc618a146\",\"ev_0d19a461a8f406026b82\"],\"explanation\":\"The checkout-to-payment Charge client span errors, and the checkout PlaceOrder server span and its frontend caller also fail; the other observed checkout dependencies succeed.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.61,\"evidence_ids\":[\"ev_57cbd9de7873a9bd4b50\",\"ev_e1aff4acca641c41a815\",\"ev_92e4390a0c08d8835f8f\",\"ev_89c72427837dceb20d14\"],\"explanation\":\"A frontend Currency Convert client span lasts about 97 ms while the corresponding currency-service server span is about 0.25 ms; frontend call durations also exceed currency-service durations.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"GET /cart\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.46,\"evidence_ids\":[\"ev_d2a61fc6652fb66bed8e\",\"ev_d7cc5af7dd3b41eb497d\",\"ev_9b7bb8011c35e75fa63b\",\"ev_a1e3f99901402e65e066\"],\"explanation\":\"Two GET /cart server spans fail although the cart-service GetCart and Redis calls shown in their traces succeed, suggesting failure within the frontend operation.\"}]}",
+  "request_fingerprint": "9303c6b0787eefdd67440c7dd92cf715386f151ccf8867da4532f41fceb2a812",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_082f5537d79ebae4016afe22d82e0487d28e03f387b760f70c",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 28228,
+    "cache_write_tokens": 28228,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0042773",
+    "input_tokens": 28231,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1497,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1067,
+    "total_tokens": 29728
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

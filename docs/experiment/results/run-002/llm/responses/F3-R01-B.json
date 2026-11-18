@@ -1,0 +1,104 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:12:23.099Z",
+      "latency_ms": 10922.13,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:12:12.177Z"
+    }
+  ],
+  "created_at": 1795039933.0,
+  "estimated_cost_usd": "0.005640425",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 10923.402,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.98,
+        "evidence_ids": [
+          "ev_fe669c388a941d90b5cd",
+          "ev_db0fc28dc3d0b0506465",
+          "ev_d09ef875b8498e1f9898"
+        ],
+        "explanation": "The payment Charge RPC failed with UNAVAILABLE and the checkout log reports a refused connection; the payment server startup log occurs afterward.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.94,
+        "evidence_ids": [
+          "ev_fe669c388a941d90b5cd",
+          "ev_db0fc28dc3d0b0506465",
+          "ev_60f11a1708a28f2f90a9"
+        ],
+        "explanation": "Checkout's call to PaymentService/Charge returned UNAVAILABLE, causing PlaceOrder to fail; the connection-refused message identifies the failed dependency call.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "paymentservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.9,
+        "evidence_ids": [
+          "ev_fe669c388a941d90b5cd",
+          "ev_db0fc28dc3d0b0506465"
+        ],
+        "explanation": "The PaymentService Charge operation could not be reached during checkout, with the RPC marked UNAVAILABLE and the frontend logging a refused TCP connection.",
+        "fault_type": "service_unavailable",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\n  \"hypotheses\": [\n    {\n      \"rank\": 1,\n      \"location\": {\n        \"kind\": \"service\",\n        \"service\": \"paymentservice\",\n        \"peer_service\": null,\n        \"operation\": null,\n        \"datastore\": null\n      },\n      \"fault_type\": \"service_unavailable\",\n      \"confidence\": 0.98,\n      \"evidence_ids\": [\n        \"ev_fe669c388a941d90b5cd\",\n        \"ev_db0fc28dc3d0b0506465\",\n        \"ev_d09ef875b8498e1f9898\"\n      ],\n      \"explanation\": \"The payment Charge RPC failed with UNAVAILABLE and the checkout log reports a refused connection; the payment server startup log occurs afterward.\"\n    },\n    {\n      \"rank\": 2,\n      \"location\": {\n        \"kind\": \"service_edge\",\n        \"service\": \"checkoutservice\",\n        \"peer_service\": \"paymentservice\",\n        \"operation\": null,\n        \"datastore\": null\n      },\n      \"fault_type\": \"service_unavailable\",\n      \"confidence\": 0.94,\n      \"evidence_ids\": [\n        \"ev_fe669c388a941d90b5cd\",\n        \"ev_db0fc28dc3d0b0506465\",\n        \"ev_60f11a1708a28f2f90a9\"\n      ],\n      \"explanation\": \"Checkout's call to PaymentService/Charge returned UNAVAILABLE, causing PlaceOrder to fail; the connection-refused message identifies the failed dependency call.\"\n    },\n    {\n      \"rank\": 3,\n      \"location\": {\n        \"kind\": \"operation\",\n        \"service\": \"paymentservice\",\n        \"peer_service\": null,\n        \"operation\": \"hipstershop.PaymentService/Charge\",\n        \"datastore\": null\n      },\n      \"fault_type\": \"service_unavailable\",\n      \"confidence\": 0.9,\n      \"evidence_ids\": [\n        \"ev_fe669c388a941d90b5cd\",\n        \"ev_db0fc28dc3d0b0506465\"\n      ],\n      \"explanation\": \"The PaymentService Charge operation could not be reached during checkout, with the RPC marked UNAVAILABLE and the frontend logging a refused TCP connection.\"\n    }\n  ]\n}",
+  "request_fingerprint": "67303dc50bab64b85d45b2ba24a5d0c0b024664d3bb91776b8edd5d00186a2ac",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_0287dd916a7e4956016afe22bd670087d28213f34646fafbc8",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 40485,
+    "cache_write_tokens": 40485,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.005640425",
+    "input_tokens": 40488,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1159,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 655,
+    "total_tokens": 41647
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

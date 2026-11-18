@@ -1,0 +1,110 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:11:19.336Z",
+      "latency_ms": 17650.934,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:11:01.685Z"
+    }
+  ],
+  "created_at": 1795039863.0,
+  "estimated_cost_usd": "0.005023425",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 17652.637,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.72,
+        "evidence_ids": [
+          "ev_4832d51276f5860ef8cb",
+          "ev_e64f171ba5e142f3f9bd",
+          "ev_e5c9971f57636985064b",
+          "ev_21a06cdf9fe906cb4ca8"
+        ],
+        "explanation": "The checkoutservice client call takes 91.62 ms while the emailservice server span is 0.24 ms; request-duration metrics also show much less time on the emailservice side, pointing to delay on the service edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "emailservice",
+          "service": "checkoutservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.68,
+        "evidence_ids": [
+          "ev_43ac6a7f49f0eae0f907",
+          "ev_029ab828ad035f44b3b2",
+          "ev_02b042de15f111eaff30",
+          "ev_9b74a6fd89cf46369b17"
+        ],
+        "explanation": "The ShipOrder client span lasts 87.788 ms, versus 0.145 ms for the shippingservice server span; the service-side duration metric is also very small.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "shippingservice",
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.61,
+        "evidence_ids": [
+          "ev_032bef7959a3de183bdc",
+          "ev_accff71e0a77e6cb21e6",
+          "ev_e7b03ab56a799aed4e22",
+          "ev_d461b4c3e5c7146e2008",
+          "ev_bd67275ee6235f8e7509",
+          "ev_f43f6f5f8bc5416a8221"
+        ],
+        "explanation": "Frontend currency-conversion client spans include delays of 71.471 ms and 80.72 ms, while the corresponding currencyservice server spans are below 0.3 ms; aggregate frontend duration exceeds the currencyservice duration.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"emailservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.72,\"evidence_ids\":[\"ev_4832d51276f5860ef8cb\",\"ev_e64f171ba5e142f3f9bd\",\"ev_e5c9971f57636985064b\",\"ev_21a06cdf9fe906cb4ca8\"],\"explanation\":\"The checkoutservice client call takes 91.62 ms while the emailservice server span is 0.24 ms; request-duration metrics also show much less time on the emailservice side, pointing to delay on the service edge.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"shippingservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.68,\"evidence_ids\":[\"ev_43ac6a7f49f0eae0f907\",\"ev_029ab828ad035f44b3b2\",\"ev_02b042de15f111eaff30\",\"ev_9b74a6fd89cf46369b17\"],\"explanation\":\"The ShipOrder client span lasts 87.788 ms, versus 0.145 ms for the shippingservice server span; the service-side duration metric is also very small.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.61,\"evidence_ids\":[\"ev_032bef7959a3de183bdc\",\"ev_accff71e0a77e6cb21e6\",\"ev_e7b03ab56a799aed4e22\",\"ev_d461b4c3e5c7146e2008\",\"ev_bd67275ee6235f8e7509\",\"ev_f43f6f5f8bc5416a8221\"],\"explanation\":\"Frontend currency-conversion client spans include delays of 71.471 ms and 80.72 ms, while the corresponding currencyservice server spans are below 0.3 ms; aggregate frontend duration exceeds the currencyservice duration.\"}]}",
+  "request_fingerprint": "d0bac3e53b785a71c5db10d020ddcaf8694691990457801853a59c2b95c45dfa",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_05b4297eda08f946016afe227749d087d2b2e6a3f51aea653d",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 33125,
+    "cache_write_tokens": 33125,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.005023425",
+    "input_tokens": 33128,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1765,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1262,
+    "total_tokens": 34893
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

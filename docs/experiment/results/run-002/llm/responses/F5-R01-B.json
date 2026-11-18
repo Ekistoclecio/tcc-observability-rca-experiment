@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:13:10.527Z",
+      "latency_ms": 8326.367,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:13:02.201Z"
+    }
+  ],
+  "created_at": 1795039984.0,
+  "estimated_cost_usd": "0.003391925",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 8327.638,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.98,
+        "evidence_ids": [
+          "ev_f4b6c2f56ab83d342505",
+          "ev_a9f01b7b8bfbeef3c790",
+          "ev_5c89f2c4bc047896f93e",
+          "ev_e918e856adb5b7c4fe8d",
+          "ev_d59c67ebdfc78793e9b8"
+        ],
+        "explanation": "Cart operations repeatedly fail because connections to redis-cart:6379 cannot be established; Redis client spans report connection exceptions.",
+        "fault_type": "datastore_unavailable",
+        "location": {
+          "datastore": "redis-cart",
+          "kind": "datastore",
+          "operation": null,
+          "peer_service": null,
+          "service": null
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.76,
+        "evidence_ids": [
+          "ev_a9f01b7b8bfbeef3c790",
+          "ev_a58fa01b34ba1f75a9ec",
+          "ev_5c89f2c4bc047896f93e",
+          "ev_e918e856adb5b7c4fe8d"
+        ],
+        "explanation": "Cartservice-to-Redis requests time out after roughly 5–9 seconds, consistent with severe latency or connectivity trouble on this dependency edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "redis-cart",
+          "service": "cartservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.48,
+        "evidence_ids": [
+          "ev_f4b6c2f56ab83d342505",
+          "ev_df6d0e2cdc466018a4c4",
+          "ev_657f51603d60b45cad37",
+          "ev_8e0c563006bf06ec0a37"
+        ],
+        "explanation": "GetCart repeatedly returns FAILED_PRECONDITION and takes several seconds before failing, although the telemetry attributes the failure to the Redis connection error.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CartService/GetCart",
+          "peer_service": null,
+          "service": "cartservice"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"datastore\",\"service\":null,\"peer_service\":null,\"operation\":null,\"datastore\":\"redis-cart\"},\"fault_type\":\"datastore_unavailable\",\"confidence\":0.98,\"evidence_ids\":[\"ev_f4b6c2f56ab83d342505\",\"ev_a9f01b7b8bfbeef3c790\",\"ev_5c89f2c4bc047896f93e\",\"ev_e918e856adb5b7c4fe8d\",\"ev_d59c67ebdfc78793e9b8\"],\"explanation\":\"Cart operations repeatedly fail because connections to redis-cart:6379 cannot be established; Redis client spans report connection exceptions.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"cartservice\",\"peer_service\":\"redis-cart\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.76,\"evidence_ids\":[\"ev_a9f01b7b8bfbeef3c790\",\"ev_a58fa01b34ba1f75a9ec\",\"ev_5c89f2c4bc047896f93e\",\"ev_e918e856adb5b7c4fe8d\"],\"explanation\":\"Cartservice-to-Redis requests time out after roughly 5–9 seconds, consistent with severe latency or connectivity trouble on this dependency edge.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"cartservice\",\"peer_service\":null,\"operation\":\"hipstershop.CartService/GetCart\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.48,\"evidence_ids\":[\"ev_f4b6c2f56ab83d342505\",\"ev_df6d0e2cdc466018a4c4\",\"ev_657f51603d60b45cad37\",\"ev_8e0c563006bf06ec0a37\"],\"explanation\":\"GetCart repeatedly returns FAILED_PRECONDITION and takes several seconds before failing, although the telemetry attributes the failure to the Redis connection error.\"}]}",
+  "request_fingerprint": "e9826f20eae8e3061cabca12eb3ff383026b4d56fea664972f7dff25534f531d",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_07b9c555fd74d945016afe22f0f33087d2847759052ff300dc",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 23425,
+    "cache_write_tokens": 23425,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.003391925",
+    "input_tokens": 23428,
+    "long_context_pricing_applied": false,
+    "output_tokens": 927,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 470,
+    "total_tokens": 24355
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

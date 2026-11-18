@@ -1,0 +1,5274 @@
+{
+  "_provenance": {
+    "builder_output_sha256": "2ea94ecf1c052316334110c08e1ca12f68655fe68d10665b8738ab233414f87b",
+    "builder_script_sha256": "b8cb784c285f9789624fbbfa466239ce6511abdf586c698a9367443b3afc9435",
+    "fault_instance": "F2-R01",
+    "raw_hashes_sha256": "8f020626d39694e0e05a3d84743374c30f3f6a79b13122966a02cdb593db15e8",
+    "raw_manifest_sha256": "3450253941c7a35000bd57d4bd887b9372e58444054e783c2b345fdc12d8079e",
+    "source_window": {
+      "end": "2026-11-18T22:04:25.488251000Z",
+      "jaeger_bounds": "inclusive",
+      "jaeger_end_us": 1795039465488251,
+      "jaeger_start_us": 1795039444520512,
+      "loki_end_ns": 1795039465488251000,
+      "loki_start_ns": 1795039444520512000,
+      "start": "2026-11-18T22:04:04.520512000Z"
+    },
+    "treatment": "B"
+  },
+  "facts": [
+    {
+      "attributes": {
+        "http_req_id": "3b2229bc-47aa-4035-bd08-1406351921e0",
+        "http_req_method": "GET",
+        "http_req_path": "/",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_5f41762bc375c24a3c73",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:04.625480627Z"
+    },
+    {
+      "attributes": {
+        "currency": "USD",
+        "http_req_id": "3b2229bc-47aa-4035-bd08-1406351921e0",
+        "http_req_method": "GET",
+        "http_req_path": "/",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_994f61aa9c076ccea4dd",
+      "message": "home",
+      "service": "frontend",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "7a544f02b4dd1acc",
+      "timestamp": "2026-11-18T22:04:04.625611721Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_543338dec5d2cbd33e1e",
+      "message": "Getting supported currencies...",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "1266f6f9a040efb6",
+      "timestamp": "2026-11-18T22:04:04.626000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_37c57b0f38d90046e64d",
+      "message": "GetCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "c2c11e9dc220ffd0",
+      "timestamp": "2026-11-18T22:04:04.629670200Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_fd8fd26a76e83484b592",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "a27592200bda2413",
+      "timestamp": "2026-11-18T22:04:04.632000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_9c2507daf947d0e2a5e6",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "259a95189a65d368",
+      "timestamp": "2026-11-18T22:04:04.636000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_66ab420ebfdf34d24a09",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "213a4b3d530fd7d0",
+      "timestamp": "2026-11-18T22:04:04.639000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_5a2266729827dad96f2f",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "c2eb6761f55f98c9",
+      "timestamp": "2026-11-18T22:04:04.688000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_92ec5ff948418dfff5f4",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "7d11a6956b9f75c7",
+      "timestamp": "2026-11-18T22:04:04.692000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_cf72ecc965408b555f6b",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "1d8cf816a67d31a0",
+      "timestamp": "2026-11-18T22:04:04.709000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_1dae1d35076f2fae51b6",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "d0ee4cd63630d281",
+      "timestamp": "2026-11-18T22:04:04.713000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_952d33ecc1ccedcd630d",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "f98a363e5b0a1d29",
+      "timestamp": "2026-11-18T22:04:04.792000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_29c49a6206899d84c953",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "c92becd7d4f27a8d",
+      "timestamp": "2026-11-18T22:04:04.811000000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "http_req_id": "3b2229bc-47aa-4035-bd08-1406351921e0",
+        "http_req_method": "GET",
+        "http_req_path": "/",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_b6b5dfe8e8238772c1c4",
+      "message": "ENV_PLATFORM is: local",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "7a544f02b4dd1acc",
+      "timestamp": "2026-11-18T22:04:04.813709877Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "container_id": "9c359df313502626f0c5d2b28fc91c8e9e948785e50725b4dbc5c12c7b972529",
+        "host_arch": "amd64",
+        "host_name": "adservice-77cbc4c8dc-7qqwn",
+        "os_description": "Linux 6.6.87.2-microsoft-standard-WSL2",
+        "os_type": "linux",
+        "process_command_args": "[\"/opt/java/openjdk/bin/java\",\"-classpath\",\"/app/build/install/hipstershop/lib/hipstershop-0.1.0-SNAPSHOT.jar:/app/build/install/hipstershop/lib/grpc-services-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-protobuf-1.84.0.jar:/app/build/install/hipstershop/lib/proto-google-common-protos-2.76.0.jar:/app/build/install/hipstershop/lib/javax.annotation-api-1.3.2.jar:/app/build/install/hipstershop/lib/grpc-stub-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-netty-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-census-1.84.0.jar:/app/build/install/hipstershop/lib/log4j-core-2.26.1.jar:/app/build/install/hipstershop/lib/protobuf-java-util-3.25.9.jar:/app/build/install/hipstershop/lib/protobuf-java-4.36.1.jar:/app/build/install/hipstershop/lib/jackson-databind-2.22.2.jar:/app/build/install/hipstershop/lib/jackson-core-2.22.2.jar:/app/build/install/hipstershop/lib/netty-tcnative-boringssl-static-2.0.84.Final.jar:/app/build/install/hipstershop/lib/grpc-protobuf-lite-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-util-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-core-1.84.0.jar:/app/build/install/hipstershop/lib/opencensus-contrib-grpc-metrics-0.31.1.jar:/app/build/install/hipstershop/lib/opencensus-api-0.31.1.jar:/app/build/install/hipstershop/lib/grpc-context-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-api-1.84.0.jar:/app/build/install/hipstershop/lib/jsr305-3.0.2.jar:/app/build/install/hipstershop/lib/guava-33.6.0-jre.jar:/app/build/install/hipstershop/lib/animal-sniffer-annotations-1.27.jar:/app/build/install/hipstershop/lib/gson-2.14.0.jar:/app/build/install/hipstershop/lib/error_prone_annotations-2.50.0.jar:/app/build/install/hipstershop/lib/netty-codec-http2-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-handler-proxy-4.2.16.Final.jar:/app/build/install/hipstershop/lib/perfmark-api-0.27.0.jar:/app/build/install/hipstershop/lib/netty-codec-http-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-handler-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-transport-native-unix-common-4.2.16.Final.jar:/app/build/install/hipstershop/lib/log4j-api-2.26.1.jar:/app/build/install/hipstershop/lib/jackson-annotations-2.22.jar:/app/build/install/hipstershop/lib/netty-tcnative-classes-2.0.84.Final.jar:/app/build/install/hipstershop/lib/netty-codec-socks-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-codec-compression-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-codec-base-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-transport-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-buffer-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-resolver-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-common-4.2.16.Final.jar:/app/build/install/hipstershop/lib/annotations-4.1.1.4.jar:/app/build/install/hipstershop/lib/failureaccess-1.0.3.jar:/app/build/install/hipstershop/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/app/build/install/hipstershop/lib/jspecify-1.0.0.jar:/app/build/install/hipstershop/lib/j2objc-annotations-3.1.jar\",\"hipstershop.AdService\"]",
+        "process_executable_path": "/opt/java/openjdk/bin/java",
+        "process_pid": "1",
+        "process_runtime_description": "Eclipse Adoptium OpenJDK 64-Bit Server VM 25.0.4+7-LTS",
+        "process_runtime_name": "OpenJDK Runtime Environment",
+        "process_runtime_version": "25.0.4+7-LTS",
+        "telemetry_distro_name": "opentelemetry-java-instrumentation",
+        "telemetry_distro_version": "2.24.0"
+      },
+      "id": "ev_24373f5c2d5213007c0b",
+      "message": "received ad request (context_words=[])",
+      "service": "adservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "2c0870b3f26c57a0",
+      "timestamp": "2026-11-18T22:04:04.816909089Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "http_req_id": "3b2229bc-47aa-4035-bd08-1406351921e0",
+        "http_req_method": "GET",
+        "http_req_path": "/",
+        "http_resp_bytes": "10383",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "194",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_865eddb04ab36bab89ee",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:04.820434176Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "b222e0b9-9f00-4302-816f-a091ecec9a38",
+        "http_req_method": "GET",
+        "http_req_path": "/product/OLJCESPC7Z",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_b3690c574865665fdf8a",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:04.891695919Z"
+    },
+    {
+      "attributes": {
+        "currency": "USD",
+        "http_req_id": "b222e0b9-9f00-4302-816f-a091ecec9a38",
+        "http_req_method": "GET",
+        "http_req_path": "/product/OLJCESPC7Z",
+        "id": "OLJCESPC7Z",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_655de506d021d0c495a4",
+      "message": "serving product page",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "1ba2c8847f8a473e",
+      "timestamp": "2026-11-18T22:04:04.891823116Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_306cf17893eafa0a8f88",
+      "message": "Getting supported currencies...",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "f73ea3d5a4d6c50e",
+      "timestamp": "2026-11-18T22:04:04.893000000Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_40123b6c56fef69f3153",
+      "message": "GetCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "1f100e6900faaadd",
+      "timestamp": "2026-11-18T22:04:04.895551700Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_8d4040852e0b4322ddfe",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "30e8e0c6345fa740",
+      "timestamp": "2026-11-18T22:04:04.898000000Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "code_function_name": "ListRecommendations"
+      },
+      "id": "ev_88f86053b1992956349f",
+      "message": "[Recv ListRecommendations] product_ids=['LS4PSXUNUM', '6E92ZMYYFZ', '2ZYFJ3GM2N', '66VCHSJNUP', '0PUK6V6EV0']",
+      "service": "recommendationservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "4991f004fef6750c",
+      "timestamp": "2026-11-18T22:04:04.913305088Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "container_id": "9c359df313502626f0c5d2b28fc91c8e9e948785e50725b4dbc5c12c7b972529",
+        "host_arch": "amd64",
+        "host_name": "adservice-77cbc4c8dc-7qqwn",
+        "os_description": "Linux 6.6.87.2-microsoft-standard-WSL2",
+        "os_type": "linux",
+        "process_command_args": "[\"/opt/java/openjdk/bin/java\",\"-classpath\",\"/app/build/install/hipstershop/lib/hipstershop-0.1.0-SNAPSHOT.jar:/app/build/install/hipstershop/lib/grpc-services-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-protobuf-1.84.0.jar:/app/build/install/hipstershop/lib/proto-google-common-protos-2.76.0.jar:/app/build/install/hipstershop/lib/javax.annotation-api-1.3.2.jar:/app/build/install/hipstershop/lib/grpc-stub-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-netty-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-census-1.84.0.jar:/app/build/install/hipstershop/lib/log4j-core-2.26.1.jar:/app/build/install/hipstershop/lib/protobuf-java-util-3.25.9.jar:/app/build/install/hipstershop/lib/protobuf-java-4.36.1.jar:/app/build/install/hipstershop/lib/jackson-databind-2.22.2.jar:/app/build/install/hipstershop/lib/jackson-core-2.22.2.jar:/app/build/install/hipstershop/lib/netty-tcnative-boringssl-static-2.0.84.Final.jar:/app/build/install/hipstershop/lib/grpc-protobuf-lite-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-util-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-core-1.84.0.jar:/app/build/install/hipstershop/lib/opencensus-contrib-grpc-metrics-0.31.1.jar:/app/build/install/hipstershop/lib/opencensus-api-0.31.1.jar:/app/build/install/hipstershop/lib/grpc-context-1.84.0.jar:/app/build/install/hipstershop/lib/grpc-api-1.84.0.jar:/app/build/install/hipstershop/lib/jsr305-3.0.2.jar:/app/build/install/hipstershop/lib/guava-33.6.0-jre.jar:/app/build/install/hipstershop/lib/animal-sniffer-annotations-1.27.jar:/app/build/install/hipstershop/lib/gson-2.14.0.jar:/app/build/install/hipstershop/lib/error_prone_annotations-2.50.0.jar:/app/build/install/hipstershop/lib/netty-codec-http2-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-handler-proxy-4.2.16.Final.jar:/app/build/install/hipstershop/lib/perfmark-api-0.27.0.jar:/app/build/install/hipstershop/lib/netty-codec-http-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-handler-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-transport-native-unix-common-4.2.16.Final.jar:/app/build/install/hipstershop/lib/log4j-api-2.26.1.jar:/app/build/install/hipstershop/lib/jackson-annotations-2.22.jar:/app/build/install/hipstershop/lib/netty-tcnative-classes-2.0.84.Final.jar:/app/build/install/hipstershop/lib/netty-codec-socks-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-codec-compression-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-codec-base-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-transport-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-buffer-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-resolver-4.2.16.Final.jar:/app/build/install/hipstershop/lib/netty-common-4.2.16.Final.jar:/app/build/install/hipstershop/lib/annotations-4.1.1.4.jar:/app/build/install/hipstershop/lib/failureaccess-1.0.3.jar:/app/build/install/hipstershop/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/app/build/install/hipstershop/lib/jspecify-1.0.0.jar:/app/build/install/hipstershop/lib/j2objc-annotations-3.1.jar\",\"hipstershop.AdService\"]",
+        "process_executable_path": "/opt/java/openjdk/bin/java",
+        "process_pid": "1",
+        "process_runtime_description": "Eclipse Adoptium OpenJDK 64-Bit Server VM 25.0.4+7-LTS",
+        "process_runtime_name": "OpenJDK Runtime Environment",
+        "process_runtime_version": "25.0.4+7-LTS",
+        "telemetry_distro_name": "opentelemetry-java-instrumentation",
+        "telemetry_distro_version": "2.24.0"
+      },
+      "id": "ev_8bd05f347675e03c226e",
+      "message": "received ad request (context_words=[accessories])",
+      "service": "adservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "2f40108e3ea0a117",
+      "timestamp": "2026-11-18T22:04:04.921531155Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "http_req_id": "b222e0b9-9f00-4302-816f-a091ecec9a38",
+        "http_req_method": "GET",
+        "http_req_path": "/product/OLJCESPC7Z",
+        "http_resp_bytes": "7925",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "33",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_7efaa4eaddcc4e0f65ec",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:04.924825612Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "506c5ade-c024-419f-a60f-49364def2e20",
+        "http_req_method": "POST",
+        "http_req_path": "/cart",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_6d7931e4534b205a3253",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.008595220Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "506c5ade-c024-419f-a60f-49364def2e20",
+        "http_req_method": "POST",
+        "http_req_path": "/cart",
+        "product": "OLJCESPC7Z",
+        "quantity": "1",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_874763f256592bb72d28",
+      "message": "adding to cart",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "2d0dcc63636c738c",
+      "timestamp": "2026-11-18T22:04:05.008743315Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "ProductId": "OLJCESPC7Z",
+        "Quantity": "1",
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_892b7395586ae5d5bc43",
+      "message": "AddItemAsync called with userId={UserId}, productId={ProductId}, quantity={Quantity}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "fc8ced5be76e65ec",
+      "timestamp": "2026-11-18T22:04:05.010562100Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "http_req_id": "506c5ade-c024-419f-a60f-49364def2e20",
+        "http_req_method": "POST",
+        "http_req_path": "/cart",
+        "http_resp_bytes": "0",
+        "http_resp_status": "302",
+        "http_resp_took_ms": "3",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_3b9858bcf647eba110e0",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.012556771Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "c022a2b1-aa7e-4379-8872-41d66ac8a5d7",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_35f3aa757af4cba2d938",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.019946035Z"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_60420b652286c79c9554",
+      "message": "Getting supported currencies...",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "3bf0627e2b789849",
+      "timestamp": "2026-11-18T22:04:05.020000000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "http_req_id": "c022a2b1-aa7e-4379-8872-41d66ac8a5d7",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_ceebbf190c272a1b1425",
+      "message": "view user cart",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "1450dace27fd09ad",
+      "timestamp": "2026-11-18T22:04:05.020081116Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_13f69a980fd0f66af602",
+      "message": "GetCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "aab1ced76e914e55",
+      "timestamp": "2026-11-18T22:04:05.023333100Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "code_function_name": "ListRecommendations"
+      },
+      "id": "ev_56b8305dc46605fd727d",
+      "message": "[Recv ListRecommendations] product_ids=['L9ECAV7KIM', '0PUK6V6EV0', '6E92ZMYYFZ', '2ZYFJ3GM2N', '1YMWWN1N4O']",
+      "service": "recommendationservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "050c863c3809ab5c",
+      "timestamp": "2026-11-18T22:04:05.029545728Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "id": "ev_65dce45250bccb585471",
+      "message": "[GetQuote] received request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "1bcfef488a7879ea",
+      "timestamp": "2026-11-18T22:04:05.109672276Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "id": "ev_c2e965f21e1f13ea79b1",
+      "message": "[GetQuote] completed request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "1bcfef488a7879ea",
+      "timestamp": "2026-11-18T22:04:05.109769071Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_5f2a86659664855ed3c6",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "182e02113ea9141b",
+      "timestamp": "2026-11-18T22:04:05.111000000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_2735dc40c1f261b8f67d",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "d47ed1e51b1e81e3",
+      "timestamp": "2026-11-18T22:04:05.115000000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "http_req_id": "c022a2b1-aa7e-4379-8872-41d66ac8a5d7",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "http_resp_bytes": "16369",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "99",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_37e5f6a6d231e7ded0d0",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.119778833Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "999ea4d9-46d7-4265-b7d5-a9df08136a70",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_9f1ce49e6be34af8b438",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.191719113Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "999ea4d9-46d7-4265-b7d5-a9df08136a70",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_f1d531622713562fcbf6",
+      "message": "view user cart",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "f72aade2bd03d2a3",
+      "timestamp": "2026-11-18T22:04:05.191858604Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_004fda5aecbf23a6bbc1",
+      "message": "Getting supported currencies...",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "eea9ee43ed845030",
+      "timestamp": "2026-11-18T22:04:05.192000000Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_a97dd0e577265ebfc0c5",
+      "message": "GetCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "e9d041ce6b576c8d",
+      "timestamp": "2026-11-18T22:04:05.209365200Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "code_function_name": "ListRecommendations"
+      },
+      "id": "ev_31e28521dac880d0b428",
+      "message": "[Recv ListRecommendations] product_ids=['9SIQT8TOJO', '2ZYFJ3GM2N', 'LS4PSXUNUM', '1YMWWN1N4O', '6E92ZMYYFZ']",
+      "service": "recommendationservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "53341a6bed0627de",
+      "timestamp": "2026-11-18T22:04:05.215724288Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "id": "ev_a2d564e5f7deed533965",
+      "message": "[GetQuote] received request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "301fb6751da920f2",
+      "timestamp": "2026-11-18T22:04:05.221725535Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "id": "ev_257849e4ca0e1a64f2ac",
+      "message": "[GetQuote] completed request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "301fb6751da920f2",
+      "timestamp": "2026-11-18T22:04:05.221834813Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_8d5110b5e7c07114a9df",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "331c87a6d92176f8",
+      "timestamp": "2026-11-18T22:04:05.224000000Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_64f8d7e76dc28f0faca4",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "878030dbffc5c542",
+      "timestamp": "2026-11-18T22:04:05.310000000Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "http_req_id": "999ea4d9-46d7-4265-b7d5-a9df08136a70",
+        "http_req_method": "GET",
+        "http_req_path": "/cart",
+        "http_resp_bytes": "16413",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "122",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_ff02c8bbcb05b3772255",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.314432101Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "7fa76b20-20dc-447f-b56b-6232dc394cfc",
+        "http_req_method": "POST",
+        "http_req_path": "/cart/checkout",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_e23eef700e41a33ec997",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.322669044Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "7fa76b20-20dc-447f-b56b-6232dc394cfc",
+        "http_req_method": "POST",
+        "http_req_path": "/cart/checkout",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_e1384b44d8dc890edfa1",
+      "message": "placing order",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "span_id": "26bb8d8fa9bca517",
+      "timestamp": "2026-11-18T22:04:05.322836363Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_053613513b473e863436",
+      "message": "[PlaceOrder] user_id=\"4832ec89-84f5-470a-98d1-ee371d43636d\" user_currency=\"USD\"",
+      "service": "checkoutservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "d94be68a03cb68fd",
+      "timestamp": "2026-11-18T22:04:05.323449918Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_45f8d692e5c85ea18a3b",
+      "message": "GetCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "7fc4ddf99e35f41b",
+      "timestamp": "2026-11-18T22:04:05.324296500Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_f6f7ebb397d86ec69123",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "244e48b81ac4c982",
+      "timestamp": "2026-11-18T22:04:05.329000000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_76643c9cc4f725778c6b",
+      "message": "[GetQuote] received request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "71cd0b8f2dc36d76",
+      "timestamp": "2026-11-18T22:04:05.331570523Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_39d00932834e4959d007",
+      "message": "[GetQuote] completed request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "71cd0b8f2dc36d76",
+      "timestamp": "2026-11-18T22:04:05.331665122Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_7f08d1efa4dfc25e183e",
+      "message": "conversion request successful",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "f0fab19ced0e920e",
+      "timestamp": "2026-11-18T22:04:05.338000000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "paymentservice-577985b66b-lwwfs",
+        "name": "paymentservice-server",
+        "process_command": "/usr/src/app/index.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/index.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_d4c986d88d9f32565358",
+      "message": "PaymentService#Charge invoked with request {\"amount\":{\"currency_code\":\"USD\",\"units\":\"28\",\"nanos\":980000000},\"credit_card\":{\"credit_card_number\":\"[REDACTED]\",\"credit_card_cvv\":\"[REDACTED]\",\"credit_card_expiration_year\":\"[REDACTED]\",\"credit_card_expiration_month\":\"[REDACTED]\"}}",
+      "service": "paymentservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "e8aa8ba371106d4d",
+      "timestamp": "2026-11-18T22:04:05.501000000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "paymentservice-577985b66b-lwwfs",
+        "name": "paymentservice-charge",
+        "process_command": "/usr/src/app/index.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/index.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_86c870257ce92d396aab",
+      "message": "Transaction processed: visa ending 1111     Amount: USD28.980000000",
+      "service": "paymentservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "e8aa8ba371106d4d",
+      "timestamp": "2026-11-18T22:04:05.502000000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_569e2708a75b1f5cedf4",
+      "message": "payment went through (transaction_id: 4b88364e-41f8-409d-a971-d28a9fe8211f)",
+      "service": "checkoutservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "d94be68a03cb68fd",
+      "timestamp": "2026-11-18T22:04:05.503734353Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_02bc75ea32b95f92c71a",
+      "message": "[ShipOrder] received request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "38c27a837012f4ee",
+      "timestamp": "2026-11-18T22:04:05.504365545Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_1680911b421e7694cfc4",
+      "message": "[ShipOrder] completed request",
+      "service": "shippingservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "38c27a837012f4ee",
+      "timestamp": "2026-11-18T22:04:05.504465644Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "UserId": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_071cf0d45b42c2ebe80d",
+      "message": "EmptyCartAsync called with userId={UserId}",
+      "service": "cartservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "132dc45f0bf7ea88",
+      "timestamp": "2026-11-18T22:04:05.506369300Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "code_function_name": "SendOrderConfirmation"
+      },
+      "id": "ev_4a72807eb7b5bd304e03",
+      "message": "A request to send order confirmation email to shopper@example.com has been received.",
+      "service": "emailservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "f51ad67950489ab1",
+      "timestamp": "2026-11-18T22:04:05.510914816Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "id": "ev_372c8abe51a01b9df34f",
+      "message": "order confirmation email sent to \"shopper@example.com\"",
+      "service": "checkoutservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "d94be68a03cb68fd",
+      "timestamp": "2026-11-18T22:04:05.512661905Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "http_req_id": "7fa76b20-20dc-447f-b56b-6232dc394cfc",
+        "http_req_method": "POST",
+        "http_req_path": "/cart/checkout",
+        "order": "f877d7ad-e39b-11f1-9bd0-5ad5ff42109e",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_37ca1a553debf4d085c6",
+      "message": "order placed",
+      "service": "frontend",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "26bb8d8fa9bca517",
+      "timestamp": "2026-11-18T22:04:05.513029069Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "code_function_name": "ListRecommendations"
+      },
+      "id": "ev_6952b0d030a08f62c7b5",
+      "message": "[Recv ListRecommendations] product_ids=['LS4PSXUNUM', '6E92ZMYYFZ', 'L9ECAV7KIM', '66VCHSJNUP', '0PUK6V6EV0']",
+      "service": "recommendationservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "9511afe913061c39",
+      "timestamp": "2026-11-18T22:04:05.518456320Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "host_arch": "amd64",
+        "host_name": "currencyservice-77799fbd97-2pk74",
+        "name": "currencyservice-server",
+        "process_command": "/usr/src/app/server.js",
+        "process_command_args": "[\"/usr/bin/node\",\"/usr/src/app/server.js\"]",
+        "process_executable_name": "node",
+        "process_executable_path": "/usr/bin/node",
+        "process_pid": "1",
+        "process_runtime_description": "Node.js",
+        "process_runtime_name": "nodejs",
+        "process_runtime_version": "24.22.1",
+        "scope_version": "0.68.0",
+        "severity": "info"
+      },
+      "id": "ev_b4ec80f70ce6d43dc9c5",
+      "message": "Getting supported currencies...",
+      "service": "currencyservice",
+      "severity": "INFO",
+      "signal": "log",
+      "span_id": "852d9b3114eda4f9",
+      "timestamp": "2026-11-18T22:04:05.592000000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "http_req_id": "7fa76b20-20dc-447f-b56b-6232dc394cfc",
+        "http_req_method": "POST",
+        "http_req_path": "/cart/checkout",
+        "http_resp_bytes": "6746",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "286",
+        "session": "4832ec89-84f5-470a-98d1-ee371d43636d"
+      },
+      "id": "ev_efe9f5856ea22abbc2c6",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:05.609367508Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "cd86b7b3-c80c-4c0c-92f2-904bfd546cb5",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "session": "x-readiness-probe"
+      },
+      "id": "ev_dc52af4e7756e9441f3e",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:06.537895668Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "cd86b7b3-c80c-4c0c-92f2-904bfd546cb5",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "http_resp_bytes": "2",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "0",
+        "session": "x-readiness-probe"
+      },
+      "id": "ev_3267e13b5f0fe52868fe",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:06.538217436Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "6799dbca-0123-4ed8-8689-167d9bb0994d",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "session": "x-liveness-probe"
+      },
+      "id": "ev_426cc2926dd3ff2e3d4f",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:13.375835771Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "6799dbca-0123-4ed8-8689-167d9bb0994d",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "http_resp_bytes": "2",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "0",
+        "session": "x-liveness-probe"
+      },
+      "id": "ev_380213787ad4db886bda",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:13.376013935Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "659895d4-3c74-406b-bad2-a05b32873c28",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "session": "x-readiness-probe"
+      },
+      "id": "ev_a3220391efdcbc4766df",
+      "message": "request started",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:20.123476123Z"
+    },
+    {
+      "attributes": {
+        "http_req_id": "659895d4-3c74-406b-bad2-a05b32873c28",
+        "http_req_method": "GET",
+        "http_req_path": "/_healthz",
+        "http_resp_bytes": "2",
+        "http_resp_status": "200",
+        "http_resp_took_ms": "0",
+        "session": "x-readiness-probe"
+      },
+      "id": "ev_08eef727cc8106c22740",
+      "message": "request complete",
+      "service": "frontend",
+      "severity": "DEBUG",
+      "signal": "log",
+      "timestamp": "2026-11-18T22:04:20.123692177Z"
+    },
+    {
+      "id": "ev_5869f422aba45c350eeb",
+      "metric": "request_duration",
+      "operation": "hipstershop.CartService/EmptyCart",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0032594639999999897,
+        "sum_seconds": 0.0032594639999999897
+      }
+    },
+    {
+      "id": "ev_92db3c0cf6c4b8ca0f0e",
+      "metric": "request_duration",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0026473150000000008,
+        "sum_seconds": 0.0026473150000000008
+      }
+    },
+    {
+      "id": "ev_e0066cc6dd85630e0ff6",
+      "metric": "request_duration",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.189356176,
+        "sum_seconds": 0.189356176
+      }
+    },
+    {
+      "id": "ev_24e1b1b0a17466f5f183",
+      "metric": "request_duration",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.03585970900000001,
+        "sum_seconds": 0.07171941800000002
+      }
+    },
+    {
+      "id": "ev_32c0c1a37f177b08b98d",
+      "metric": "request_duration",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.003751350999999986,
+        "sum_seconds": 0.003751350999999986
+      }
+    },
+    {
+      "id": "ev_c9dadb34d807b966b05c",
+      "metric": "request_duration",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.10287200499999999,
+        "sum_seconds": 0.10287200499999999
+      }
+    },
+    {
+      "id": "ev_ab1acb9c0e3e6d5eac81",
+      "metric": "request_duration",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0011044810000000044,
+        "sum_seconds": 0.0011044810000000044
+      }
+    },
+    {
+      "id": "ev_1459a99757ee1b8afaca",
+      "metric": "request_duration",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0013166610000000002,
+        "sum_seconds": 0.0013166610000000002
+      }
+    },
+    {
+      "id": "ev_b0bb4afe17399ac37c51",
+      "metric": "request_duration",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0016194310000000045,
+        "sum_seconds": 0.0016194310000000045
+      }
+    },
+    {
+      "id": "ev_98e831c31334fe8c646b",
+      "metric": "request_duration",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 18.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.004981468611111113,
+        "sum_seconds": 0.08966643500000004
+      }
+    },
+    {
+      "id": "ev_0f055a00e76a532851ba",
+      "metric": "request_duration",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 6.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0006061505000000018,
+        "sum_seconds": 0.0036369030000000108
+      }
+    },
+    {
+      "id": "ev_7d27d2feb202794bdeaa",
+      "metric": "request_duration",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "SUCCESS",
+      "service": "emailservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0012684095017903019,
+        "sum_seconds": 0.0025368190035806037
+      }
+    },
+    {
+      "id": "ev_99e157ca05c8bfa10d48",
+      "metric": "request_duration",
+      "operation": "GET /",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.20569625200000008,
+        "sum_seconds": 0.41139250400000016
+      }
+    },
+    {
+      "id": "ev_4851fcdcb933af7eac1e",
+      "metric": "request_duration",
+      "operation": "GET /cart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 4.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.15829804450000007,
+        "sum_seconds": 0.6331921780000003
+      }
+    },
+    {
+      "id": "ev_5db1e57ce127d482de96",
+      "metric": "request_duration",
+      "operation": "GET /product/{id}",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.10682589799999997,
+        "sum_seconds": 0.21365179599999995
+      }
+    },
+    {
+      "id": "ev_14a704bac5f5e0adb75a",
+      "metric": "request_duration",
+      "operation": "POST /cart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.003795050500000008,
+        "sum_seconds": 0.007590101000000016
+      }
+    },
+    {
+      "id": "ev_0efd6e78590fb5cd18ff",
+      "metric": "request_duration",
+      "operation": "POST /cart/checkout",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.24134991949999995,
+        "sum_seconds": 0.4826998389999999
+      }
+    },
+    {
+      "id": "ev_8d8ec7fe24026529aab1",
+      "metric": "request_duration",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 4.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.023818382750000006,
+        "sum_seconds": 0.09527353100000002
+      }
+    },
+    {
+      "id": "ev_d20b1c496148a53bb5a6",
+      "metric": "request_duration",
+      "operation": "hipstershop.CartService/AddItem",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0028603460000000136,
+        "sum_seconds": 0.005720692000000027
+      }
+    },
+    {
+      "id": "ev_b3b28e51d8f45267266b",
+      "metric": "request_duration",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 8.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.03340639225000003,
+        "sum_seconds": 0.2672511380000002
+      }
+    },
+    {
+      "id": "ev_b0d244902be3729f4faa",
+      "metric": "request_duration",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.18271815749999998,
+        "sum_seconds": 0.36543631499999996
+      }
+    },
+    {
+      "id": "ev_b5acb07e888285722668",
+      "metric": "request_duration",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 28.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.019964280249999966,
+        "sum_seconds": 0.558999846999999
+      }
+    },
+    {
+      "id": "ev_2e5edbe7ce3cd3c08c62",
+      "metric": "request_duration",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 10.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.006147934799999988,
+        "sum_seconds": 0.06147934799999988
+      }
+    },
+    {
+      "id": "ev_d0ec3b5385d9d105e61f",
+      "metric": "request_duration",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 48.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0033596641249999948,
+        "sum_seconds": 0.16126387799999975
+      }
+    },
+    {
+      "id": "ev_cb7ef195402aa62dc705",
+      "metric": "request_duration",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0008385475,
+        "sum_seconds": 0.001677095
+      }
+    },
+    {
+      "id": "ev_e5f33bccf59f675536a6",
+      "metric": "request_duration",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 8.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.014420571999999993,
+        "sum_seconds": 0.11536457599999994
+      }
+    },
+    {
+      "id": "ev_616c7b9cb7ea949f791a",
+      "metric": "request_duration",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 4.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.001168420500000003,
+        "sum_seconds": 0.004673682000000012
+      }
+    },
+    {
+      "id": "ev_d7d2e1c959b8212e6e77",
+      "metric": "request_duration",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 1.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0009389259999999996,
+        "sum_seconds": 0.0009389259999999996
+      }
+    },
+    {
+      "id": "ev_4bd850f26086fc47e0e5",
+      "metric": "request_duration",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "productcatalogservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 50.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 6.385829999999999e-05,
+        "sum_seconds": 0.0031929149999999993
+      }
+    },
+    {
+      "id": "ev_3eecd4d7c43a033e9ad8",
+      "metric": "request_duration",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "productcatalogservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 10.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 8.704079999999991e-05,
+        "sum_seconds": 0.0008704079999999992
+      }
+    },
+    {
+      "id": "ev_3331c74069f11d69b47c",
+      "metric": "request_duration",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 7.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.004684527571433656,
+        "sum_seconds": 0.03279169300003559
+      }
+    },
+    {
+      "id": "ev_9697c33750b6758ce286",
+      "metric": "request_duration",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "shippingservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 6.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.00021756450000000026,
+        "sum_seconds": 0.0013053870000000016
+      }
+    },
+    {
+      "id": "ev_6bf1534cdf85e2704f90",
+      "metric": "request_duration",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "SUCCESS",
+      "service": "shippingservice",
+      "signal": "metric",
+      "unit": "seconds",
+      "value": {
+        "availability": "OBSERVED",
+        "count": 2.0,
+        "interval_end": "2026-11-18T22:04:24.521000Z",
+        "interval_start": "2026-11-18T22:04:04.521000Z",
+        "mean_seconds": 0.0001861025,
+        "sum_seconds": 0.000372205
+      }
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_b78528c43354649d7da0",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "adservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.015444850000000088
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_bfef6dbb16b939e85a74",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "cartservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.02787700000000006
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_115bb88c91cf63a4ded5",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.010144600000000014
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_601e9c3e853c41b3d590",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CartService/EmptyCart",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_e9ec0bc768e0e54e1f63",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_a32b6bcc114f54cc3738",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_7cde1438c7fcb0117517",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_e6549226de8e95afaca7",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_351d89984f27640ff853",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_26f507d826337795d691",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_f38e9725a3d9085b2592",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_f0e6f573a79dcc40d506",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "SUCCESS",
+      "service": "checkoutservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_816ba5f815059b781f26",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "currencyservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.012034849999999996
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_d3b9c98d493c95e6d010",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 18.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_334467393f634a2386ae",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 6.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_9706ede5641857247b8f",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "emailservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.007904149999999976
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_b3837e81a785666814fa",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "SUCCESS",
+      "service": "emailservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_58547feaf61a6906c521",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.04990584999999999
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_930ce4a8175f79732802",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "GET /",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_44ee5f860107fda0326e",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "GET /cart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "requests",
+      "value": 4.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_6a018abf56b095fb5f1c",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "GET /product/{id}",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_4c42bdda340580be08b4",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "POST /cart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_0854bfd195d43e115808",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "POST /cart/checkout",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "target": "frontend",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_cceb508a292bea2a8001",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 4.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_62829140805055d1ae8e",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CartService/AddItem",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_59fd382872b49a8f94cc",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 8.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_18cf61611b219b8dc406",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_66b6006318a4cacbf2b9",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 28.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_9fa1b61cceadabe7d8ed",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 10.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_b349833b410704b39d5f",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 48.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_fe2e1ad8e71596fa7f97",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_bc345ed6052e60fae784",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 8.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_29600ecfde4e93445170",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "frontend",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 4.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_34c060d489756684fb4b",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "paymentservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.003068000000000004
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_f120af43efc574ab62d6",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 1.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_93102ca18cabccfd09a6",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "productcatalogservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.01871735
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_a71a065d76c57e624179",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "SUCCESS",
+      "service": "productcatalogservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 50.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_e48f1db7d1200db7c64d",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "productcatalogservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 10.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_fdeb22dc975709e5e933",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "recommendationservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_e634f241887f9f9db502",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 7.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_3caa3fd0c36cf08bbcc0",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "redis-cart",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.0032082999999999973
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_266521b639fd6a0c7829",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "cpu_utilization",
+      "service": "shippingservice",
+      "signal": "metric",
+      "unit": "cores",
+      "value": 0.007183299999999998
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_cf8e2c130957da90e97c",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "SUCCESS",
+      "service": "shippingservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 6.0
+    },
+    {
+      "availability": "OBSERVED",
+      "id": "ev_a86ac59e9b9e82fd8624",
+      "interval_end": "2026-11-18T22:04:24.521000Z",
+      "interval_start": "2026-11-18T22:04:04.521000Z",
+      "metric": "request_count",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "SUCCESS",
+      "service": "shippingservice",
+      "signal": "metric",
+      "unit": "requests",
+      "value": 2.0
+    },
+    {
+      "attributes": {
+        "http_method": "GET",
+        "http_route": "/",
+        "http_status": 200,
+        "url_path": "/"
+      },
+      "duration_ms": 194.816,
+      "id": "ev_9d45c1de475328fd491e",
+      "kind": "SERVER",
+      "operation": "GET /",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "7a544f02b4dd1acc",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:04.625600Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/GetSupportedCurrencies",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.501,
+      "id": "ev_1939397f34a55372f9e6",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "cd0b52d6b96d70f2",
+      "timestamp": "2026-11-18T22:04:04.625653Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetSupportedCurrencies",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.564,
+      "id": "ev_482e144b47c6a57152c8",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "1266f6f9a040efb6",
+      "timestamp": "2026-11-18T22:04:04.625999Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.718,
+      "id": "ev_8b42a2c95e5ac2968888",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "39c5af88d33df4a1",
+      "timestamp": "2026-11-18T22:04:04.628227Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.104,
+      "id": "ev_fbbdda414d06f4dbabf4",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "3ea13fb67d8f7f8d",
+      "timestamp": "2026-11-18T22:04:04.628605Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.823,
+      "id": "ev_bda425d2139844cd84bc",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "f9293d0bf0f42b9f",
+      "timestamp": "2026-11-18T22:04:04.629001Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/GetCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/GetCart"
+      },
+      "duration_ms": 0.771,
+      "id": "ev_f9381c10e51b5250f4e6",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "c2c11e9dc220ffd0",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:04.629528Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET",
+        "db_system": "redis"
+      },
+      "duration_ms": 0.449,
+      "id": "ev_bb6274a527e59868d8f7",
+      "kind": "CLIENT",
+      "operation": "GET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "28cf06ba92454a37",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:04.629678Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.766,
+      "id": "ev_929bc5d8ca7878a6f83d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "6de302acce9524c4",
+      "timestamp": "2026-11-18T22:04:04.630895Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.812,
+      "id": "ev_ab3051eb1685c5065134",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "a27592200bda2413",
+      "timestamp": "2026-11-18T22:04:04.631000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 4.676,
+      "id": "ev_da29772143aee92d710c",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "9fe04ca501d8f4b5",
+      "timestamp": "2026-11-18T22:04:04.633753Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.486,
+      "id": "ev_0ae41e80752ac83ff47f",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "259a95189a65d368",
+      "timestamp": "2026-11-18T22:04:04.635000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.289,
+      "id": "ev_7a2b6bee81bc8add889c",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "f072e3cd2b335809",
+      "timestamp": "2026-11-18T22:04:04.638499Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.66,
+      "id": "ev_81b4eda84fb852af19f3",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "213a4b3d530fd7d0",
+      "timestamp": "2026-11-18T22:04:04.639000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 50.753,
+      "id": "ev_1b072145cc2e8d8f9af5",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "8b8175696f504b01",
+      "timestamp": "2026-11-18T22:04:04.640896Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.506,
+      "id": "ev_8e45596b26200b344d1a",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "c2eb6761f55f98c9",
+      "timestamp": "2026-11-18T22:04:04.688000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 16.764,
+      "id": "ev_6f2532e63d18e1677ed5",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "866a8d14f95bf8e3",
+      "timestamp": "2026-11-18T22:04:04.691719Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.702,
+      "id": "ev_fb20a062ca2a800a918f",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "7d11a6956b9f75c7",
+      "timestamp": "2026-11-18T22:04:04.692000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.721,
+      "id": "ev_3fd66b991641014837c0",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "edf68ec5715b63c2",
+      "timestamp": "2026-11-18T22:04:04.708528Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.113,
+      "id": "ev_1c269f625abca27c8d30",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "1d8cf816a67d31a0",
+      "timestamp": "2026-11-18T22:04:04.708999Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 79.41,
+      "id": "ev_3cb0a3af2fbed2d0d3d8",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "30ecb0d9eb7cd85b",
+      "timestamp": "2026-11-18T22:04:04.712307Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 75.496,
+      "id": "ev_980c43b1e6aac59f5bd4",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "d0ee4cd63630d281",
+      "timestamp": "2026-11-18T22:04:04.712999Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 17.691,
+      "id": "ev_b55221cc0ad8bb5c60b5",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "baaea2ab8591a204",
+      "timestamp": "2026-11-18T22:04:04.791769Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.85,
+      "id": "ev_2c612eaf06701ee9249e",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "f98a363e5b0a1d29",
+      "timestamp": "2026-11-18T22:04:04.792000Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.967,
+      "id": "ev_3b080bb9fc7e94ee5331",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "fd8ab30e3d4e2783",
+      "timestamp": "2026-11-18T22:04:04.809581Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.941,
+      "id": "ev_91b31c09441a2041bc1b",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "c92becd7d4f27a8d",
+      "timestamp": "2026-11-18T22:04:04.809999Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.AdService/GetAds",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.796,
+      "id": "ev_2a81cc1824ca29cb7ee0",
+      "kind": "CLIENT",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "0a294b7bc18a2b96",
+      "timestamp": "2026-11-18T22:04:04.813830Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetAds",
+        "rpc_service": "hipstershop.AdService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.134,
+      "id": "ev_1ec32c0975b6f4da2323",
+      "kind": "SERVER",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "SUCCESS",
+      "service": "adservice",
+      "signal": "trace",
+      "span_id": "2c0870b3f26c57a0",
+      "target": "adservice",
+      "timestamp": "2026-11-18T22:04:04.815570Z",
+      "trace_id": "9d8b98947591181be0f3680110704d43"
+    },
+    {
+      "attributes": {
+        "http_method": "GET",
+        "http_route": "/product/{id}",
+        "http_status": 200,
+        "url_path": "/product/OLJCESPC7Z"
+      },
+      "duration_ms": 33.005,
+      "id": "ev_e2f339e1ab924cf06602",
+      "kind": "SERVER",
+      "operation": "GET /product/{id}",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "1ba2c8847f8a473e",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:04.891811Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.733,
+      "id": "ev_07b341d115fdd817993b",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "52c941e5d0b4d461",
+      "timestamp": "2026-11-18T22:04:04.891861Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.128,
+      "id": "ev_79570bcf75c0a561c69c",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "6036c6e2738aad05",
+      "timestamp": "2026-11-18T22:04:04.892288Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/GetSupportedCurrencies",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.202,
+      "id": "ev_2499eec03df487ed885d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "5b07aabbb0f0ee4d",
+      "timestamp": "2026-11-18T22:04:04.892653Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetSupportedCurrencies",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.681,
+      "id": "ev_1fc76979fba29b1e2b1a",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "f73ea3d5a4d6c50e",
+      "timestamp": "2026-11-18T22:04:04.892999Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.822,
+      "id": "ev_c410dc3b8a37fc857525",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "59122297367ca8c2",
+      "timestamp": "2026-11-18T22:04:04.894916Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/GetCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/GetCart"
+      },
+      "duration_ms": 1.038,
+      "id": "ev_d1aff91e2212ebbec486",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "1f100e6900faaadd",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:04.895411Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET",
+        "db_system": "redis"
+      },
+      "duration_ms": 0.707,
+      "id": "ev_59a6f7aeb26f2f1c9632",
+      "kind": "CLIENT",
+      "operation": "GET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "76205807610a13ab",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:04.895561Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 11.754,
+      "id": "ev_89a701170b2b07c1cd27",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "13b6b01b4c64793b",
+      "timestamp": "2026-11-18T22:04:04.896794Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.95,
+      "id": "ev_ece54b67a3a6f4a42fd6",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "30e8e0c6345fa740",
+      "timestamp": "2026-11-18T22:04:04.897999Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.RecommendationService/ListRecommendations",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 6.292,
+      "id": "ev_8d976fb2d8ea3fb79ce0",
+      "kind": "CLIENT",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "a31071201eebeb3a",
+      "timestamp": "2026-11-18T22:04:04.908596Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListRecommendations",
+        "rpc_service": "hipstershop.RecommendationService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.942,
+      "id": "ev_51e28b1497723ef95093",
+      "kind": "SERVER",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "4991f004fef6750c",
+      "timestamp": "2026-11-18T22:04:04.910415Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListProducts",
+        "rpc_service": "hipstershop.ProductCatalogService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.643,
+      "id": "ev_6135866ee8d6557014e7",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "32750fd2a2296ad8",
+      "timestamp": "2026-11-18T22:04:04.910645Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.096,
+      "id": "ev_02d58ea10bf2eb4a8243",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "455e79a4daf803f3",
+      "timestamp": "2026-11-18T22:04:04.911169Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.875,
+      "id": "ev_954540287504033e2d68",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "104f13cf19259491",
+      "timestamp": "2026-11-18T22:04:04.914961Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.116,
+      "id": "ev_4d26d5b348473dc85334",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "f12c85e6abecb35a",
+      "timestamp": "2026-11-18T22:04:04.915274Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.977,
+      "id": "ev_1612e312922b288d8c24",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "748102c91c86b8ce",
+      "timestamp": "2026-11-18T22:04:04.915896Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.07,
+      "id": "ev_d91bcd19b2c6a316ee74",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "aa53e1e42334a031",
+      "timestamp": "2026-11-18T22:04:04.916191Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.727,
+      "id": "ev_7043c7df138ab0a0bbf0",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "84319fd0a7cf07e1",
+      "timestamp": "2026-11-18T22:04:04.916937Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.102,
+      "id": "ev_393f240c152ee4b2b6dc",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "3b31d05230db9ed4",
+      "timestamp": "2026-11-18T22:04:04.917204Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.402,
+      "id": "ev_95ef04f0f3289e482b52",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "34d49e6ebee6d00e",
+      "timestamp": "2026-11-18T22:04:04.917710Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.069,
+      "id": "ev_54e4183095a5cc060b36",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "a70197097969d0fb",
+      "timestamp": "2026-11-18T22:04:04.917918Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.543,
+      "id": "ev_ac6501a0ee9a18ef0f70",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "dc7b363e24a4047c",
+      "timestamp": "2026-11-18T22:04:04.918144Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.075,
+      "id": "ev_75db23c4b21a7ca322a1",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "42febe37e2932646",
+      "timestamp": "2026-11-18T22:04:04.918395Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.AdService/GetAds",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.65,
+      "id": "ev_d54cf8eae11f03d88d97",
+      "kind": "CLIENT",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "2361ad7f746dd054",
+      "timestamp": "2026-11-18T22:04:04.918748Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetAds",
+        "rpc_service": "hipstershop.AdService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 89.069,
+      "id": "ev_ea1b883e8a075548f902",
+      "kind": "SERVER",
+      "operation": "hipstershop.AdService/GetAds",
+      "outcome": "SUCCESS",
+      "service": "adservice",
+      "signal": "trace",
+      "span_id": "2f40108e3ea0a117",
+      "target": "adservice",
+      "timestamp": "2026-11-18T22:04:04.920287Z",
+      "trace_id": "5924cc63b3944bf4afad355f58603c77"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/cart",
+        "http_status": 302,
+        "url_path": "/cart"
+      },
+      "duration_ms": 3.832,
+      "id": "ev_0e892b18c41501875b42",
+      "kind": "SERVER",
+      "operation": "POST /cart",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "2d0dcc63636c738c",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:05.008712Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.846,
+      "id": "ev_d1e84cf2cffeffdab38d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "9d34cf7b17a72029",
+      "timestamp": "2026-11-18T22:04:05.008782Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.101,
+      "id": "ev_8290aea4481fb932a0f4",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "515e0d5ca3dd77b8",
+      "timestamp": "2026-11-18T22:04:05.009196Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/AddItem",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.778,
+      "id": "ev_ad7a48a860c0101b7bef",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/AddItem",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "98b3d500440c9511",
+      "timestamp": "2026-11-18T22:04:05.009685Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/AddItem",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/AddItem",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/AddItem"
+      },
+      "duration_ms": 2.011,
+      "id": "ev_24c5ad4b921eb0beed45",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/AddItem",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "fc8ced5be76e65ec",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:05.010188Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET SET",
+        "db_system": "redis"
+      },
+      "duration_ms": 1.442,
+      "id": "ev_d6c2060df7863e3eb2f3",
+      "kind": "CLIENT",
+      "operation": "GET SET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "18f249e70d0c0017",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:05.010577Z",
+      "trace_id": "d3df2e8713b6021cc68bb8b38b4bef57"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetSupportedCurrencies",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.634,
+      "id": "ev_87c152fd4a197103a23d",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "3bf0627e2b789849",
+      "timestamp": "2026-11-18T22:04:05.020000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "http_method": "GET",
+        "http_route": "/cart",
+        "http_status": 200,
+        "url_path": "/cart"
+      },
+      "duration_ms": 99.662,
+      "id": "ev_fea32b9921316b9e75d0",
+      "kind": "SERVER",
+      "operation": "GET /cart",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "1450dace27fd09ad",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:05.020070Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/GetSupportedCurrencies",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.481,
+      "id": "ev_80ac11dd398f8fb530de",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "3c894e92f80a0f58",
+      "timestamp": "2026-11-18T22:04:05.020117Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.825,
+      "id": "ev_2f62b4d7a3482e8e0de0",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "6ad46b32d047f25e",
+      "timestamp": "2026-11-18T22:04:05.022663Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/GetCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/GetCart"
+      },
+      "duration_ms": 1.078,
+      "id": "ev_c6095212656b83619751",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "aab1ced76e914e55",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:05.023184Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET",
+        "db_system": "redis"
+      },
+      "duration_ms": 0.72,
+      "id": "ev_f04a0c95f7ee341d349b",
+      "kind": "CLIENT",
+      "operation": "GET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "7fc08800c7399cfe",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:05.023342Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.RecommendationService/ListRecommendations",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 67.007,
+      "id": "ev_31e07657f1671c6c431d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "0210fd38826a3f98",
+      "timestamp": "2026-11-18T22:04:05.024636Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListRecommendations",
+        "rpc_service": "hipstershop.RecommendationService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 4.577,
+      "id": "ev_6c4d057c0af3c84136a4",
+      "kind": "SERVER",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "050c863c3809ab5c",
+      "timestamp": "2026-11-18T22:04:05.026108Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListProducts",
+        "rpc_service": "hipstershop.ProductCatalogService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.195,
+      "id": "ev_e5b96c6e396423d0b601",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "98baace70be12240",
+      "timestamp": "2026-11-18T22:04:05.026330Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.141,
+      "id": "ev_2a9fa760285b13f828bc",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "7c14697fc2ddb712",
+      "timestamp": "2026-11-18T22:04:05.026849Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.623,
+      "id": "ev_ed4d7d7e4acf6325f843",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "fc9280f88ef4767d",
+      "timestamp": "2026-11-18T22:04:05.091698Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.065,
+      "id": "ev_e732b910ab96f7b6b2f5",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "81c1edf52784b4ce",
+      "timestamp": "2026-11-18T22:04:05.092115Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.51,
+      "id": "ev_563b968da07d44d5ca41",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "f70357a55c3dcb95",
+      "timestamp": "2026-11-18T22:04:05.092365Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.055,
+      "id": "ev_798f86bd4085630da513",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "faa3821c193b1589",
+      "timestamp": "2026-11-18T22:04:05.092575Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.628,
+      "id": "ev_a39305a63e64cfd1c813",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "559a43de0d609094",
+      "timestamp": "2026-11-18T22:04:05.092913Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.043,
+      "id": "ev_c1cead51640003ee2413",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "597b4d30f8be2644",
+      "timestamp": "2026-11-18T22:04:05.093137Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 14.932,
+      "id": "ev_c78927ced77c244f6777",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "6bfbf71790748eb1",
+      "timestamp": "2026-11-18T22:04:05.093572Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.064,
+      "id": "ev_384692bcc546734566a4",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "33edb7d269b259df",
+      "timestamp": "2026-11-18T22:04:05.093755Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.614,
+      "id": "ev_33f5bafddc6f550606f9",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "a82f825952449c1d",
+      "timestamp": "2026-11-18T22:04:05.108557Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.097,
+      "id": "ev_3d73019b86ce14740285",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "4fb2da6c1a0083db",
+      "timestamp": "2026-11-18T22:04:05.108891Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.902,
+      "id": "ev_41c6b9094958c8701f06",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "09adbb4c8caf4dc0",
+      "timestamp": "2026-11-18T22:04:05.109237Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.24,
+      "id": "ev_4ecc0226c7b7bba845fe",
+      "kind": "SERVER",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "shippingservice",
+      "signal": "trace",
+      "span_id": "1bcfef488a7879ea",
+      "timestamp": "2026-11-18T22:04:05.109617Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.704,
+      "id": "ev_c1ef9422e744b32f05f6",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "125aabc9360aae30",
+      "timestamp": "2026-11-18T22:04:05.110205Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.836,
+      "id": "ev_f4d536eccfc259d04c86",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "182e02113ea9141b",
+      "timestamp": "2026-11-18T22:04:05.111000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.609,
+      "id": "ev_7f16af89a9cbf0e83593",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "7c9f6a248e9d9929",
+      "timestamp": "2026-11-18T22:04:05.112998Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.096,
+      "id": "ev_4e04d22780a0335911aa",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "6f71708c7cd071b1",
+      "timestamp": "2026-11-18T22:04:05.113319Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.381,
+      "id": "ev_dd0bdf8e7f6b10f38a50",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "13c584e5a3244e5c",
+      "timestamp": "2026-11-18T22:04:05.113684Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.975,
+      "id": "ev_9cd8428b429330af0b44",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "d47ed1e51b1e81e3",
+      "timestamp": "2026-11-18T22:04:05.115000Z",
+      "trace_id": "71d31c5267daa37b7ea14af09fe1b6df"
+    },
+    {
+      "attributes": {
+        "http_method": "GET",
+        "http_route": "/cart",
+        "http_status": 200,
+        "url_path": "/cart"
+      },
+      "duration_ms": 122.568,
+      "id": "ev_8e045e552fd93a109dee",
+      "kind": "SERVER",
+      "operation": "GET /cart",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "f72aade2bd03d2a3",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:05.191847Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/GetSupportedCurrencies",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 16.702,
+      "id": "ev_cc804697d2a888b2a18d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "dab42330fec0b958",
+      "timestamp": "2026-11-18T22:04:05.191896Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetSupportedCurrencies",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.631,
+      "id": "ev_bdbce8681d01cd77548f",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "eea9ee43ed845030",
+      "timestamp": "2026-11-18T22:04:05.192000Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.935,
+      "id": "ev_1fafbffb1e7fe56c72ae",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "fcb5db7646dad80a",
+      "timestamp": "2026-11-18T22:04:05.208674Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/GetCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/GetCart"
+      },
+      "duration_ms": 1.155,
+      "id": "ev_5325e0dea97f879de2a9",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "e9d041ce6b576c8d",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:05.209180Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET",
+        "db_system": "redis"
+      },
+      "duration_ms": 0.712,
+      "id": "ev_15d3060c2e22d38172da",
+      "kind": "CLIENT",
+      "operation": "GET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "6bbf9b8f935f961a",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:05.209377Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.RecommendationService/ListRecommendations",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 6.959,
+      "id": "ev_37d9d18060288b884eb4",
+      "kind": "CLIENT",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "dfc2ce1131502b2f",
+      "timestamp": "2026-11-18T22:04:05.210673Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListRecommendations",
+        "rpc_service": "hipstershop.RecommendationService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.316,
+      "id": "ev_343fafbe03ae09b3c98e",
+      "kind": "SERVER",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "53341a6bed0627de",
+      "timestamp": "2026-11-18T22:04:05.211867Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListProducts",
+        "rpc_service": "hipstershop.ProductCatalogService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.644,
+      "id": "ev_c0eaa6971542fad4e038",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "42292b8ed971242c",
+      "timestamp": "2026-11-18T22:04:05.212055Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.118,
+      "id": "ev_822dedc2625025ef0ce2",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "976d8efecfa83c49",
+      "timestamp": "2026-11-18T22:04:05.212587Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.798,
+      "id": "ev_b2ee423fb9ed9924ee47",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "2c6819f69fe3c2e5",
+      "timestamp": "2026-11-18T22:04:05.217693Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.09,
+      "id": "ev_820fde7525588063ba68",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "a0fb87238071ce0f",
+      "timestamp": "2026-11-18T22:04:05.218152Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.646,
+      "id": "ev_0160ea51f99268d64ad9",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "5e811d1a82681aac",
+      "timestamp": "2026-11-18T22:04:05.218541Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.081,
+      "id": "ev_34a6e3b86f5ea4d38b66",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "3d2691d037ef232b",
+      "timestamp": "2026-11-18T22:04:05.218872Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.518,
+      "id": "ev_c60d67fddef82fef14c6",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "907ad112a603b358",
+      "timestamp": "2026-11-18T22:04:05.219222Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.038,
+      "id": "ev_2388f3666a29eaec1d20",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "63ccf72b7c072be4",
+      "timestamp": "2026-11-18T22:04:05.219387Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.728,
+      "id": "ev_b7a0e7abd1aad2a36809",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "18c3db5457286381",
+      "timestamp": "2026-11-18T22:04:05.219785Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.074,
+      "id": "ev_6fda39d9737cf4430c0f",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "a369e3ffc00e49a9",
+      "timestamp": "2026-11-18T22:04:05.219997Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.619,
+      "id": "ev_1044e384edee2985c4dd",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "9d09456591fc3043",
+      "timestamp": "2026-11-18T22:04:05.220562Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.075,
+      "id": "ev_9f77e8b06213c86d85aa",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "a5a49328acc938ce",
+      "timestamp": "2026-11-18T22:04:05.220809Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.542,
+      "id": "ev_cdf27f0f827f7d5da2ff",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "556aa41bb87f9e42",
+      "timestamp": "2026-11-18T22:04:05.221232Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.215,
+      "id": "ev_1d49f4d0d80ab0515a3d",
+      "kind": "SERVER",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "shippingservice",
+      "signal": "trace",
+      "span_id": "301fb6751da920f2",
+      "timestamp": "2026-11-18T22:04:05.221666Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 69.087,
+      "id": "ev_47e1d145126f6cd9e592",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "e41b9554b44cbffd",
+      "timestamp": "2026-11-18T22:04:05.222860Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.938,
+      "id": "ev_31271b38ea26346bcaf0",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "331c87a6d92176f8",
+      "timestamp": "2026-11-18T22:04:05.224000Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 16.602,
+      "id": "ev_2da5d1e76f9b16822afe",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "a705bcdc146063c5",
+      "timestamp": "2026-11-18T22:04:05.292002Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.068,
+      "id": "ev_44fb34c3dd150a38fd1a",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "f31297b3222e1b43",
+      "timestamp": "2026-11-18T22:04:05.292392Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.841,
+      "id": "ev_682a5b02244e8d061bb3",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "b970836ff3e05416",
+      "timestamp": "2026-11-18T22:04:05.308665Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.218,
+      "id": "ev_4f2cb5f0315f56d1962d",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "878030dbffc5c542",
+      "timestamp": "2026-11-18T22:04:05.308999Z",
+      "trace_id": "0c8dbd510bbf016c7a31ff246b791b3a"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/cart/checkout",
+        "http_status": 200,
+        "url_path": "/cart/checkout"
+      },
+      "duration_ms": 286.509,
+      "id": "ev_e6a23f88d7c2b20e653c",
+      "kind": "SERVER",
+      "operation": "POST /cart/checkout",
+      "outcome": "ERROR",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "26bb8d8fa9bca517",
+      "target": "frontend",
+      "timestamp": "2026-11-18T22:04:05.322822Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CheckoutService/PlaceOrder",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 190.035,
+      "id": "ev_6d7d06b16c97b7cbbd5e",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "cd3a8a3054c7a5b3",
+      "timestamp": "2026-11-18T22:04:05.322951Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CheckoutService/PlaceOrder",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 189.383,
+      "id": "ev_41f84ad399a32072dac0",
+      "kind": "SERVER",
+      "operation": "hipstershop.CheckoutService/PlaceOrder",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "d94be68a03cb68fd",
+      "timestamp": "2026-11-18T22:04:05.323379Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.651,
+      "id": "ev_527f6433b42612676b56",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "38229436e70a56e4",
+      "timestamp": "2026-11-18T22:04:05.323590Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/GetCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/GetCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/GetCart"
+      },
+      "duration_ms": 1.753,
+      "id": "ev_f35d8ddab95896017930",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/GetCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "7fc4ddf99e35f41b",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:05.324121Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "db_operation": "GET",
+        "db_system": "redis"
+      },
+      "duration_ms": 1.045,
+      "id": "ev_ce76fa51d6e0f079f48a",
+      "kind": "CLIENT",
+      "operation": "GET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "75cd287ba9674570",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:05.324307Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.104,
+      "id": "ev_d61e9e3e81518a44c28b",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "f677720a45c126d0",
+      "timestamp": "2026-11-18T22:04:05.326303Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.1,
+      "id": "ev_f208c7e5ee081eee938d",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "9bf3a4f9b904f11b",
+      "timestamp": "2026-11-18T22:04:05.326688Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.447,
+      "id": "ev_b727462d4225d4cdea93",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "e507c8cb8d6d4f08",
+      "timestamp": "2026-11-18T22:04:05.327476Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.971,
+      "id": "ev_e2ed4cb33bc9e495bde6",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "244e48b81ac4c982",
+      "timestamp": "2026-11-18T22:04:05.328000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.316,
+      "id": "ev_97106dc76a41c5565bd2",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "09622a0dc8bae561",
+      "timestamp": "2026-11-18T22:04:05.331022Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/GetQuote",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.204,
+      "id": "ev_1eed02015dd9d0f9bf98",
+      "kind": "SERVER",
+      "operation": "hipstershop.ShippingService/GetQuote",
+      "outcome": "UNKNOWN",
+      "service": "shippingservice",
+      "signal": "trace",
+      "span_id": "71cd0b8f2dc36d76",
+      "timestamp": "2026-11-18T22:04:05.331510Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/Convert",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 68.253,
+      "id": "ev_92ef2f4e8a9c5d042c26",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "6852e64be2325645",
+      "timestamp": "2026-11-18T22:04:05.332496Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Convert",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.909,
+      "id": "ev_5f96b06664da619a564e",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/Convert",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "f0fab19ced0e920e",
+      "timestamp": "2026-11-18T22:04:05.337999Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.PaymentService/Charge",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 102.871,
+      "id": "ev_b4cd170a0be08246ed1e",
+      "kind": "CLIENT",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "4c0939c69849d983",
+      "timestamp": "2026-11-18T22:04:05.400818Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Charge",
+        "rpc_service": "hipstershop.PaymentService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.081,
+      "id": "ev_6a077447e70549b3b7ee",
+      "kind": "SERVER",
+      "operation": "hipstershop.PaymentService/Charge",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "trace",
+      "span_id": "e8aa8ba371106d4d",
+      "timestamp": "2026-11-18T22:04:05.500999Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/ShipOrder",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.619,
+      "id": "ev_d0e6905c0629f0cb6a7b",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "5c484f7bb701edfe",
+      "timestamp": "2026-11-18T22:04:05.503836Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ShippingService/ShipOrder",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.198,
+      "id": "ev_b64da45efdbc12d95694",
+      "kind": "SERVER",
+      "operation": "hipstershop.ShippingService/ShipOrder",
+      "outcome": "UNKNOWN",
+      "service": "shippingservice",
+      "signal": "trace",
+      "span_id": "38c27a837012f4ee",
+      "timestamp": "2026-11-18T22:04:05.504316Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CartService/EmptyCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.255,
+      "id": "ev_34e58b68c9e825ebe643",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CartService/EmptyCart",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "d730f83036ecc4a3",
+      "timestamp": "2026-11-18T22:04:05.505553Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "http_method": "POST",
+        "http_route": "/hipstershop.CartService/EmptyCart",
+        "http_status": 200,
+        "rpc_method": "hipstershop.CartService/EmptyCart",
+        "rpc_status": "OK",
+        "rpc_system": "grpc",
+        "url_path": "/hipstershop.CartService/EmptyCart"
+      },
+      "duration_ms": 1.987,
+      "id": "ev_d1b4655466dcde64226c",
+      "kind": "SERVER",
+      "operation": "hipstershop.CartService/EmptyCart",
+      "outcome": "ERROR",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "132dc45f0bf7ea88",
+      "target": "cartservice",
+      "timestamp": "2026-11-18T22:04:05.506234Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "db_operation": "SET",
+        "db_system": "redis"
+      },
+      "duration_ms": 1.598,
+      "id": "ev_8c51939f93891e9c4d13",
+      "kind": "CLIENT",
+      "operation": "SET",
+      "outcome": "UNKNOWN",
+      "service": "cartservice",
+      "signal": "trace",
+      "span_id": "b0a2e4fd6317cbe4",
+      "target": "redis-cart",
+      "timestamp": "2026-11-18T22:04:05.506405Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.EmailService/SendOrderConfirmation",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 3.749,
+      "id": "ev_b137d685f485119be26c",
+      "kind": "CLIENT",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "UNKNOWN",
+      "service": "checkoutservice",
+      "signal": "trace",
+      "span_id": "f09c5dcc72948f9c",
+      "timestamp": "2026-11-18T22:04:05.508871Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "SendOrderConfirmation",
+        "rpc_service": "hipstershop.EmailService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.313,
+      "id": "ev_5cc2c51174568aa16bdc",
+      "kind": "SERVER",
+      "operation": "hipstershop.EmailService/SendOrderConfirmation",
+      "outcome": "SUCCESS",
+      "service": "emailservice",
+      "signal": "trace",
+      "span_id": "f51ad67950489ab1",
+      "timestamp": "2026-11-18T22:04:05.510767Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.RecommendationService/ListRecommendations",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 7.365,
+      "id": "ev_da38cf60f3dca1f30d94",
+      "kind": "CLIENT",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "d4553f895c2a89af",
+      "timestamp": "2026-11-18T22:04:05.513119Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListRecommendations",
+        "rpc_service": "hipstershop.RecommendationService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 5.06,
+      "id": "ev_5f6f702fa11376919c80",
+      "kind": "SERVER",
+      "operation": "hipstershop.RecommendationService/ListRecommendations",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "9511afe913061c39",
+      "timestamp": "2026-11-18T22:04:05.514725Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "ListProducts",
+        "rpc_service": "hipstershop.ProductCatalogService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 2.234,
+      "id": "ev_665621d8e68c6b681672",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "SUCCESS",
+      "service": "recommendationservice",
+      "signal": "trace",
+      "span_id": "89c08d25382a46e5",
+      "timestamp": "2026-11-18T22:04:05.514970Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/ListProducts",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.102,
+      "id": "ev_e2f50cfa635e515c7838",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/ListProducts",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "b2d82ed77a0f8d43",
+      "timestamp": "2026-11-18T22:04:05.515528Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.108,
+      "id": "ev_e11838ce1450a82fd81f",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "a6d99190f902a2dd",
+      "timestamp": "2026-11-18T22:04:05.520547Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.101,
+      "id": "ev_b7df35660b8f5b243713",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "bb4eb9f109208f6e",
+      "timestamp": "2026-11-18T22:04:05.520914Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 1.552,
+      "id": "ev_4011bbe5ec158824fe8d",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "aa40f1552a51a10f",
+      "timestamp": "2026-11-18T22:04:05.521811Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.096,
+      "id": "ev_75ed76d8e846c1705879",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "37c4baef218b3d88",
+      "timestamp": "2026-11-18T22:04:05.522462Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.618,
+      "id": "ev_59d4bb061142e7cb73ea",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "00d868565bcf9cf8",
+      "timestamp": "2026-11-18T22:04:05.523517Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.066,
+      "id": "ev_b95143c556531d0f387d",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "77ae0401caca0fa7",
+      "timestamp": "2026-11-18T22:04:05.523834Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.525,
+      "id": "ev_3d6fa65a192dd7d541b8",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "a6aff57851c49cc6",
+      "timestamp": "2026-11-18T22:04:05.524197Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.087,
+      "id": "ev_d8baec96a834ddbde552",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "8a8f1921b6d14966",
+      "timestamp": "2026-11-18T22:04:05.524363Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 66.827,
+      "id": "ev_dc19645859968c562233",
+      "kind": "CLIENT",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "6d7c1de0e4e5155a",
+      "timestamp": "2026-11-18T22:04:05.524773Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.ProductCatalogService/GetProduct",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.073,
+      "id": "ev_8f4d4c3bcc07947b9255",
+      "kind": "SERVER",
+      "operation": "hipstershop.ProductCatalogService/GetProduct",
+      "outcome": "UNKNOWN",
+      "service": "productcatalogservice",
+      "signal": "trace",
+      "span_id": "601135582f07e074",
+      "timestamp": "2026-11-18T22:04:05.525065Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "hipstershop.CurrencyService/GetSupportedCurrencies",
+        "rpc_status": "OK",
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 17.022,
+      "id": "ev_f3bb39d4a69967fa992b",
+      "kind": "CLIENT",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "UNKNOWN",
+      "service": "frontend",
+      "signal": "trace",
+      "span_id": "e8ef5317c08f6f8d",
+      "timestamp": "2026-11-18T22:04:05.591649Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "GetSupportedCurrencies",
+        "rpc_service": "hipstershop.CurrencyService",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.947,
+      "id": "ev_b6618bb0f372ac59f8ff",
+      "kind": "SERVER",
+      "operation": "hipstershop.CurrencyService/GetSupportedCurrencies",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "852d9b3114eda4f9",
+      "timestamp": "2026-11-18T22:04:05.592000Z",
+      "trace_id": "51b51a98f5021e9fdc9a896fec1e21b9"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.081,
+      "id": "ev_9126be40380dd763d171",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "2764276d8af54172",
+      "timestamp": "2026-11-18T22:04:06.540000Z",
+      "trace_id": "c75c2ed5c667d917d11a99a0f9aae9dd"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.076,
+      "id": "ev_7d40b296f07892690f5f",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "trace",
+      "span_id": "4d2d2da9f49a9191",
+      "timestamp": "2026-11-18T22:04:06.542000Z",
+      "trace_id": "66238dbf98f25c14e8b1382c42ea6c65"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.06,
+      "id": "ev_714a6ccc515129493fd2",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "d94ff3e3ff201fbf",
+      "timestamp": "2026-11-18T22:04:13.315000Z",
+      "trace_id": "e1406b8e82c1f939d9675f755b493401"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.049,
+      "id": "ev_11711900925d3dc05f06",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "trace",
+      "span_id": "04feb75d7688a461",
+      "timestamp": "2026-11-18T22:04:13.422000Z",
+      "trace_id": "5c59d25cfc1bedad26fd9f0d8abae4a0"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.054,
+      "id": "ev_049340fb52d4c73d8430",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "currencyservice",
+      "signal": "trace",
+      "span_id": "8719d20a504bb518",
+      "timestamp": "2026-11-18T22:04:20.124999Z",
+      "trace_id": "8a0e94ba12141390dc7006884e962701"
+    },
+    {
+      "attributes": {
+        "rpc_method": "Check",
+        "rpc_service": "grpc.health.v1.Health",
+        "rpc_status": 0,
+        "rpc_system": "grpc"
+      },
+      "duration_ms": 0.08,
+      "id": "ev_8102b027d37404bc8d01",
+      "kind": "SERVER",
+      "operation": "grpc.health.v1.Health/Check",
+      "outcome": "SUCCESS",
+      "service": "paymentservice",
+      "signal": "trace",
+      "span_id": "63cf519f2d9dcb89",
+      "timestamp": "2026-11-18T22:04:20.127000Z",
+      "trace_id": "e051ff5c7ece67669402b615976d6afb"
+    }
+  ],
+  "schema_version": "1.0"
+}

@@ -1,0 +1,110 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:12:12.150Z",
+      "latency_ms": 17307.723,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:11:51.256Z"
+    }
+  ],
+  "created_at": 1795039914.0,
+  "estimated_cost_usd": "0.0049358",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 17309.116,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.72,
+        "evidence_ids": [
+          "ev_14446f289cd7b9add8ef",
+          "ev_318c210c75c9705848b6",
+          "ev_e4db5df7b4504ff6c740",
+          "ev_03c1f625db9ae0f0e5af",
+          "ev_f999f16e0d1fcfde29a6",
+          "ev_4b90d563774871db5748"
+        ],
+        "explanation": "Frontend server spans report errors across several routes, while their downstream calls and the checkout workflow complete successfully, localizing the failures to frontend request handling.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "service",
+          "operation": null,
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.55,
+        "evidence_ids": [
+          "ev_64c1601f5ca4e5d2a26b",
+          "ev_9c4f67be5e7f9f6238ec",
+          "ev_3f8e479ca59a6970ee25",
+          "ev_2ea28a43f0b7ac0b91de",
+          "ev_0bdb2e6454c01f6ce2fc",
+          "ev_1ab9c5a9ce9509a03976"
+        ],
+        "explanation": "Currency calls show large frontend-side durations, including 50–69 ms calls against sub-millisecond server spans; the frontend aggregate duration also exceeds the currencyservice aggregate.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "currencyservice",
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.38,
+        "evidence_ids": [
+          "ev_7f9c959190695899cf17",
+          "ev_7b55f877723781e212ff"
+        ],
+        "explanation": "A recommendation call takes 67 ms from the frontend while the recommendationservice server span is about 3.6 ms, indicating delay on the call path outside the server span.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "recommendationservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":null,\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.72,\"evidence_ids\":[\"ev_14446f289cd7b9add8ef\",\"ev_318c210c75c9705848b6\",\"ev_e4db5df7b4504ff6c740\",\"ev_03c1f625db9ae0f0e5af\",\"ev_f999f16e0d1fcfde29a6\",\"ev_4b90d563774871db5748\"],\"explanation\":\"Frontend server spans report errors across several routes, while their downstream calls and the checkout workflow complete successfully, localizing the failures to frontend request handling.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.55,\"evidence_ids\":[\"ev_64c1601f5ca4e5d2a26b\",\"ev_9c4f67be5e7f9f6238ec\",\"ev_3f8e479ca59a6970ee25\",\"ev_2ea28a43f0b7ac0b91de\",\"ev_0bdb2e6454c01f6ce2fc\",\"ev_1ab9c5a9ce9509a03976\"],\"explanation\":\"Currency calls show large frontend-side durations, including 50–69 ms calls against sub-millisecond server spans; the frontend aggregate duration also exceeds the currencyservice aggregate.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"recommendationservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.38,\"evidence_ids\":[\"ev_7f9c959190695899cf17\",\"ev_7b55f877723781e212ff\"],\"explanation\":\"A recommendation call takes 67 ms from the frontend while the recommendationservice server span is about 3.6 ms, indicating delay on the call path outside the server span.\"}]}",
+  "request_fingerprint": "88c4a61b3c0b5a34d4ed8c489bcc8f2aabbe9f8da64c5a996ab4f27012da49bf",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_052282036f722539016afe22aa627487d28ebebc31fc7387ab",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 32884,
+    "cache_write_tokens": 32884,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0049358",
+    "input_tokens": 32887,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1650,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 1166,
+    "total_tokens": 34537
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

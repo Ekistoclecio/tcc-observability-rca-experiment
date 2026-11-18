@@ -1,0 +1,49 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:11:01.663Z",
+      "latency_ms": 14193.943,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:10:43.882Z"
+    }
+  ],
+  "created_at": 1795039847.0,
+  "estimated_cost_usd": "0.00628455",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 14198.055,
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"paymentservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.78,\"evidence_ids\":[\"ev_b4cd170a0be08246ed1e\",\"ev_6a077447e70549b3b7ee\",\"ev_d4c986d88d9f32565358\",\"ev_86c870257ce92d396aab\"],\"explanation\":\"The checkout-to-payment client span took about 103 ms while the payment server span took about 1 ms; payment logs confirm the charge completed successfully, consistent with delay on the service edge.\"},{\"rank\":2,\"location\":{\"kind\":\"service_edge\",\"service\":\"checkoutservice\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.68,\"evidence_ids\":[\"ev_92ef2f4e8a9c5d042c26\",\"ev_5f96b06664da619a564e6\",\"ev_b727462d4225d4cdea93\",\"ev_e2ed4cb33bc9e495bde6\"],\"explanation\":\"Checkout-side currency conversion spans include a roughly 68 ms call whose currencyservice server span is under 1 ms; the request nevertheless succeeded.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"currencyservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.58,\"evidence_ids\":[\"ev_3cb0a3af2fbed2d0d3d8\",\"ev_980c43b1e6aac59f5bd4\",\"ev_1b072145cc2e8d8f9af5\",\"ev_8e45596b26200b344d1a\"],\"explanation\":\"Frontend currency calls show long client spans, including about 79 ms, while other successful currency conversions are sub-millisecond; this supports intermittent delay on the frontend-to-currency edge.\"}]}",
+  "request_fingerprint": "1341aafddaf401cd7bc85aa309efde7dae02fef8241fd56aa09d0977115800b9",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_08461e38a6773491016afe2267846c87d2a9469828e8221447",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "SEMANTICALLY_INVALID",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 44734,
+    "cache_write_tokens": 44734,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.00628455",
+    "input_tokens": 44737,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1385,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 924,
+    "total_tokens": 46122
+  },
+  "validation": {
+    "detail": {
+      "code": "UNKNOWN_EVIDENCE_ID",
+      "detail": "rank 2 references unknown IDs: ['ev_5f96b06664da619a564e6']",
+      "status": "FAIL"
+    },
+    "semantic": "FAIL",
+    "structured_output": "FAIL"
+  }
+}

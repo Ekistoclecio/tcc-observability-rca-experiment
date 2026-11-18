@@ -1,0 +1,109 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:12:39.637Z",
+      "latency_ms": 12921.619,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:12:23.128Z"
+    }
+  ],
+  "created_at": 1795039945.0,
+  "estimated_cost_usd": "0.0058723",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 12923.222,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.97,
+        "evidence_ids": [
+          "ev_9ffb1ea785981ffbf5b9",
+          "ev_f046e3e5969a3fade4de",
+          "ev_d47cfa6fed916725974e",
+          "ev_df52e56477434ea6623c"
+        ],
+        "explanation": "PaymentService Charge emits “Payment charge failed” and returns gRPC INTERNAL; the checkout request error explicitly propagates that charge failure.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.68,
+        "evidence_ids": [
+          "ev_b88728f18c6b8b908753",
+          "ev_e94d140bc245ca824d15",
+          "ev_1edea3f1c0020f930376"
+        ],
+        "explanation": "PlaceOrder records an ERROR and returns INTERNAL during the failed checkout, though telemetry indicates the payment charge error is the underlying cause.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.CheckoutService/PlaceOrder",
+          "peer_service": null,
+          "service": "checkoutservice"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.35,
+        "evidence_ids": [
+          "ev_3976d543fb9145c14482",
+          "ev_0b73eb9679bf61d48d83",
+          "ev_5c3f5ceabf6ed67688be",
+          "ev_47a8e521625981a2f019",
+          "ev_ed2de7f5d9e4822ebdce",
+          "ev_dc6cd192ac7785483469"
+        ],
+        "explanation": "Some frontend GetProduct client spans take about 65–87 ms while the corresponding product-catalog server spans are under 1 ms, consistent with intermittent latency on this edge.",
+        "fault_type": "network_latency",
+        "location": {
+          "datastore": null,
+          "kind": "service_edge",
+          "operation": null,
+          "peer_service": "productcatalogservice",
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.97,\"evidence_ids\":[\"ev_9ffb1ea785981ffbf5b9\",\"ev_f046e3e5969a3fade4de\",\"ev_d47cfa6fed916725974e\",\"ev_df52e56477434ea6623c\"],\"explanation\":\"PaymentService Charge emits “Payment charge failed” and returns gRPC INTERNAL; the checkout request error explicitly propagates that charge failure.\"},{\"rank\":2,\"location\":{\"kind\":\"operation\",\"service\":\"checkoutservice\",\"peer_service\":null,\"operation\":\"hipstershop.CheckoutService/PlaceOrder\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.68,\"evidence_ids\":[\"ev_b88728f18c6b8b908753\",\"ev_e94d140bc245ca824d15\",\"ev_1edea3f1c0020f930376\"],\"explanation\":\"PlaceOrder records an ERROR and returns INTERNAL during the failed checkout, though telemetry indicates the payment charge error is the underlying cause.\"},{\"rank\":3,\"location\":{\"kind\":\"service_edge\",\"service\":\"frontend\",\"peer_service\":\"productcatalogservice\",\"operation\":null,\"datastore\":null},\"fault_type\":\"network_latency\",\"confidence\":0.35,\"evidence_ids\":[\"ev_3976d543fb9145c14482\",\"ev_0b73eb9679bf61d48d83\",\"ev_5c3f5ceabf6ed67688be\",\"ev_47a8e521625981a2f019\",\"ev_ed2de7f5d9e4822ebdce\",\"ev_dc6cd192ac7785483469\"],\"explanation\":\"Some frontend GetProduct client spans take about 65–87 ms while the corresponding product-catalog server spans are under 1 ms, consistent with intermittent latency on this edge.\"}]}",
+  "request_fingerprint": "69ce706b4fee260b0f21a1ccdd3fffd2bd5ecd4aabb2b2ffa8f57e084dfcc440",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_05f70040f035aee8016afe22c9973c87d2ba4b0c8e23368a3c",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 41736,
+    "cache_write_tokens": 41736,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.0058723",
+    "input_tokens": 41739,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1310,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 859,
+    "total_tokens": 43049
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "api_status": "completed",
+  "attempt_count": 1,
+  "attempts": [
+    {
+      "attempt": 1,
+      "finished_at": "2026-11-18T22:11:33.499Z",
+      "latency_ms": 10549.629,
+      "outcome": "MODEL_RESPONSE",
+      "started_at": "2026-11-18T22:11:19.363Z"
+    }
+  ],
+  "created_at": 1795039882.0,
+  "estimated_cost_usd": "0.004458175",
+  "incomplete_details": null,
+  "latency_clean": true,
+  "latency_ms": 10551.115,
+  "prediction": {
+    "hypotheses": [
+      {
+        "confidence": 0.96,
+        "evidence_ids": [
+          "ev_d20b7857a3de05b72a90",
+          "ev_f9a1b60a957a19618f16",
+          "ev_09d0a66601dc923b595f",
+          "ev_bb16dc543f3bad9e48cb"
+        ],
+        "explanation": "The payment charge logs an explicit failure and its server trace ends in ERROR; checkout PlaceOrder also records an error.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "hipstershop.PaymentService/Charge",
+          "peer_service": null,
+          "service": "paymentservice"
+        },
+        "rank": 1
+      },
+      {
+        "confidence": 0.58,
+        "evidence_ids": [
+          "ev_48abe6e22a33eeda0f11",
+          "ev_1fc1d19f8c35862c5c2e",
+          "ev_a6aad8f6c27f6525d8a6",
+          "ev_d124d6af1b78acd0e5ad"
+        ],
+        "explanation": "Frontend GET /cart traces end in ERROR despite successful CartService and Redis calls, pointing to an issue within the frontend operation.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "GET /cart",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 2
+      },
+      {
+        "confidence": 0.46,
+        "evidence_ids": [
+          "ev_81332a70e55145bb5e02",
+          "ev_9785d514b335cc504b61",
+          "ev_a8ec24575bdf5589bae5"
+        ],
+        "explanation": "The frontend product-page trace errors while its ProductCatalogService/GetProduct client call and server span succeed.",
+        "fault_type": "application_exception",
+        "location": {
+          "datastore": null,
+          "kind": "operation",
+          "operation": "GET /product/{id}",
+          "peer_service": null,
+          "service": "frontend"
+        },
+        "rank": 3
+      }
+    ]
+  },
+  "raw_model_output": "{\"hypotheses\":[{\"rank\":1,\"location\":{\"kind\":\"operation\",\"service\":\"paymentservice\",\"peer_service\":null,\"operation\":\"hipstershop.PaymentService/Charge\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.96,\"evidence_ids\":[\"ev_d20b7857a3de05b72a90\",\"ev_f9a1b60a957a19618f16\",\"ev_09d0a66601dc923b595f\",\"ev_bb16dc543f3bad9e48cb\"],\"explanation\":\"The payment charge logs an explicit failure and its server trace ends in ERROR; checkout PlaceOrder also records an error.\"},{\"rank\":2,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"GET /cart\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.58,\"evidence_ids\":[\"ev_48abe6e22a33eeda0f11\",\"ev_1fc1d19f8c35862c5c2e\",\"ev_a6aad8f6c27f6525d8a6\",\"ev_d124d6af1b78acd0e5ad\"],\"explanation\":\"Frontend GET /cart traces end in ERROR despite successful CartService and Redis calls, pointing to an issue within the frontend operation.\"},{\"rank\":3,\"location\":{\"kind\":\"operation\",\"service\":\"frontend\",\"peer_service\":null,\"operation\":\"GET /product/{id}\",\"datastore\":null},\"fault_type\":\"application_exception\",\"confidence\":0.46,\"evidence_ids\":[\"ev_81332a70e55145bb5e02\",\"ev_9785d514b335cc504b61\",\"ev_a8ec24575bdf5589bae5\"],\"explanation\":\"The frontend product-page trace errors while its ProductCatalogService/GetProduct client call and server span succeed.\"}]}",
+  "request_fingerprint": "f9c98f53dd09ebb8a00c5cb3e7d5481a48ff491f6c9481f5f63acbd48cc99b5f",
+  "requested_model": "gpt-6-luna",
+  "response_id": "resp_00950ec6f3063b9d016afe228aa8d887d288567eda2c085a29",
+  "returned_model": "gpt-6-luna",
+  "service_tier_requested": "default",
+  "service_tier_returned": "default",
+  "status": "COMPLETED",
+  "usage": {
+    "cache_write_12h_tokens": 0,
+    "cache_write_30m_tokens": 30987,
+    "cache_write_tokens": 30987,
+    "cached_input_tokens": 0,
+    "cost_status": "ESTIMATED",
+    "estimated_cost_usd": "0.004458175",
+    "input_tokens": 30990,
+    "long_context_pricing_applied": false,
+    "output_tokens": 1169,
+    "pricing_version": "pricing-v1",
+    "reasoning_tokens": 758,
+    "total_tokens": 32159
+  },
+  "validation": {
+    "detail": {
+      "status": "PASS"
+    },
+    "semantic": "PASS",
+    "structured_output": "PASS"
+  }
+}
