@@ -3,7 +3,8 @@ from __future__ import annotations
 import unittest
 
 from scripts.experiment.evaluation.evaluator import (
-    EvaluationError, evaluate_case, exact_location_match, ground_truth_location,
+    EvaluationError, _aggregate, _paired, evaluate_case, exact_location_match,
+    ground_truth_location,
 )
 
 
@@ -72,6 +73,29 @@ class DeterministicScoringTests(unittest.TestCase):
         self.assertEqual(result["total_tokens"], 126)
         self.assertEqual(result["estimated_cost_usd"], 0.004)
         self.assertEqual(result["latency_ms"], 321.0)
+
+    def test_paired_operational_deltas_use_aggregate_fields(self):
+        row_a = {"input_tokens": 100, "cached_input_tokens": 10, "output_tokens": 20,
+                 "reasoning_tokens": 5, "total_tokens": 120, "estimated_cost_usd": 0.01,
+                 "latency_ms": 100.0}
+        row_b = {"input_tokens": 160, "cached_input_tokens": 20, "output_tokens": 30,
+                 "reasoning_tokens": 7, "total_tokens": 190, "estimated_cost_usd": 0.02,
+                 "latency_ms": 140.0}
+        paired = _paired(_aggregate([row_a]), _aggregate([row_b]))
+        expected = {
+            "input_tokens": (100, 160, 60.0),
+            "cached_input_tokens": (10, 20, 10.0),
+            "output_tokens": (20, 30, 10.0),
+            "reasoning_tokens": (5, 7, 2.0),
+            "total_tokens": (120, 190, 70.0),
+            "estimated_cost_usd": (0.01, 0.02, 0.01),
+            "latency_ms": (100.0, 140.0, 40.0),
+        }
+        for metric, (value_a, value_b, delta) in expected.items():
+            with self.subTest(metric=metric):
+                self.assertEqual(paired[metric]["A"], value_a)
+                self.assertEqual(paired[metric]["B"], value_b)
+                self.assertAlmostEqual(paired[metric]["delta_B_minus_A"], delta)
 
     def test_unknown_ground_truth_encoding_fails_closed(self):
         with self.assertRaises(EvaluationError):

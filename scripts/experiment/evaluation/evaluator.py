@@ -160,9 +160,21 @@ def _delta(a: Any, b: Any) -> Any:
 
 
 def _paired(a: Mapping[str, Any], b: Mapping[str, Any]) -> dict[str, Any]:
-    metrics = (*QUALITY_METRICS, *OPERATIONAL_METRICS)
-    return {key: {"A": a.get(key), "B": b.get(key),
-                  "delta_B_minus_A": _delta(a.get(key), b.get(key))} for key in metrics}
+    aggregate_fields = {
+        "input_tokens": "total_input_tokens",
+        "cached_input_tokens": "total_cached_input_tokens",
+        "output_tokens": "total_output_tokens",
+        "reasoning_tokens": "total_reasoning_tokens",
+        "total_tokens": "total_tokens",
+        "estimated_cost_usd": "total_estimated_cost_usd",
+        "latency_ms": "mean_latency_ms",
+    }
+    result = {}
+    for metric in (*QUALITY_METRICS, *OPERATIONAL_METRICS):
+        field = aggregate_fields.get(metric, metric)
+        result[metric] = {"A": a.get(field), "B": b.get(field),
+                          "delta_B_minus_A": _delta(a.get(field), b.get(field))}
+    return result
 
 
 def evaluate_run_layout(run_root: Path) -> dict[str, Any]:
